@@ -1,0 +1,18 @@
+{
+  "properties": [
+    {
+      "name": "mappings.preambule",
+      "type": "java.lang.String",
+      "description": "http//:localhost."
+    },
+    {
+      "name": "mappings.auth",
+      "type": "java.lang.String",
+      "description": "Description for mappings.auth."
+    },
+    {
+      "name": "cookie.name.jwt",
+      "type": "java.lang.String",
+      "description": "Jwt token cookie name"
+    }
+  ] }
