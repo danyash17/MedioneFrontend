@@ -1,16 +1,16 @@
-package bsu.rpact.medionefrontend.view;
+package bsu.rpact.medionefrontend.vaadin.view;
 
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
-import javax.annotation.security.PermitAll;
 
 @Route("/home")
 @PageTitle("Home")
+@PreserveOnRefresh
 //@Route(value = "home", layout = MainLayout.class)
 //@RouteAlias(value = "", layout = MainLayout.class)
 public class HomeView extends VerticalLayout {

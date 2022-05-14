@@ -14,5 +14,10 @@
       "name": "cookie.name.jwt",
       "type": "java.lang.String",
       "description": "Jwt token cookie name"
+    },
+    {
+      "name": "mappings.register",
+      "type": "java.lang.String",
+      "description": "Description for mappings.register."
     }
   ] }
