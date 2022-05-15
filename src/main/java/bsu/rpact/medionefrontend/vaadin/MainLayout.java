@@ -2,8 +2,7 @@ package bsu.rpact.medionefrontend.vaadin;
 
 import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.utils.UiUtils;
-import bsu.rpact.medionefrontend.vaadin.view.HomeView;
-import bsu.rpact.medionefrontend.vaadin.view.RestrictedView;
+import bsu.rpact.medionefrontend.vaadin.view.*;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
@@ -44,11 +43,23 @@ public class MainLayout extends AppLayout {
     }
 
     private void createDrawer() {
-        RouterLink listLink = new RouterLink("Home", HomeView.class);
-        listLink.setHighlightCondition(HighlightConditions.sameLocation());
-
-        addToDrawer(new VerticalLayout(
-                listLink
-        ));
+        RouterLink homeLink = new RouterLink("Home", HomeView.class);
+        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
+        RouterLink visitLink = new RouterLink("Visits", VisitView.class);
+        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
+        RouterLink profileLink = new RouterLink("Profile", ProfileView.class);
+        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
+        RouterLink documentLink = new RouterLink("Documents", DocumentView.class);
+        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
+        RouterLink notesLink = new RouterLink("Notes", NoteView.class);
+        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
+        VerticalLayout layout = new VerticalLayout(
+                homeLink,
+                profileLink,
+                visitLink,
+                documentLink,
+                notesLink
+        );
+        addToDrawer(layout);
     }
 }
