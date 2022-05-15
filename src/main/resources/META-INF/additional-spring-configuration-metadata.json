@@ -19,5 +19,20 @@
       "name": "mappings.register",
       "type": "java.lang.String",
       "description": "Description for mappings.register."
+    },
+    {
+      "name": "frontend.mappings.preambule",
+      "type": "java.lang.String",
+      "description": "Description for frontend.mappings.preambule."
+    },
+    {
+      "name": "frontend.routes.auth",
+      "type": "java.lang.String",
+      "description": "Description for frontend.routes.auth."
+    },
+    {
+      "name": "frontend.mappings.restricted",
+      "type": "java.lang.String",
+      "description": "Description for frontend.mappings.restricted."
     }
   ] }

@@ -3,6 +3,7 @@ package bsu.rpact.medionefrontend.vaadin.view;
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
 import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
 import bsu.rpact.medionefrontend.service.AuthService;
+import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.html.Anchor;
@@ -12,25 +13,29 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteConfiguration;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Route("auth")
+@RouteAlias(value = "")
 @PreserveOnRefresh
 public class LoginView extends Composite<VerticalLayout> {
 
     private final AuthService authService;
     private final CookieHelper cookieHelper;
+    private final SessionManager sessionManager;
     private final UiUtils uiUtils;
 
 
-    public LoginView(AuthService authService, CookieHelper cookieHelper, UiUtils uiUtils) {
+    public LoginView(AuthService authService, CookieHelper cookieHelper, SessionManager sessionManager, UiUtils uiUtils) {
+        this.authService = authService;
+        this.sessionManager = sessionManager;
+        this.cookieHelper = cookieHelper;
+        this.uiUtils = uiUtils;
         String route = RouteConfiguration.forSessionScope()
                 .getUrl(RegistrationView.class);
         Anchor link = new Anchor(route, "New here? Click and register");
-        this.authService = authService;
-        this.cookieHelper = cookieHelper;
-        this.uiUtils = uiUtils;
         VerticalLayout layout = getContent();
         LoginForm loginForm = new LoginForm();
         H1 header = new H1("Medione");
@@ -39,7 +44,8 @@ public class LoginView extends Composite<VerticalLayout> {
         loginForm.addLoginListener(loginEvent -> {
             try {
                 JwtResponce jwtResponce = this.authService.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
-                this.cookieHelper.initTokenCookie(jwtResponce.getToken());
+                this.cookieHelper.addTokenCookie(jwtResponce.getToken(), 90000);
+                sessionManager.generateAuthUserAttributes(jwtResponce);
                 loginForm.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
             }
             catch (WebClientResponseException e){

@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
-import bsu.rpact.medionefrontend.vaadin.MainLayout;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
@@ -8,22 +8,26 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
+import com.vaadin.flow.router.RouteConfiguration;
 
 @PageTitle("Home")
 @PreserveOnRefresh
-@Route(value = "home", layout = MainLayout.class)
-public class HomeView extends VerticalLayout {
+@Route(value = "restricted")
+public class RestrictedView extends VerticalLayout {
 
-    public HomeView() {
+    public RestrictedView() {
         setSpacing(false);
 
-        Image img = new Image("images/empty-plant.png", "placeholder plant");
+        Image img = new Image("images/restricted.png", "restricted");
         img.setWidth("200px");
         add(img);
 
-        add(new H2("This place intentionally left empty"));
-        add(new Paragraph("It’s a place where you can grow your own UI 🤗"));
+        add(new H2("Oops, it seems like you trying to access secured page without authorization"));
+        add(new Paragraph("Look around, little hacker :)"));
+        String route = RouteConfiguration.forSessionScope()
+                .getUrl(LoginView.class);
+        Anchor link = new Anchor(route, "Return to login");
+        add(link);
 
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.CENTER);

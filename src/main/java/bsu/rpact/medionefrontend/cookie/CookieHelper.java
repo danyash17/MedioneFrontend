@@ -12,12 +12,27 @@ public class CookieHelper {
     @Value("${cookie.name.jwt}")
     private String jwtCookieName;
 
-    public void initTokenCookie(String token){
+    public void addTokenCookie(String token, int age){
         Cookie jwtTokenCookie = new Cookie(jwtCookieName, token);
-        jwtTokenCookie.setMaxAge(9000000);
+        jwtTokenCookie.setMaxAge(age);
         jwtTokenCookie.setSecure(true);
         jwtTokenCookie.setHttpOnly(true);
         VaadinService.getCurrentResponse().addCookie(jwtTokenCookie);
     }
 
+    public String getJwtCookieName() {
+        return jwtCookieName;
+    }
+
+    public void setJwtCookieName(String jwtCookieName) {
+        this.jwtCookieName = jwtCookieName;
+    }
+
+    public void generateTerminatorCookie() {
+        Cookie terminator = new Cookie("terminator", "true");
+        terminator.setMaxAge(90000);
+        terminator.setSecure(true);
+        terminator.setHttpOnly(true);
+        VaadinService.getCurrentResponse().addCookie(terminator);
+    }
 }

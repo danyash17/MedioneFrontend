@@ -1,5 +1,7 @@
 package bsu.rpact.medionefrontend.pojo.authentication;
 
+import bsu.rpact.medionefrontend.enums.Role;
+
 public class JwtResponce {
     private static final String TOKEN_TYPE = "BEARER";
     private String token;
@@ -9,8 +11,9 @@ public class JwtResponce {
     private String lastName;
     private String patronymic;
     private String phone;
+    private Role role;
 
-    public JwtResponce(String token, Integer id, String login, String firstName, String lastName, String patronymic, String phone) {
+    public JwtResponce(String token, Integer id, String login, String firstName, String lastName, String patronymic, String phone, Role role) {
         this.token = token;
         this.id = id;
         this.login = login;
@@ -18,6 +21,7 @@ public class JwtResponce {
         this.lastName = lastName;
         this.patronymic = patronymic;
         this.phone = phone;
+        this.role = role;
     }
 
     public JwtResponce() {
@@ -77,5 +81,13 @@ public class JwtResponce {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

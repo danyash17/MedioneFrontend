@@ -1,12 +1,10 @@
 package bsu.rpact.medionefrontend.utils;
 
 import bsu.rpact.medionefrontend.pojo.authentication.RegisterRequest;
-import bsu.rpact.medionefrontend.vaadin.view.HomeView;
 import bsu.rpact.medionefrontend.vaadin.view.LoginView;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
@@ -23,6 +21,13 @@ public class UiUtils {
     private String webPreambule;
     @Value("${mappings.auth}")
     private String loginMapping;
+
+    public Notification generateSuccessNotification(String message){
+        Notification notification = new Notification(message);
+        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        notification.setDuration(6000);
+        return notification;
+    }
 
     public Notification generateErrorNotification(String errorText){
         Notification notification = new Notification();
