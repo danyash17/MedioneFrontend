@@ -1,7 +1,9 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
-import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
+import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
+import bsu.rpact.medionefrontend.pojo.authentication.TotpResponce;
+import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;
 import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.UiUtils;
@@ -23,13 +25,15 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class LoginView extends Composite<VerticalLayout> {
 
     private final AuthService authService;
+    private final TwoFactorAuthenticationProvider provider;
     private final CookieHelper cookieHelper;
     private final SessionManager sessionManager;
     private final UiUtils uiUtils;
 
 
-    public LoginView(AuthService authService, CookieHelper cookieHelper, SessionManager sessionManager, UiUtils uiUtils) {
+    public LoginView(AuthService authService, TwoFactorAuthenticationProvider provider, CookieHelper cookieHelper, SessionManager sessionManager, UiUtils uiUtils) {
         this.authService = authService;
+        this.provider = provider;
         this.sessionManager = sessionManager;
         this.cookieHelper = cookieHelper;
         this.uiUtils = uiUtils;
@@ -43,10 +47,12 @@ public class LoginView extends Composite<VerticalLayout> {
 
         loginForm.addLoginListener(loginEvent -> {
             try {
-                JwtResponce jwtResponce = this.authService.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
-                this.cookieHelper.addTokenCookie(jwtResponce.getToken(), 90000);
-                sessionManager.generateAuthUserAttributes(jwtResponce);
-                loginForm.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
+                TotpResponce totpResponce = this.authService.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
+                if(totpResponce!=null){
+                    provider.setTemporaryRequest(new LoginRequest(loginEvent.getUsername(),loginEvent.getPassword()));
+                    provider.setTotpResponce(totpResponce);
+                    loginForm.getUI().ifPresent(ui -> ui.navigate(TwoFactorAuthenticationView.class));
+                }
             }
             catch (WebClientResponseException e){
                 this.uiUtils.generateErrorNotification("Failed to login").open();

@@ -1,15 +1,8 @@
 package bsu.rpact.medionefrontend.adapter;
 
-import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
-import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
-import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
-import bsu.rpact.medionefrontend.pojo.authentication.RegisterRequest;
-import org.springframework.http.HttpHeaders;
+import bsu.rpact.medionefrontend.pojo.authentication.*;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -18,14 +11,14 @@ public class JwtTokenizationAdapter {
 
     private WebClient webClient;
 
-    public JwtResponce authenticate(String mapping,String login, String password){
+    public TotpResponce totpAuthenticate(String mapping, String login, String password){
         LoginRequest loginRequest = new LoginRequest(login,password);
         return webClient.post()
                 .uri(mapping)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(loginRequest), LoginRequest.class)
                 .retrieve()
-                .bodyToMono(JwtResponce.class)
+                .bodyToMono(TotpResponce.class)
                 .block();
     }
 
@@ -42,6 +35,26 @@ public class JwtTokenizationAdapter {
                 .uri(mapping)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(registerRequest), RegisterRequest.class)
+                .retrieve()
+                .bodyToMono(MessageResponse.class)
+                .block();
+    }
+
+    public JwtResponce twoFactorAuthenticate(String mapping, TwoFactorAuthenticationRequest twoFactorAuthenticationRequest) {
+        return webClient.post()
+                .uri(mapping)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(twoFactorAuthenticationRequest), TwoFactorAuthenticationRequest.class)
+                .retrieve()
+                .bodyToMono(JwtResponce.class)
+                .block();
+    }
+
+    public void sendSms(String mapping, LoginRequest loginRequest) {
+        webClient.post()
+                .uri(mapping)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(loginRequest), LoginRequest.class)
                 .retrieve()
                 .bodyToMono(MessageResponse.class)
                 .block();

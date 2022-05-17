@@ -29,7 +29,7 @@ public class HomeView extends VerticalLayout {
 
         add(new H2("Glad to see you, " + session.getAttribute("firstName")));
         add(new Paragraph("Medione Web app provide you an opportunity to manage your visits, documents and notes!"));
-        add(new Paragraph("▪To observate and change your profile data, click Profile"));
+        add(new Paragraph("▪To observate and change your profile data, click Profile at the side menu"));
         add(new Paragraph("▪To rule your visits, click Visits at the side menu"));
         add(new Paragraph("▪To work out with your documents, click Documents at the side menu"));
         add(new Paragraph("▪To check your notes, click Notes at the side menu"));

@@ -34,5 +34,10 @@
       "name": "frontend.mappings.restricted",
       "type": "java.lang.String",
       "description": "Description for frontend.mappings.restricted."
+    },
+    {
+      "name": "mappings.twoFactorAuth",
+      "type": "java.lang.String",
+      "description": "Description for mappings.twoFactorAuth."
     }
   ] }
