@@ -1,6 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
+import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
 import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
 import bsu.rpact.medionefrontend.pojo.authentication.TotpResponce;
 import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;
@@ -48,16 +49,18 @@ public class LoginView extends Composite<VerticalLayout> {
         loginForm.addLoginListener(loginEvent -> {
             try {
                 TotpResponce totpResponce = this.authService.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
-                if(totpResponce!=null){
-                    provider.setTemporaryRequest(new LoginRequest(loginEvent.getUsername(),loginEvent.getPassword()));
+                if (totpResponce != null && totpResponce.isEnabled2Fa()) {
+                    provider.setTemporaryRequest(new LoginRequest(loginEvent.getUsername(), loginEvent.getPassword()));
                     provider.setTotpResponce(totpResponce);
                     loginForm.getUI().ifPresent(ui -> ui.navigate(TwoFactorAuthenticationView.class));
+                } else if (totpResponce != null) {
+                    this.cookieHelper.addTokenCookie(totpResponce.getToken(), 90000);
+                    this.sessionManager.generateAuthUserAttributes(totpResponce);
+                    loginForm.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
                 }
-            }
-            catch (WebClientResponseException e){
+            } catch (WebClientResponseException e) {
                 this.uiUtils.generateErrorNotification("Failed to login").open();
-            }
-            finally {
+            } finally {
                 loginForm.setEnabled(true);
             }
         });

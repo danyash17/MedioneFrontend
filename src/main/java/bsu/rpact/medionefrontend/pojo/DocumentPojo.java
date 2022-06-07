@@ -1,6 +1,5 @@
 package bsu.rpact.medionefrontend.pojo;
 
-
 import bsu.rpact.medionefrontend.enums.DocumentType;
 
 public class DocumentPojo {
