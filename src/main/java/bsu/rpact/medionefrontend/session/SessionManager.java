@@ -20,4 +20,9 @@ public class SessionManager {
         session.setAttribute("role",jwtResponce.getRole().name());
     }
 
+    public void set2FaAttribute(boolean twoFactorAuth){
+        WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
+        session.setAttribute("2FA",twoFactorAuth);
+    }
+
 }

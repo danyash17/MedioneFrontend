@@ -14,8 +14,6 @@ import java.util.Locale;
 
 public class RegistrationFormBinder {
 
-    private final UiUtils uiUtils;
-    private final ValidatorUtils validatorUtils;
     private final AuthService authService;
 
     private RegistrationForm registrationForm;
@@ -26,9 +24,7 @@ public class RegistrationFormBinder {
     private String enterAnotherPhoneNumber = "Enter another phone number";
     private String loginAlreadyReserved = "This login already reserved";
 
-    public RegistrationFormBinder(UiUtils uiUtils, ValidatorUtils validatorUtils, AuthService authService, RegistrationForm registrationForm) {
-        this.uiUtils = uiUtils;
-        this.validatorUtils = validatorUtils;
+    public RegistrationFormBinder(AuthService authService, RegistrationForm registrationForm) {
         this.authService = authService;
         this.registrationForm = registrationForm;
     }
@@ -101,22 +97,22 @@ public class RegistrationFormBinder {
                 if(message.equals("PATIENT CREATED") ||
                    message.equals("DOCTOR CREATED")  ||
                    message.equals("ADMIN CREATED")) {
-                    uiUtils.generateSuccessRegistrationNotification(userBean).open();
+                    UiUtils.generateSuccessRegistrationNotification(userBean).open();
                 }
                 else if(message.contains("PHONE ALREADY EXISTS")){
-                    uiUtils.generateErrorNotification(phoneErrorText).open();
+                    UiUtils.generateErrorNotification(phoneErrorText).open();
                     registrationForm.getPhone().setErrorMessage(enterAnotherPhoneNumber);
                     throw new PhoneAlreadyExsistsException(phoneErrorText);
                 }
                 else if(message.contains("LOGIN ALREADY EXISTS")){
-                    uiUtils.generateErrorNotification(loginAlreadyReserved).open();
+                    UiUtils.generateErrorNotification(loginAlreadyReserved).open();
                     registrationForm.getLogin().setErrorMessage(enterAnotherPhoneNumber);
                     throw new LoginAlreadyExsistsException(loginAlreadyReserved);
                 }
             } catch (IllegalArgumentException exception) {
-                uiUtils.generateErrorNotification("Registration failed :(");
+                UiUtils.generateErrorNotification("Registration failed :(");
             } catch (ValidationException e) {
-                uiUtils.generateErrorNotification(String.valueOf(e.getValidationErrors()));
+                UiUtils.generateErrorNotification(String.valueOf(e.getValidationErrors()));
             }
         });
     }
@@ -128,7 +124,7 @@ public class RegistrationFormBinder {
      * @return
      */
     private ValidationResult passwordValidator(String pass1, ValueContext ctx) {
-        if (pass1 == null || !validatorUtils.isValidPassword(pass1)) {
+        if (pass1 == null || !ValidatorUtils.isValidPassword(pass1)) {
             return ValidationResult.error("Password must be" +
                     " 8-20 length\n" +
                     ",contain at least one letter\n" +
@@ -146,7 +142,7 @@ public class RegistrationFormBinder {
     }
 
     private ValidationResult loginValidator(String login, ValueContext ctx) {
-        if (login == null || !validatorUtils.isValidLogin(login)) {
+        if (login == null || !ValidatorUtils.isValidLogin(login)) {
             return ValidationResult.error(
                     "The 3 logins parts are:\n" +
                     "Maybe some digits as a prefix,\n" +
@@ -157,14 +153,14 @@ public class RegistrationFormBinder {
     }
 
     private ValidationResult literalValidator(String literal, ValueContext ctx) {
-        if (literal == null || !validatorUtils.isValidLiteral(literal)) {
+        if (literal == null || !ValidatorUtils.isValidLiteral(literal)) {
             return ValidationResult.error("Literal must contain only letters\n");
         }
         return ValidationResult.ok();
     }
 
     private ValidationResult phoneValidator(String phone, ValueContext ctx) {
-        if (phone == null || !validatorUtils.isValidPhone(phone)) {
+        if (phone == null || !ValidatorUtils.isValidPhone(phone)) {
             return ValidationResult.error("Phone starts with" +
                     " 1-3 country code," +
                     "then area code and subscriber number " +

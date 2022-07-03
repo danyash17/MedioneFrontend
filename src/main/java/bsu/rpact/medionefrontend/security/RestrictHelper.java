@@ -17,6 +17,7 @@ public class RestrictHelper {
         boolean vaadinInnerService = request.getRequestURI().contains("/VAADIN/") ||
                 request.getRequestURI().contains("/vaadinServlet/") ||
                 request.getRequestURI().equals("/") ||
+                request.getRequestURI().equals("/sw.js") ||
                 request.getRequestURI().contains("/images/");
 
         return isLoginRequest || isRegisterRequest || isRestrictedRequest || vaadinInnerService;

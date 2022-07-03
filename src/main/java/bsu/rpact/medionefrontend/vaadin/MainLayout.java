@@ -22,11 +22,9 @@ import com.vaadin.flow.server.WrappedSession;
 public class MainLayout extends AppLayout {
 
     private final AuthService authService;
-    private final UiUtils uiUtils;
 
-    public MainLayout(AuthService authService, UiUtils uiUtils) {
+    public MainLayout(AuthService authService) {
         this.authService = authService;
-        this.uiUtils = uiUtils;
         createHeader();
         createDrawer();
     }
@@ -36,6 +34,7 @@ public class MainLayout extends AppLayout {
         H3 logo = new H3("Medione");
 
         Button logout = new Button("Log out", e ->{
+            session.invalidate();
             authService.logout();
         });
         HorizontalLayout header = new HorizontalLayout(new DrawerToggle(), logo);

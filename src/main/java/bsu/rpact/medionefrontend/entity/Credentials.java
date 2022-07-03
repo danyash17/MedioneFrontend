@@ -33,6 +33,9 @@ public class Credentials {
     @Basic
     @Column(name = "phone")
     private String phone;
+    @Basic
+    @Column(name = "twofact_auth")
+    private boolean isEnabled2Fa;
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
@@ -40,14 +43,16 @@ public class Credentials {
     public Credentials() {
     }
 
-    public Credentials(String login, String password, String firstName, String lastName, String patronymic,
-                       String phone, Role role) {
+    public Credentials(String login, String password, String firstName,
+                       String lastName, String patronymic, String phone,
+                       boolean isEnabled2Fa, Role role) {
         this.login = login;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.patronymic = patronymic;
         this.phone = phone;
+        this.isEnabled2Fa = isEnabled2Fa;
         this.role = role;
     }
 
@@ -113,5 +118,13 @@ public class Credentials {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public boolean isEnabled2Fa() {
+        return isEnabled2Fa;
+    }
+
+    public void setEnabled2Fa(boolean enabled2Fa) {
+        isEnabled2Fa = enabled2Fa;
     }
 }

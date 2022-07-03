@@ -14,7 +14,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-@Component
 public class UiUtils {
 
     @Value("${mappings.preambule}")
@@ -22,14 +21,14 @@ public class UiUtils {
     @Value("${mappings.auth}")
     private String loginMapping;
 
-    public Notification generateSuccessNotification(String message){
+    public static Notification generateSuccessNotification(String message){
         Notification notification = new Notification(message);
         notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         notification.setDuration(6000);
         return notification;
     }
 
-    public Notification generateErrorNotification(String errorText){
+    public static Notification generateErrorNotification(String errorText){
         Notification notification = new Notification();
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         Div text = new Div(new Text(errorText));
@@ -46,7 +45,7 @@ public class UiUtils {
         return notification;
     }
 
-    public Notification generateSuccessRegistrationNotification(RegisterRequest userBean) {
+    public static Notification generateSuccessRegistrationNotification(RegisterRequest userBean) {
         Notification notification = new  Notification();
         notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         notification.setDuration(6000);

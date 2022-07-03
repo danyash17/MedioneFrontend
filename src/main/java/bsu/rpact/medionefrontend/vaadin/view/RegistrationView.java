@@ -15,13 +15,9 @@ import com.vaadin.flow.router.Route;
 @PreserveOnRefresh
 public class RegistrationView extends VerticalLayout {
 
-    private final UiUtils uiUtils;
-    private final ValidatorUtils validatorUtils;
     private final AuthService authService;
 
-    public RegistrationView(UiUtils uiUtils, ValidatorUtils validatorUtils, AuthService authService) {
-        this.uiUtils = uiUtils;
-        this.validatorUtils = validatorUtils;
+    public RegistrationView(AuthService authService) {
         this.authService = authService;
         RegistrationForm registrationForm = new RegistrationForm();
         setHorizontalComponentAlignment(Alignment.CENTER, registrationForm);
@@ -30,7 +26,7 @@ public class RegistrationView extends VerticalLayout {
 
         add(registrationForm);
 
-        RegistrationFormBinder registrationFormBinder = new RegistrationFormBinder(this.uiUtils, this.validatorUtils, this.authService, registrationForm);
+        RegistrationFormBinder registrationFormBinder = new RegistrationFormBinder(this.authService, registrationForm);
         registrationFormBinder.addBindingAndValidation();
     }
 }

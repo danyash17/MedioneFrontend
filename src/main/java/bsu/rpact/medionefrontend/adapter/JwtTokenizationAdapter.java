@@ -1,20 +1,32 @@
 package bsu.rpact.medionefrontend.adapter;
 
 import bsu.rpact.medionefrontend.pojo.authentication.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.PostConstruct;
+
 @Component
-public class JwtTokenizationAdapter {
+public class JwtTokenizationAdapter extends GeneralAdapter{
 
-    private WebClient webClient;
+    @Value("${mappings.auth}")
+    private String loginMapping;
+    @Value("${mappings.twoFactorAuth.qr}")
+    private String twoFactorQrMapping;
+    @Value("${mappings.twoFactorAuth.sms}")
+    private String twoFactorSmsMapping;
+    @Value("${mappings.twoFactorAuth.sms.verify}")
+    private String twoFactorSmsVerifyMapping;
+    @Value("${mappings.register}")
+    private String registerMapping;
 
-    public TotpResponce totpAuthenticate(String mapping, String login, String password){
+    public TotpResponce totpAuthenticate(String login, String password){
         LoginRequest loginRequest = new LoginRequest(login,password);
         return webClient.post()
-                .uri(mapping)
+                .uri(loginMapping)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(loginRequest), LoginRequest.class)
                 .retrieve()
@@ -30,9 +42,9 @@ public class JwtTokenizationAdapter {
         this.webClient = webClient;
     }
 
-    public MessageResponse register(String mapping, RegisterRequest registerRequest) {
+    public MessageResponse register(RegisterRequest registerRequest) {
         return webClient.post()
-                .uri(mapping)
+                .uri(registerMapping)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(registerRequest), RegisterRequest.class)
                 .retrieve()
@@ -40,9 +52,9 @@ public class JwtTokenizationAdapter {
                 .block();
     }
 
-    public JwtResponce twoFactorAuthenticate(String mapping, TwoFactorAuthenticationRequest twoFactorAuthenticationRequest) {
+    public JwtResponce twoFactorAuthenticate(TwoFactorAuthenticationRequest twoFactorAuthenticationRequest) {
         return webClient.post()
-                .uri(mapping)
+                .uri(twoFactorQrMapping)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(twoFactorAuthenticationRequest), TwoFactorAuthenticationRequest.class)
                 .retrieve()
@@ -50,9 +62,9 @@ public class JwtTokenizationAdapter {
                 .block();
     }
 
-    public void sendSms(String mapping, LoginRequest loginRequest) {
+    public void sendSms(LoginRequest loginRequest) {
         webClient.post()
-                .uri(mapping)
+                .uri(twoFactorSmsVerifyMapping)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(loginRequest), LoginRequest.class)
                 .retrieve()

@@ -1,7 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
+import bsu.rpact.medionefrontend.adapter.GeneralAdapter;
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
-import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
 import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
 import bsu.rpact.medionefrontend.pojo.authentication.TotpResponce;
 import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;
@@ -18,7 +18,10 @@ import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+
+import java.util.Arrays;
 
 @Route("auth")
 @RouteAlias(value = "")
@@ -29,15 +32,15 @@ public class LoginView extends Composite<VerticalLayout> {
     private final TwoFactorAuthenticationProvider provider;
     private final CookieHelper cookieHelper;
     private final SessionManager sessionManager;
-    private final UiUtils uiUtils;
+    private final ApplicationContext context;
 
 
-    public LoginView(AuthService authService, TwoFactorAuthenticationProvider provider, CookieHelper cookieHelper, SessionManager sessionManager, UiUtils uiUtils) {
+    public LoginView(AuthService authService, TwoFactorAuthenticationProvider provider, CookieHelper cookieHelper, SessionManager sessionManager, ApplicationContext ctx) {
         this.authService = authService;
         this.provider = provider;
         this.sessionManager = sessionManager;
         this.cookieHelper = cookieHelper;
-        this.uiUtils = uiUtils;
+        this.context = ctx;
         String route = RouteConfiguration.forSessionScope()
                 .getUrl(RegistrationView.class);
         Anchor link = new Anchor(route, "New here? Click and register");
@@ -49,6 +52,7 @@ public class LoginView extends Composite<VerticalLayout> {
         loginForm.addLoginListener(loginEvent -> {
             try {
                 TotpResponce totpResponce = this.authService.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
+                sessionManager.set2FaAttribute(totpResponce.isEnabled2Fa());
                 if (totpResponce != null && totpResponce.isEnabled2Fa()) {
                     provider.setTemporaryRequest(new LoginRequest(loginEvent.getUsername(), loginEvent.getPassword()));
                     provider.setTotpResponce(totpResponce);
@@ -56,10 +60,11 @@ public class LoginView extends Composite<VerticalLayout> {
                 } else if (totpResponce != null) {
                     this.cookieHelper.addTokenCookie(totpResponce.getToken(), 90000);
                     this.sessionManager.generateAuthUserAttributes(totpResponce);
+                    context.getBeansOfType(GeneralAdapter.class).entrySet().stream().forEach((adapter)->adapter.getValue().initWebClient());
                     loginForm.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
                 }
             } catch (WebClientResponseException e) {
-                this.uiUtils.generateErrorNotification("Failed to login").open();
+                UiUtils.generateErrorNotification("Failed to login").open();
             } finally {
                 loginForm.setEnabled(true);
             }

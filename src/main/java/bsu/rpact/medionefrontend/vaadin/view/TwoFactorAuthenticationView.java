@@ -1,5 +1,6 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
+import bsu.rpact.medionefrontend.adapter.GeneralAdapter;
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
 import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
 import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
+import org.springframework.context.ApplicationContext;
 
 @PageTitle("2FA")
 @PreserveOnRefresh
@@ -25,12 +27,14 @@ public class TwoFactorAuthenticationView extends VerticalLayout {
     private final TwoFactorAuthenticationProvider provider;
     private final CookieHelper cookieHelper;
     private final SessionManager sessionManager;
+    private final ApplicationContext context;
 
-    public TwoFactorAuthenticationView(AuthService authService, TwoFactorAuthenticationProvider provider, CookieHelper cookieHelper, SessionManager sessionManager) {
+    public TwoFactorAuthenticationView(AuthService authService, TwoFactorAuthenticationProvider provider, CookieHelper cookieHelper, SessionManager sessionManager, ApplicationContext context) {
         this.authService = authService;
         this.provider = provider;
         this.cookieHelper = cookieHelper;
         this.sessionManager = sessionManager;
+        this.context = context;
         setSpacing(false);
 
         Image img = new Image(provider.getTotpResponce().getQrUri(), "restricted");
@@ -45,6 +49,7 @@ public class TwoFactorAuthenticationView extends VerticalLayout {
             if(jwtResponce!=null){
                 this.cookieHelper.addTokenCookie(jwtResponce.getToken(), 90000);
                 this.sessionManager.generateAuthUserAttributes(jwtResponce);
+                context.getBeansOfType(GeneralAdapter.class).entrySet().stream().forEach((adapter)->adapter.getValue().initWebClient());
                 input.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
             }
         });
