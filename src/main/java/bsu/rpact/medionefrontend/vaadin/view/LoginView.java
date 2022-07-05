@@ -3,7 +3,7 @@ package bsu.rpact.medionefrontend.vaadin.view;
 import bsu.rpact.medionefrontend.adapter.GeneralAdapter;
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
 import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
-import bsu.rpact.medionefrontend.pojo.authentication.TotpResponce;
+import bsu.rpact.medionefrontend.pojo.authentication.PrimaryLoginResponce;
 import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;
 import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.session.SessionManager;
@@ -20,8 +20,6 @@ import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouteConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import java.util.Arrays;
 
 @Route("auth")
 @RouteAlias(value = "")
@@ -51,15 +49,15 @@ public class LoginView extends Composite<VerticalLayout> {
 
         loginForm.addLoginListener(loginEvent -> {
             try {
-                TotpResponce totpResponce = this.authService.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
-                sessionManager.set2FaAttribute(totpResponce.isEnabled2Fa());
-                if (totpResponce != null && totpResponce.isEnabled2Fa()) {
+                PrimaryLoginResponce primaryLoginResponce = this.authService.authenticate(loginEvent.getUsername(), loginEvent.getPassword());
+                sessionManager.set2FaAttribute(primaryLoginResponce.isEnabled2Fa());
+                if (primaryLoginResponce != null && primaryLoginResponce.isEnabled2Fa()) {
                     provider.setTemporaryRequest(new LoginRequest(loginEvent.getUsername(), loginEvent.getPassword()));
-                    provider.setTotpResponce(totpResponce);
+                    provider.setTotpResponce(primaryLoginResponce);
                     loginForm.getUI().ifPresent(ui -> ui.navigate(TwoFactorAuthenticationView.class));
-                } else if (totpResponce != null) {
-                    this.cookieHelper.addTokenCookie(totpResponce.getToken(), 90000);
-                    this.sessionManager.generateAuthUserAttributes(totpResponce);
+                } else if (primaryLoginResponce != null) {
+                    this.cookieHelper.addTokenCookie(primaryLoginResponce.getToken(), 90000);
+                    this.sessionManager.generateAuthUserAttributes(primaryLoginResponce);
                     context.getBeansOfType(GeneralAdapter.class).entrySet().stream().forEach((adapter)->adapter.getValue().initWebClient());
                     loginForm.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
                 }

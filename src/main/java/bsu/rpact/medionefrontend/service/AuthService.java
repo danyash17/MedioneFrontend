@@ -23,8 +23,8 @@ public class AuthService {
     @Autowired
     private TwoFactorAuthenticationProvider provider;
 
-    public TotpResponce authenticate(String login, String password) {
-        return adapter.totpAuthenticate(login, password);
+    public PrimaryLoginResponce authenticate(String login, String password) {
+        return adapter.primaryAuthenticate(login, password);
     }
 
     public MessageResponse register(RegisterRequest registerRequest){
@@ -62,5 +62,9 @@ public class AuthService {
                 provider.getTemporaryRequest().getLogin(),
                 provider.getTemporaryRequest().getPassword());
         adapter.sendSms(loginRequest);
+    }
+
+    public String encode(String decodedPassword) {
+        return adapter.encode(new ChangePasswordRequest(decodedPassword)).getMessage();
     }
 }

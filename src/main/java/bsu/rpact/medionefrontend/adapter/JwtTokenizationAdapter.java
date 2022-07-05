@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
-
 @Component
 public class JwtTokenizationAdapter extends GeneralAdapter{
 
@@ -22,15 +20,17 @@ public class JwtTokenizationAdapter extends GeneralAdapter{
     private String twoFactorSmsVerifyMapping;
     @Value("${mappings.register}")
     private String registerMapping;
+    @Value("${mappings.encode}")
+    private String encodeMapping;
 
-    public TotpResponce totpAuthenticate(String login, String password){
+    public PrimaryLoginResponce primaryAuthenticate(String login, String password){
         LoginRequest loginRequest = new LoginRequest(login,password);
         return webClient.post()
                 .uri(loginMapping)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(loginRequest), LoginRequest.class)
                 .retrieve()
-                .bodyToMono(TotpResponce.class)
+                .bodyToMono(PrimaryLoginResponce.class)
                 .block();
     }
 
@@ -70,5 +70,17 @@ public class JwtTokenizationAdapter extends GeneralAdapter{
                 .retrieve()
                 .bodyToMono(MessageResponse.class)
                 .block();
+    }
+
+
+    public MessageResponse encode(ChangePasswordRequest request) {
+        return webClient.post()
+                .uri(encodeMapping)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(request), ChangePasswordRequest.class)
+                .retrieve()
+                .bodyToMono(MessageResponse.class)
+                .block();
+
     }
 }

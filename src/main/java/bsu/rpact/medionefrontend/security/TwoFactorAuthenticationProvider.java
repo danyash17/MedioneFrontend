@@ -1,14 +1,14 @@
 package bsu.rpact.medionefrontend.security;
 
 import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
-import bsu.rpact.medionefrontend.pojo.authentication.TotpResponce;
+import bsu.rpact.medionefrontend.pojo.authentication.PrimaryLoginResponce;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TwoFactorAuthenticationProvider {
 
     private LoginRequest temporaryRequest;
-    private TotpResponce totpResponce;
+    private PrimaryLoginResponce primaryLoginResponce;
 
     public TwoFactorAuthenticationProvider() {
     }
@@ -21,11 +21,11 @@ public class TwoFactorAuthenticationProvider {
         this.temporaryRequest = temporaryRequest;
     }
 
-    public TotpResponce getTotpResponce() {
-        return totpResponce;
+    public PrimaryLoginResponce getTotpResponce() {
+        return primaryLoginResponce;
     }
 
-    public void setTotpResponce(TotpResponce totpResponce) {
-        this.totpResponce = totpResponce;
+    public void setTotpResponce(PrimaryLoginResponce primaryLoginResponce) {
+        this.primaryLoginResponce = primaryLoginResponce;
     }
 }

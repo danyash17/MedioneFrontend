@@ -45,17 +45,17 @@ public class RegistrationFormBinder {
         binderPassword.bindInstanceFields(registrationForm);
         binderRole.bindInstanceFields(registrationForm);
         binderPassword.forField(registrationForm.getPasswordField())
-                .withValidator(this::passwordValidator).bind("password");
+                .withValidator(this::passwordValidate).bind("password");
         binderLogin.forField(registrationForm.getLogin())
-                .withValidator(this::loginValidator).bind("login");
+                .withValidator(this::loginValidate).bind("login");
         binderFirstName.forField(registrationForm.getFirstName())
-                .withValidator(this::literalValidator).bind("firstName");
+                .withValidator(this::literalValidate).bind("firstName");
         binderLastName.forField(registrationForm.getLastName())
-                .withValidator(this::literalValidator).bind("lastName");
+                .withValidator(this::literalValidate).bind("lastName");
         binderPatronymic.forField(registrationForm.getPatronymic())
-                .withValidator(this::literalValidator).bind("patronymic");
+                .withValidator(this::literalValidate).bind("patronymic");
         binderPhone.forField(registrationForm.getPhone())
-                .withValidator(this::phoneValidator).bind("phone");
+                .withValidator(this::phoneValidate).bind("phone");
         binderRole.forField(registrationForm.getComboBox()).bind("role");
 
         registrationForm.getPasswordField().addValueChangeListener(e ->{
@@ -123,7 +123,7 @@ public class RegistrationFormBinder {
      * @param ctx
      * @return
      */
-    private ValidationResult passwordValidator(String pass1, ValueContext ctx) {
+    private ValidationResult passwordValidate(String pass1, ValueContext ctx) {
         if (pass1 == null || !ValidatorUtils.isValidPassword(pass1)) {
             return ValidationResult.error("Password must be" +
                     " 8-20 length\n" +
@@ -141,7 +141,7 @@ public class RegistrationFormBinder {
         return ValidationResult.error("Passwords do not match");
     }
 
-    private ValidationResult loginValidator(String login, ValueContext ctx) {
+    private ValidationResult loginValidate(String login, ValueContext ctx) {
         if (login == null || !ValidatorUtils.isValidLogin(login)) {
             return ValidationResult.error(
                     "The 3 logins parts are:\n" +
@@ -152,14 +152,14 @@ public class RegistrationFormBinder {
         return ValidationResult.ok();
     }
 
-    private ValidationResult literalValidator(String literal, ValueContext ctx) {
+    private ValidationResult literalValidate(String literal, ValueContext ctx) {
         if (literal == null || !ValidatorUtils.isValidLiteral(literal)) {
             return ValidationResult.error("Literal must contain only letters\n");
         }
         return ValidationResult.ok();
     }
 
-    private ValidationResult phoneValidator(String phone, ValueContext ctx) {
+    private ValidationResult phoneValidate(String phone, ValueContext ctx) {
         if (phone == null || !ValidatorUtils.isValidPhone(phone)) {
             return ValidationResult.error("Phone starts with" +
                     " 1-3 country code," +

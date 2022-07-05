@@ -4,6 +4,7 @@ import bsu.rpact.medionefrontend.adapter.CredentialsAdapter;
 import bsu.rpact.medionefrontend.adapter.GeneralAdapter;
 import bsu.rpact.medionefrontend.entity.Credentials;
 import bsu.rpact.medionefrontend.pojo.CredentialsNoIdPojo;
+import bsu.rpact.medionefrontend.pojo.authentication.ChangePasswordRequest;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +15,7 @@ public class CredentialsService{
 
     @Autowired
     private CredentialsAdapter adapter;
+
 
     public MessageResponse update(Credentials credentials, boolean self) {
         CredentialsNoIdPojo pojo = new CredentialsNoIdPojo(
