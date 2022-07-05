@@ -21,7 +21,6 @@ public class VisitSchedule {
     @JoinTable(name = "schedule_assert",
                 joinColumns = @JoinColumn(name = "schedule_id"),
                 inverseJoinColumns = @JoinColumn(name = "visit_id"))
-    @JsonManagedReference
     private List<Visit> visitList;
 
     public Integer getId() {

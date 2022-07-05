@@ -42,22 +42,17 @@ public class Doctor implements User {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "doctor_credential_id")
-    @JsonManagedReference
     private Credentials credentials;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "doctor_visit_schedule_id")
-    @JsonManagedReference
     private VisitSchedule visitSchedule;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "doctor_document_folder_id")
-    @JsonManagedReference
     private DocumentFolder documentFolder;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "doctor_note_dashboard_id")
-    @JsonManagedReference
     private NoteDashboard noteDashboard;
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JsonManagedReference
     @JoinTable(
             name = "doctor_specialities",
             joinColumns = @JoinColumn(name = "ds_doctor_id"),

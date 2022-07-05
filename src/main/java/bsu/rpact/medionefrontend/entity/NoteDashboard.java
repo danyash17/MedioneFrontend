@@ -26,7 +26,6 @@ public class NoteDashboard {
     }
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "noteDashboard")
-    @JsonManagedReference
     private List<Note> noteList;
 
     public List<Note> getNoteList() {

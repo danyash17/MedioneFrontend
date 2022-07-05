@@ -20,23 +20,18 @@ public class Patient implements User{
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_credential_id")
-    @JsonManagedReference
     private Credentials credentials;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "medcard_id")
-    @JsonManagedReference
     private Medcard medcard;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_visit_schedule_id")
-    @JsonManagedReference
     private VisitSchedule visitSchedule;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_document_folder_id")
-    @JsonManagedReference
     private DocumentFolder documentFolder;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "patient_note_dashboard_id")
-    @JsonManagedReference
     private NoteDashboard noteDashboard;
 
     public Patient() {

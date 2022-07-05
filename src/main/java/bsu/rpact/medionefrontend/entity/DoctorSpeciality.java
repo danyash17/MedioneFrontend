@@ -20,11 +20,11 @@ public class DoctorSpeciality {
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "ds_doctor_id")
-    @JsonBackReference
+    @JsonBackReference(value = "doctor")
     private Doctor doctor;
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "ds_speciality_id")
-    @JsonBackReference
+    @JsonBackReference(value = "speciality")
     private Speciality speciality;
 
     public DoctorSpeciality() {

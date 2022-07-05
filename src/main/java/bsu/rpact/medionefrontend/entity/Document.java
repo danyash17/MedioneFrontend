@@ -38,7 +38,7 @@ public class Document {
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "folder_id")
-    @JsonBackReference
+    @JsonBackReference(value = "docFolder")
     private DocumentFolder documentFolder;
 
     public Integer getId() {

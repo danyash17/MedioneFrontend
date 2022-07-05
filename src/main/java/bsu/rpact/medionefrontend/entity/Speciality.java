@@ -25,7 +25,7 @@ public class Speciality {
     }
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
-    @JsonBackReference
+    @JsonBackReference(value = "doctorList")
     @JoinTable(
             name = "doctor_specialities",
             joinColumns = @JoinColumn(name = "ds_speciality_id"),

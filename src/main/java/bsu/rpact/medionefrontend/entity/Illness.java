@@ -33,7 +33,7 @@ public class Illness {
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "illness_medcard_id")
-    @JsonBackReference
+    @JsonBackReference(value = "medcard")
     private Medcard medcard;
 
     public Integer getId() {

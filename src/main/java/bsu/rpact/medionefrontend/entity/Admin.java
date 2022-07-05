@@ -29,7 +29,6 @@ public class Admin implements User {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "credential_id")
-    @JsonManagedReference
     private Credentials credentials;
 
     public Credentials getCredentials() {

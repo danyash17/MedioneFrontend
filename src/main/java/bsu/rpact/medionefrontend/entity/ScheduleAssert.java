@@ -14,10 +14,10 @@ public class ScheduleAssert {
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "schedule_id")
-    @JsonBackReference
+    @JsonBackReference(value = "sched")
     private VisitSchedule schedule;
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "visit_id")
-    @JsonBackReference
-    private Visit Visit;
+    @JsonBackReference(value = "vis")
+    private Visit visit;
 }

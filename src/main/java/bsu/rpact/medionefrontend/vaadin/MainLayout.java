@@ -2,13 +2,13 @@ package bsu.rpact.medionefrontend.vaadin;
 
 import bsu.rpact.medionefrontend.enums.Role;
 import bsu.rpact.medionefrontend.service.AuthService;
-import bsu.rpact.medionefrontend.utils.UiUtils;
+import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.vaadin.view.*;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -22,16 +22,18 @@ import com.vaadin.flow.server.WrappedSession;
 public class MainLayout extends AppLayout {
 
     private final AuthService authService;
+    private final SessionManager sessionManager;
 
-    public MainLayout(AuthService authService) {
+    public MainLayout(AuthService authService, SessionManager sessionManager) {
         this.authService = authService;
+        this.sessionManager = sessionManager;
         createHeader();
         createDrawer();
     }
 
     private void createHeader() {
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
-        H3 logo = new H3("Medione");
+        H2 logo = new H2("Medione");
 
         Button logout = new Button("Log out", e ->{
             session.invalidate();
@@ -68,22 +70,48 @@ public class MainLayout extends AppLayout {
 
     private void createDrawer() {
         RouterLink homeLink = new RouterLink("Home", HomeView.class);
-        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
         RouterLink visitLink = new RouterLink("Visits", VisitView.class);
-        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
         RouterLink profileLink = new RouterLink("Profile", ProfileView.class);
-        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
+        RouterLink medcardLink = new RouterLink("Medcard", MedcardView.class);
         RouterLink documentLink = new RouterLink("Documents", DocumentView.class);
-        homeLink.setHighlightCondition(HighlightConditions.sameLocation());
         RouterLink notesLink = new RouterLink("Notes", NoteView.class);
         homeLink.setHighlightCondition(HighlightConditions.sameLocation());
-        VerticalLayout layout = new VerticalLayout(
-                homeLink,
-                profileLink,
-                visitLink,
-                documentLink,
-                notesLink
-        );
+        VerticalLayout layout;
+        switch (sessionManager.getRoleAttribute()){
+            case "PATIENT":{
+                layout = new VerticalLayout(
+                        homeLink,
+                        profileLink,
+                        medcardLink,
+                        visitLink,
+                        documentLink,
+                        notesLink
+                );
+                break;
+            }
+            case "DOCTOR":{
+                 layout = new VerticalLayout(
+                        homeLink,
+                        profileLink,
+                        visitLink,
+                        documentLink,
+                        notesLink
+                );
+                 break;
+            }
+            case "ADMIN":{
+                 layout = new VerticalLayout(
+                        homeLink,
+                        notesLink
+                );
+                 break;
+            }
+            default:{
+                layout = new VerticalLayout(
+                        homeLink
+                );
+            }
+        }
         addToDrawer(layout);
     }
 

@@ -36,13 +36,11 @@ public class Medcard {
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH},
             mappedBy = "medcard")
-    @JsonBackReference
+    @JsonBackReference(value = "pat")
     private Patient patient;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "medcard")
-    @JsonManagedReference
     private List<Illness> illnessList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "medcard")
-    @JsonManagedReference
     private List<Operation> operationList;
 
     public Integer getId() {

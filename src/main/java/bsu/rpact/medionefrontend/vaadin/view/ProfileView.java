@@ -7,6 +7,7 @@ import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.vaadin.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -26,8 +27,13 @@ public class ProfileView extends VerticalLayout {
         this.sessionManager = sessionManager;
         this.credentialsService = credentialsService;
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
-        setSpacing(false);
-
+        add(new Paragraph("Profile data"));
+        add(new Label("First name: " + sessionManager.getFirstNameAttribute()));
+        add(new Label("Patronymic: " + sessionManager.getPatronymicAttribute()));
+        add(new Label("Last name: " + sessionManager.getLastNameAttribute()));
+        add(new Label("Phone: " + sessionManager.getPhoneAttribute()));
+        add(new Label("Role: " + sessionManager.getRoleAttribute()));
+        add(new Label("Two-factor authorization enabled: " + sessionManager.get2FaAttribute().booleanValue()));
         add(new Paragraph("Profile settings"));
         Checkbox checkbox = new Checkbox();
         checkbox.setLabel("Use Two-Factor Authentication for this account");

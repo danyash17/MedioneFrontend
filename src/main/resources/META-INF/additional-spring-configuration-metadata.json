@@ -39,5 +39,10 @@
       "name": "mappings.twoFactorAuth",
       "type": "java.lang.String",
       "description": "Description for mappings.twoFactorAuth."
+    },
+    {
+      "name": "mappings.patient",
+      "type": "java.lang.String",
+      "description": "Description for mappings.patient."
     }
   ] }

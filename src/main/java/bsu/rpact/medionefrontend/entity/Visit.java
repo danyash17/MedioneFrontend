@@ -74,15 +74,15 @@ public class Visit {
             joinColumns = @JoinColumn(name = "visit_id"),
             inverseJoinColumns = @JoinColumn(name = "schedule_id")
     )
-    @JsonBackReference
+    @JsonBackReference(value = "visitScheds")
     private Set<VisitSchedule> visitSchedules;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id")
-    @JsonBackReference
+    @JsonBackReference(value = "pat")
     private Patient patient;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinColumn(name = "doctor_id")
-    @JsonBackReference
+    @JsonBackReference(value = "doc")
     private Doctor doctor;
 
     public Set<VisitSchedule> getVisitSchedules() {

@@ -18,7 +18,6 @@ public class DocumentFolder {
     }
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "documentFolder")
-    @JsonManagedReference
     private List<Document> documentList;
 
     public Integer getId() {

@@ -28,7 +28,7 @@ public class Note {
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "dashboard_id")
-    @JsonBackReference
+    @JsonBackReference(value = "noteDashb")
     private NoteDashboard noteDashboard;
 
     public Integer getId() {
