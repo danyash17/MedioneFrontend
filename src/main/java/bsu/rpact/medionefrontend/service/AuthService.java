@@ -63,8 +63,4 @@ public class AuthService {
                 provider.getTemporaryRequest().getPassword());
         adapter.sendSms(loginRequest);
     }
-
-    public String encode(String decodedPassword) {
-        return adapter.encode(new ChangePasswordRequest(decodedPassword)).getMessage();
-    }
 }
