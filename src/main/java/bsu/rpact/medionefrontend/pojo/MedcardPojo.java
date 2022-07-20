@@ -1,13 +1,13 @@
 package bsu.rpact.medionefrontend.pojo;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class MedcardPojo {
-    private Date dateCreated;
-    private Date validTo;
+    private LocalDate dateCreated;
+    private LocalDate validTo;
     private String residentalAddress;
 
-    public MedcardPojo(Date dateCreated, Date validTo, String residentalAddress) {
+    public MedcardPojo(LocalDate dateCreated, LocalDate validTo, String residentalAddress) {
         this.dateCreated = dateCreated;
         this.validTo = validTo;
         this.residentalAddress = residentalAddress;
@@ -16,19 +16,19 @@ public class MedcardPojo {
     public MedcardPojo() {
     }
 
-    public Date getDateCreated() {
+    public LocalDate getDateCreated() {
         return dateCreated;
     }
 
-    public void setDateCreated(Date dateCreated) {
+    public void setDateCreated(LocalDate dateCreated) {
         this.dateCreated = dateCreated;
     }
 
-    public Date getValidTo() {
+    public LocalDate getValidTo() {
         return validTo;
     }
 
-    public void setValidTo(Date validTo) {
+    public void setValidTo(LocalDate validTo) {
         this.validTo = validTo;
     }
 

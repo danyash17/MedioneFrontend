@@ -1,13 +1,13 @@
 package bsu.rpact.medionefrontend.pojo;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 public class OperationPojo {
-    private Date operationDate;
+    private LocalDateTime operationDate;
     private String name;
     private String description;
 
-    public OperationPojo(Date operationDate, String name, String description) {
+    public OperationPojo(LocalDateTime operationDate, String name, String description) {
         this.operationDate = operationDate;
         this.name = name;
         this.description = description;
@@ -16,11 +16,11 @@ public class OperationPojo {
     public OperationPojo() {
     }
 
-    public Date getOperationDate() {
+    public LocalDateTime getOperationDate() {
         return operationDate;
     }
 
-    public void setOperationDate(Date operationDate) {
+    public void setOperationDate(LocalDateTime operationDate) {
         this.operationDate = operationDate;
     }
 

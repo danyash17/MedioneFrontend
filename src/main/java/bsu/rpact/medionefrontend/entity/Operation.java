@@ -3,7 +3,7 @@ package bsu.rpact.medionefrontend.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "operation", schema = "medione")
@@ -14,7 +14,7 @@ public class Operation {
     private Integer id;
     @Basic
     @Column(name = "operation_date")
-    private Date operationDate;
+    private Timestamp operationDate;
     @Basic
     @Column(name = "name")
     private String name;
@@ -25,7 +25,7 @@ public class Operation {
     public Operation() {
     }
 
-    public Operation(Date operationDate, String name, String description) {
+    public Operation(Timestamp operationDate, String name, String description) {
         this.operationDate = operationDate;
         this.name = name;
         this.description = description;
@@ -44,11 +44,11 @@ public class Operation {
         this.id = id;
     }
 
-    public Date getOperationDate() {
+    public Timestamp getOperationDate() {
         return operationDate;
     }
 
-    public void setOperationDate(Date operationDate) {
+    public void setOperationDate(Timestamp operationDate) {
         this.operationDate = operationDate;
     }
 
