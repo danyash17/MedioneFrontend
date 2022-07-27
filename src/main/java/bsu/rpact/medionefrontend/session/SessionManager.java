@@ -4,10 +4,14 @@ import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.WrappedHttpSession;
 import com.vaadin.flow.server.WrappedSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SessionManager {
+
+    @Value("${cookie.name.jwt}")
+    private String jwt;
 
     public void generateAuthUserAttributes(JwtResponce jwtResponce){
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
@@ -60,4 +64,13 @@ public class SessionManager {
         session.setAttribute("2FA",twoFactorAuth);
     }
 
+    public void setTokenAttribute(String token) {
+        WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
+        session.setAttribute(jwt, token);
+    }
+
+    public String getTokenAttribute() {
+        WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
+        return String.valueOf(session.getAttribute(jwt));
+    }
 }

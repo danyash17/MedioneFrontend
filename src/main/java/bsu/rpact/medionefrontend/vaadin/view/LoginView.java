@@ -58,7 +58,9 @@ public class LoginView extends Composite<VerticalLayout> {
                 } else if (primaryLoginResponce != null) {
                     this.cookieHelper.addTokenCookie(primaryLoginResponce.getToken(), 90000);
                     this.sessionManager.generateAuthUserAttributes(primaryLoginResponce);
-                    context.getBeansOfType(GeneralAdapter.class).entrySet().stream().forEach((adapter)->adapter.getValue().initWebClient());
+                    this.sessionManager.setTokenAttribute(primaryLoginResponce.getToken());
+                    context.getBeansOfType(GeneralAdapter.class).entrySet().stream()
+                            .forEach((adapter)->adapter.getValue().authenticateWebClient(primaryLoginResponce.getToken()));
                     loginForm.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
                 }
             } catch (WebClientResponseException e) {
