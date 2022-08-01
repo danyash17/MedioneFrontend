@@ -4,6 +4,8 @@ import bsu.rpact.medionefrontend.entity.Illness;
 import bsu.rpact.medionefrontend.entity.Medcard;
 import bsu.rpact.medionefrontend.entity.Operation;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
+import bsu.rpact.medionefrontend.pojo.other.Country;
+import bsu.rpact.medionefrontend.service.CountryService;
 import bsu.rpact.medionefrontend.service.MedcardService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.UiUtils;
@@ -21,16 +23,16 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.LitRenderer;
+import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Route(value = "medcard", layout = MainLayout.class)
 @PageTitle("Medcard")
@@ -43,10 +45,12 @@ public class MedcardView extends VerticalLayout {
 
     private final SessionManager sessionManager;
     private final MedcardService medcardService;
+    private final CountryService countryService;
 
-    public MedcardView(SessionManager sessionManager, MedcardService medcardService) {
+    public MedcardView(SessionManager sessionManager, MedcardService medcardService, CountryService countryService) {
         this.sessionManager = sessionManager;
         this.medcardService = medcardService;
+        this.countryService = countryService;
         Optional<Medcard> optionalMedcard = medcardService.getSelf();
         if (optionalMedcard.isEmpty()) {
             add(new H3("Medcard not set yet"));
@@ -69,43 +73,16 @@ public class MedcardView extends VerticalLayout {
         add(new Label("Residental address: " + medcard.getResidentalAddress()));
         add(new H3("Illnesses"));
         Grid<Illness> illnessGrid = new Grid<>(Illness.class, false);
-        illnessGrid.addColumn(Illness::getId).setHeader("№");
-        illnessGrid.addColumn(Illness::getDescription).setHeader("Description");
-        illnessGrid.addColumn(Illness::getIllFrom).setHeader("Ill From");
-        illnessGrid.addColumn(Illness::getIllTo).setHeader("Ill To");
-        GridListDataView<Illness> illnessDataView =
-                illnessGrid.setItems(medcard.getIllnessList());
-        illnessGrid.getColumns().stream().forEach(item -> {
-            item.setResizable(true);
-            item.setSortable(true);
-        });
-        illnessGrid.setAllRowsVisible(true);
-        TextField illnessSearchField = new TextField();
-        illnessSearchField.setWidth("20%");
-        illnessSearchField.setPlaceholder("Search");
-        illnessSearchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
-        illnessSearchField.setValueChangeMode(ValueChangeMode.EAGER);
-        illnessSearchField.addValueChangeListener(e -> illnessDataView.refreshAll());
-
-        illnessDataView.addFilter(item -> {
-            String searchTerm = illnessSearchField.getValue().trim();
-            if (searchTerm.isEmpty())
-                return true;
-            boolean matchesId = matchesTerm(String.valueOf(item.getId()),
-                    searchTerm);
-            boolean matchesDescription = matchesTerm(item.getDescription(), searchTerm);
-            boolean matchesFrom = matchesTerm(String.valueOf(item.getIllFrom()),
-                    searchTerm);
-            boolean matchesTo = matchesTerm(String.valueOf(item.getIllTo()),
-                    searchTerm);
-            return matchesId || matchesDescription || matchesFrom || matchesTo;
-        });
-        VerticalLayout illnessLayout = new VerticalLayout(illnessSearchField, illnessGrid);
-        illnessLayout.setPadding(false);
+        VerticalLayout illnessLayout = getIllnessLayout(medcard, illnessGrid);
         add(illnessLayout);
 
         add(new H3("Operations"));
         Grid<Operation> operationGrid = new Grid<>(Operation.class, false);
+        VerticalLayout operationLayout = getOperationLayout(medcard, operationGrid);
+        add(operationLayout);
+    }
+
+    private VerticalLayout getOperationLayout(Medcard medcard, Grid<Operation> operationGrid) {
         operationGrid.addColumn(Operation::getId).setHeader("№");
         operationGrid.addColumn(Operation::getName).setHeader("Name");
         operationGrid.addColumn(Operation::getDescription).setHeader("Description");
@@ -140,7 +117,44 @@ public class MedcardView extends VerticalLayout {
         });
         VerticalLayout operationLayout = new VerticalLayout(operationSearchField, operationGrid);
         operationLayout.setPadding(false);
-        add(operationLayout);
+        return operationLayout;
+    }
+
+    private VerticalLayout getIllnessLayout(Medcard medcard, Grid<Illness> illnessGrid) {
+        illnessGrid.addColumn(Illness::getId).setHeader("№");
+        illnessGrid.addColumn(Illness::getDescription).setHeader("Description");
+        illnessGrid.addColumn(Illness::getIllFrom).setHeader("Ill From");
+        illnessGrid.addColumn(Illness::getIllTo).setHeader("Ill To");
+        GridListDataView<Illness> illnessDataView =
+                illnessGrid.setItems(medcard.getIllnessList());
+        illnessGrid.getColumns().stream().forEach(item -> {
+            item.setResizable(true);
+            item.setSortable(true);
+        });
+        illnessGrid.setAllRowsVisible(true);
+        TextField illnessSearchField = new TextField();
+        illnessSearchField.setWidth("20%");
+        illnessSearchField.setPlaceholder("Search");
+        illnessSearchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        illnessSearchField.setValueChangeMode(ValueChangeMode.EAGER);
+        illnessSearchField.addValueChangeListener(e -> illnessDataView.refreshAll());
+
+        illnessDataView.addFilter(item -> {
+            String searchTerm = illnessSearchField.getValue().trim();
+            if (searchTerm.isEmpty())
+                return true;
+            boolean matchesId = matchesTerm(String.valueOf(item.getId()),
+                    searchTerm);
+            boolean matchesDescription = matchesTerm(item.getDescription(), searchTerm);
+            boolean matchesFrom = matchesTerm(String.valueOf(item.getIllFrom()),
+                    searchTerm);
+            boolean matchesTo = matchesTerm(String.valueOf(item.getIllTo()),
+                    searchTerm);
+            return matchesId || matchesDescription || matchesFrom || matchesTo;
+        });
+        VerticalLayout illnessLayout = new VerticalLayout(illnessSearchField, illnessGrid);
+        illnessLayout.setPadding(false);
+        return illnessLayout;
     }
 
     private boolean matchesTerm(String value, String searchTerm) {
@@ -149,10 +163,15 @@ public class MedcardView extends VerticalLayout {
 
     private VerticalLayout createDialogLayout() {
         VerticalLayout dialogLayout = new VerticalLayout(new Label("Select your country"));
-        ComboBox<String> countries = new ComboBox();
-        List<String> countriesList = Arrays.stream(Locale.getISOCountries())
-                .map(item -> new Locale("",item).getDisplayCountry(Locale.ENGLISH)).collect(Collectors.toList());
-        countries.setItems(countriesList);
+        ComboBox<Country> countries = new ComboBox();
+        List<Country> countryList = countryService.getAllCountries();
+        countryList.forEach(item -> {
+            item.setName(StringUtils.capitalize(item.getName()));
+            item.setFlag("https://flagsapi.com/" + item.getCode() + "/flat/64.png");
+        });
+        countries.setItems(countryList);
+        countries.setRenderer(createRenderer());
+        countries.setItemLabelGenerator(country -> country.getName());
         countries.setAllowCustomValue(true);
 
         TextArea addressTextArea = new TextArea();
@@ -189,9 +208,9 @@ public class MedcardView extends VerticalLayout {
         dialogLayout.add(countries, streetAddress, addressTextArea, homeNumber, homeTextArea);
         Button apply = new Button("Apply");
         apply.addClickListener(e -> {
-            if(!addressTextArea.isInvalid()){
+            if (!addressTextArea.isInvalid()) {
                 MessageResponse response = medcardService.
-                        createSelf(parseResidentalAddress(countries,addressTextArea,homeTextArea));
+                        createSelf(parseResidentalAddress(countries, addressTextArea, homeTextArea));
                 UI.getCurrent().navigate(MedcardView.class);
                 UiUtils.generateSuccessNotification(response.getMessage());
             }
@@ -205,8 +224,23 @@ public class MedcardView extends VerticalLayout {
         return dialogLayout;
     }
 
-    private String parseResidentalAddress(ComboBox<String> countries, TextArea addressTextArea, TextArea homeTextArea) {
-        return countries.getValue() + ", " + addressTextArea.getValue() + ", " + homeTextArea.getValue();
+    private Renderer<Country> createRenderer() {
+        StringBuilder tpl = new StringBuilder();
+        tpl.append("<div style=\"display: flex;\">");
+        tpl.append("  <img style=\"height: var(--lumo-size-m); margin-right: var(--lumo-space-s);\" src=\"${item.flag}\" alt=\"Portrait of ${item.name} ${item.code}\" />");
+        tpl.append("  <div>");
+        tpl.append("    ${item.name} ${item.code}");
+        tpl.append("    <div style=\"font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color);\">${item.region}</div>");
+        tpl.append("  </div>");
+        tpl.append("</div>");
+
+        return LitRenderer.<Country>of(tpl.toString()).withProperty("flag", Country::getFlag)
+                .withProperty("name", Country::getName).withProperty("code", Country::getCode)
+                .withProperty("region", Country::getRegion);
+    }
+
+    private String parseResidentalAddress(ComboBox<Country> countries, TextArea addressTextArea, TextArea homeTextArea) {
+        return countries.getValue().getName() + ", " + addressTextArea.getValue() + ", " + homeTextArea.getValue();
     }
 
 }
