@@ -3,7 +3,6 @@ package bsu.rpact.medionefrontend.adapter;
 import bsu.rpact.medionefrontend.entity.Medcard;
 import bsu.rpact.medionefrontend.pojo.MedcardPojo;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;

@@ -3,7 +3,6 @@ package bsu.rpact.medionefrontend.vaadin.view;
 import bsu.rpact.medionefrontend.entity.Illness;
 import bsu.rpact.medionefrontend.entity.Medcard;
 import bsu.rpact.medionefrontend.entity.Operation;
-import bsu.rpact.medionefrontend.exception.MedcardNotSetException;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import bsu.rpact.medionefrontend.service.MedcardService;
 import bsu.rpact.medionefrontend.session.SessionManager;
@@ -11,6 +10,7 @@ import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.vaadin.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.dataview.GridListDataView;
@@ -25,16 +25,21 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Route(value = "medcard", layout = MainLayout.class)
 @PageTitle("Medcard")
 public class MedcardView extends VerticalLayout {
 
-    private final static int charLimit = 200;
+    private final static int addressCharLimit = 200;
+    private final static int homeCharLimit = 10;
     private final static String residentalAddressRegex = "^[#.0-9a-zA-Z\\s,-]+$";
+    private final static String homeNumberRegex = "[0-9]{1,}[A-Za-z0-9]{0,}";
 
     private final SessionManager sessionManager;
     private final MedcardService medcardService;
@@ -143,26 +148,51 @@ public class MedcardView extends VerticalLayout {
     }
 
     private VerticalLayout createDialogLayout() {
-        VerticalLayout dialogLayout = new VerticalLayout(new Label("Enter your residental address"));
-        TextArea textArea = new TextArea();
-        textArea.setMaxLength(charLimit);
-        textArea.setValueChangeMode(ValueChangeMode.EAGER);
-        Pattern pattern = Pattern.compile(residentalAddressRegex);
-        textArea.addValueChangeListener(e -> {
-            if (!pattern.matcher(e.getValue()).matches()) {
+        VerticalLayout dialogLayout = new VerticalLayout(new Label("Select your country"));
+        ComboBox<String> countries = new ComboBox();
+        List<String> countriesList = Arrays.stream(Locale.getISOCountries())
+                .map(item -> new Locale("",item).getDisplayCountry(Locale.ENGLISH)).collect(Collectors.toList());
+        countries.setItems(countriesList);
+        countries.setAllowCustomValue(true);
+
+        TextArea addressTextArea = new TextArea();
+        addressTextArea.setMaxLength(addressCharLimit);
+        addressTextArea.setValueChangeMode(ValueChangeMode.EAGER);
+        Pattern addressPattern = Pattern.compile(residentalAddressRegex);
+        addressTextArea.addValueChangeListener(e -> {
+            if (!addressPattern.matcher(e.getValue()).matches()) {
                 e.getSource().setInvalid(true);
                 e.getSource().setHelperText("Invalid address format." +
                         "Address cannot be empty, you can use only letters, numbers, commas and dots");
             } else {
-                e.getSource().setHelperText(e.getValue().length() + "/" + charLimit);
+                e.getSource().setHelperText(e.getValue().length() + "/" + addressCharLimit);
             }
         });
-        dialogLayout.add(textArea);
+
+        TextArea homeTextArea = new TextArea();
+        homeTextArea.setMaxLength(homeCharLimit);
+        homeTextArea.setValueChangeMode(ValueChangeMode.EAGER);
+        Pattern homeNumberPattern = Pattern.compile(homeNumberRegex);
+        homeTextArea.addValueChangeListener(e -> {
+            if (!homeNumberPattern.matcher(e.getValue()).matches()) {
+                e.getSource().setInvalid(true);
+                e.getSource().setHelperText("Invalid home number format." +
+                        "Home number cannot be empty, you can use only letters and numbers");
+            } else {
+                e.getSource().setHelperText(e.getValue().length() + "/" + homeCharLimit);
+            }
+        });
+
+        Label streetAddress = new Label("Enter your residental street address");
+        Label homeNumber = new Label("Enter your home number");
+
+        dialogLayout.add(countries, streetAddress, addressTextArea, homeNumber, homeTextArea);
         Button apply = new Button("Apply");
         apply.addClickListener(e -> {
-            if(!textArea.isInvalid()){
-                MessageResponse response = medcardService.createSelf(textArea.getValue());
-                UI.getCurrent().getPage().reload();
+            if(!addressTextArea.isInvalid()){
+                MessageResponse response = medcardService.
+                        createSelf(parseResidentalAddress(countries,addressTextArea,homeTextArea));
+                UI.getCurrent().navigate(MedcardView.class);
                 UiUtils.generateSuccessNotification(response.getMessage());
             }
         });
@@ -174,4 +204,9 @@ public class MedcardView extends VerticalLayout {
 
         return dialogLayout;
     }
+
+    private String parseResidentalAddress(ComboBox<String> countries, TextArea addressTextArea, TextArea homeTextArea) {
+        return countries.getValue() + ", " + addressTextArea.getValue() + ", " + homeTextArea.getValue();
+    }
+
 }
