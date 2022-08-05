@@ -36,6 +36,11 @@ public class VisitCreationView extends VerticalLayout {
         List<DoctorButton> doctorButtons = new ArrayList<>();
         Div div = createButtons(this.specialityService.getAllSpecialities(), doctorButtons);
         add(div);
+        HorizontalLayout searchLayout = getSearchLayout(doctorService, doctorButtons);
+        add(searchLayout);
+    }
+
+    private HorizontalLayout getSearchLayout(DoctorService doctorService, List<DoctorButton> doctorButtons) {
         Button search = new Button("Search doctors");
         search.addClickListener(e -> {
             List<SpecialityName> selectedButtons = doctorButtons.stream().
@@ -46,7 +51,8 @@ public class VisitCreationView extends VerticalLayout {
         HorizontalLayout layout = new HorizontalLayout(search);
         layout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         layout.setJustifyContentMode(JustifyContentMode.CENTER);
-        add(layout);
+        layout.setWidthFull();
+        return layout;
     }
 
     private Div createButtons(List<Speciality> specialityList, List<DoctorButton> buttonList) {
