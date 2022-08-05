@@ -26,14 +26,23 @@ public class Visit {
     @Basic
     @Column(name = "comments")
     private String comments;
+    @Basic
+    @Column(name = "init_reason")
+    private String reason;
+    @Basic
+    @Column(name = "active")
+    private Boolean active;
+
 
     public Visit() {
     }
 
-    public Visit(Timestamp datetime, String diagnosis, String comments) {
+    public Visit(Timestamp datetime, String diagnosis, String comments, String reason, Boolean active) {
         this.datetime = datetime;
         this.diagnosis = diagnosis;
         this.comments = comments;
+        this.reason = reason;
+        this.active = active;
     }
 
     public Integer getId() {
@@ -136,5 +145,21 @@ public class Visit {
                     item.getVisitList().remove(this));
             visitSchedules = null;
         }
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }
