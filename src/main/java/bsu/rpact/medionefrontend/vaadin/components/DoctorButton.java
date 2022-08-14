@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.vaadin;
+package bsu.rpact.medionefrontend.vaadin.components;
 
 import bsu.rpact.medionefrontend.enums.SpecialityName;
 import com.vaadin.flow.component.button.Button;

@@ -7,7 +7,7 @@ import bsu.rpact.medionefrontend.pojo.authentication.RegisterRequest;
 import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.ValidatorUtils;
-import bsu.rpact.medionefrontend.vaadin.RegistrationForm;
+import bsu.rpact.medionefrontend.vaadin.components.RegistrationForm;
 import com.vaadin.flow.data.binder.*;
 
 import java.util.Locale;

@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
-import bsu.rpact.medionefrontend.vaadin.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
@@ -9,7 +9,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinService;
-import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.WrappedSession;
 
 @PageTitle("Home")

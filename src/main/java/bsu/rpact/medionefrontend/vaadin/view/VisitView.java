@@ -1,12 +1,9 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
-import bsu.rpact.medionefrontend.entity.Visit;
-import bsu.rpact.medionefrontend.vaadin.MainLayout;
-import bsu.rpact.medionefrontend.vaadin.VisitDiv;
+import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.components.VisitDiv;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;

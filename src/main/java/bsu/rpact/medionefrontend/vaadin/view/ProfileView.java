@@ -6,7 +6,7 @@ import bsu.rpact.medionefrontend.service.CredentialsService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.ValidatorUtils;
-import bsu.rpact.medionefrontend.vaadin.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.H3;

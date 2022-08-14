@@ -1,12 +1,8 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.service.AuthService;
-import bsu.rpact.medionefrontend.utils.UiUtils;
-import bsu.rpact.medionefrontend.vaadin.RegistrationForm;
+import bsu.rpact.medionefrontend.vaadin.components.RegistrationForm;
 import bsu.rpact.medionefrontend.validation.RegistrationFormBinder;
-import bsu.rpact.medionefrontend.utils.ValidatorUtils;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;

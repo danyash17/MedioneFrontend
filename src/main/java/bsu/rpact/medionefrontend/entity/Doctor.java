@@ -26,7 +26,8 @@ public class Doctor implements User {
     @Basic
     @Column(name = "common_info")
     private String commonInfo;
-    @Basic
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "doctor_photo")
     private byte[] doctorPhoto;
 

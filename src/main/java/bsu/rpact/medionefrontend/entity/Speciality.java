@@ -64,4 +64,9 @@ public class Speciality {
         doctorList.add(doctor);
         doctor.getSpecialityList().add(this);
     }
+
+    @Override
+    public String toString() {
+        return description;
+    }
 }

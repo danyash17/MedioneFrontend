@@ -9,7 +9,7 @@ import bsu.rpact.medionefrontend.service.CountryService;
 import bsu.rpact.medionefrontend.service.MedcardService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.UiUtils;
-import bsu.rpact.medionefrontend.vaadin.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.combobox.ComboBox;

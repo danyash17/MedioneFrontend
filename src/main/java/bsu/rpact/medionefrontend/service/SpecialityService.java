@@ -1,6 +1,7 @@
 package bsu.rpact.medionefrontend.service;
 
 import bsu.rpact.medionefrontend.adapter.SpecialityAdapter;
+import bsu.rpact.medionefrontend.entity.DoctorSpeciality;
 import bsu.rpact.medionefrontend.entity.Speciality;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,4 +17,5 @@ public class SpecialityService {
     public List<Speciality> getAllSpecialities() {
         return adapter.getAll();
     }
+
 }
