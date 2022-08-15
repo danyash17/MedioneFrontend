@@ -2,18 +2,22 @@ package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.entity.Speciality;
+import bsu.rpact.medionefrontend.entity.Visit;
 import bsu.rpact.medionefrontend.enums.SpecialityName;
 import bsu.rpact.medionefrontend.pojo.RepresentativeDoctorSpecialityPojo;
 import bsu.rpact.medionefrontend.pojo.other.DoctorPhotoUrlContainer;
 import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.service.DoctorSpecialityService;
 import bsu.rpact.medionefrontend.service.SpecialityService;
+import bsu.rpact.medionefrontend.service.VisitService;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
+import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.vaadin.components.DoctorButton;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.datetimepicker.DateTimePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -23,6 +27,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
@@ -31,8 +36,14 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.apache.commons.lang3.StringUtils;
 
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Route(value = "newvisit", layout = MainLayout.class)
@@ -43,41 +54,95 @@ public class VisitCreationView extends VerticalLayout {
     private final DoctorSpecialityService doctorSpecialityService;
     private final DoctorService doctorService;
     private final ImageUtils imageUtils;
+    private final VisitService visitService;
 
-    public VisitCreationView(SpecialityService specialityService, DoctorSpecialityService doctorSpecialityService, DoctorService doctorService, ImageUtils imageUtils) {
+    public VisitCreationView(SpecialityService specialityService, DoctorSpecialityService doctorSpecialityService, DoctorService doctorService, ImageUtils imageUtils, VisitService visitService) {
         this.specialityService = specialityService;
         this.doctorSpecialityService = doctorSpecialityService;
         this.doctorService = doctorService;
         this.imageUtils = imageUtils;
+        this.visitService = visitService;
         add(new H2("New visit"));
-        add(new H3("Step 1 : Choose competence areas"));
+        add(new H3("Step 1 : Choose competence areas and doctor"));
         List<DoctorButton> doctorButtons = new ArrayList<>();
         Div div = createButtons(this.specialityService.getAllSpecialities(), doctorButtons);
         add(div);
 
         Grid<DoctorPhotoUrlContainer> grid = new Grid<>(DoctorPhotoUrlContainer.class, false);
-        setupGrid(grid);
+        VerticalLayout datetimeLayout = new VerticalLayout();
+        AtomicReference<Doctor> doctorAtomicReference = new AtomicReference<>();
+        setupGrid(grid, datetimeLayout, doctorAtomicReference);
+
+        datetimeLayout.add(new H3("Step 2 : Choose applicable date and time"));
+        DateTimePicker dateTimePicker = new DateTimePicker();
+        Visit visit = new Visit();
+        setupDateTimePicker(dateTimePicker, visit, doctorAtomicReference);
+        datetimeLayout.add(dateTimePicker);
+        datetimeLayout.setVisible(false);
 
         HorizontalLayout searchLayout = getSearchLayout(doctorService, doctorButtons, grid);
         add(searchLayout);
         add(grid);
-
-        add();
+        add(datetimeLayout);
     }
 
-    private void setupGrid(Grid<DoctorPhotoUrlContainer> grid) {
+    private void setupDateTimePicker(DateTimePicker dateTimePicker, Visit visit, AtomicReference<Doctor> doctorReference) {
+        dateTimePicker.setLabel("Appointment date and time");
+        dateTimePicker.setStep(Duration.ofMinutes(30));
+        dateTimePicker.setHelperText("Must be within 120 days from today. Doctor's schedule: 8:00 AM - 16:00 PM (12:00 AM - 13:00 PM break), only weekdays");
+        dateTimePicker.setAutoOpen(true);
+        LocalDateTime now = LocalDateTime.now().minusMinutes(LocalDateTime.now().getMinute());
+        dateTimePicker.setMin(now);
+        dateTimePicker.setMax(now.plusDays(60));
+        dateTimePicker.setValue(now.plusDays(120));
+        final Binder<Visit> binder = new Binder<>(Visit.class);
+        binder.forField(dateTimePicker).withValidator(startDateTime -> {
+            boolean validWeekDay = startDateTime.getDayOfWeek().getValue() >= 1
+                    && startDateTime.getDayOfWeek().getValue() <= 5;
+            return validWeekDay;
+        }, "The selected day of week is not available").withValidator(startDateTime -> {
+            LocalTime valueTime = LocalTime.of(startDateTime.getHour(), startDateTime.getMinute());
+            List<Visit> visitList = visitService.getAllVisitsOfDoctor(doctorReference.get().getId());
+            boolean validDaySchedule = !(LocalTime.of(8, 0).isAfter(valueTime)
+                    || (LocalTime.of(12, 0).isBefore(valueTime) && LocalTime.of(13, 0).isAfter(valueTime))
+                    || LocalTime.of(16, 0).isBefore(valueTime));
+            boolean validVisitSchedule = visitList.stream().allMatch(currentVisit ->
+                    !currentVisit.getDatetime().toLocalDateTime().toLocalTime().equals(valueTime));
+            return validDaySchedule && validVisitSchedule;
+        }, "This datetime is not available for booking").bind(
+                valueProvider -> valueProvider.getDatetime().toLocalDateTime(),
+                (Visit vis, LocalDateTime dt) -> {
+                    vis.setDatetime(Timestamp.valueOf(dt));
+                });
+        dateTimePicker.addValueChangeListener(e -> {
+            if (binder.validate().isOk()) {
+                visit.setDatetime(Timestamp.valueOf(e.getValue()));
+            }
+        });
+    }
+
+    private void setupGrid(Grid<DoctorPhotoUrlContainer> grid, VerticalLayout layout, AtomicReference<Doctor> selectedDoctor) {
         grid.addColumn(createAvatarRenderer()).setHeader("Photo")
                 .setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(container -> {
-                    return container.getDoctor().getCredentials().getFirstName() + " " +
-                            container.getDoctor().getCredentials().getPatronymic() + " " +
-                            container.getDoctor().getCredentials().getLastName();
-                }).setHeader("Credentials").setAutoWidth(true).setFlexGrow(0);
+            return container.getDoctor().getCredentials().getFirstName() + " " +
+                    container.getDoctor().getCredentials().getPatronymic() + " " +
+                    container.getDoctor().getCredentials().getLastName();
+        }).setHeader("Credentials").setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(container -> StringUtils.join(container.getDoctor().getSpecialityList(), ',')).
                 setHeader(createSpecialityHeader()).setAutoWidth(true);
         grid.addColumn(createStatusComponentRenderer()).setHeader("Status").setAutoWidth(true);
         grid.addColumn(createSelectRenderer(grid)).setAutoWidth(true);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
+        grid.addSelectionListener(e -> {
+            if (e.getFirstSelectedItem().isPresent() && e.getFirstSelectedItem().get().getDoctor().getAvailable()) {
+                layout.setVisible(true);
+                selectedDoctor.set(e.getFirstSelectedItem().get().getDoctor());
+            } else {
+                layout.setVisible(false);
+                UiUtils.generateErrorNotification("This doctor is currently busy, try selecting another one").open();
+            }
+        });
         grid.setAllRowsVisible(true);
     }
 
