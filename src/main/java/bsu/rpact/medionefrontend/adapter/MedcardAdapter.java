@@ -13,8 +13,6 @@ import java.util.Optional;
 @Component
 public class MedcardAdapter extends GeneralAdapter {
 
-    @Value("${mappings.patient}")
-    protected String patientMapping;
     @Value("${mappings.patient.self.medcard}")
     protected String selfMedcardMapping;
 

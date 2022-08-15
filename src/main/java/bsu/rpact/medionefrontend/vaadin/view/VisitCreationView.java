@@ -4,17 +4,16 @@ import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.entity.Speciality;
 import bsu.rpact.medionefrontend.entity.Visit;
 import bsu.rpact.medionefrontend.enums.SpecialityName;
+import bsu.rpact.medionefrontend.pojo.PatientVisitPojo;
 import bsu.rpact.medionefrontend.pojo.RepresentativeDoctorSpecialityPojo;
 import bsu.rpact.medionefrontend.pojo.other.DoctorPhotoUrlContainer;
-import bsu.rpact.medionefrontend.service.DoctorService;
-import bsu.rpact.medionefrontend.service.DoctorSpecialityService;
-import bsu.rpact.medionefrontend.service.SpecialityService;
-import bsu.rpact.medionefrontend.service.VisitService;
+import bsu.rpact.medionefrontend.service.*;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.vaadin.components.DoctorButton;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
@@ -27,6 +26,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
@@ -36,13 +36,13 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.apache.commons.lang3.StringUtils;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -55,38 +55,103 @@ public class VisitCreationView extends VerticalLayout {
     private final DoctorService doctorService;
     private final ImageUtils imageUtils;
     private final VisitService visitService;
+    private final PatientService patientService;
 
-    public VisitCreationView(SpecialityService specialityService, DoctorSpecialityService doctorSpecialityService, DoctorService doctorService, ImageUtils imageUtils, VisitService visitService) {
+    public VisitCreationView(SpecialityService specialityService, DoctorSpecialityService doctorSpecialityService, DoctorService doctorService, ImageUtils imageUtils, VisitService visitService, PatientService patientService) {
         this.specialityService = specialityService;
         this.doctorSpecialityService = doctorSpecialityService;
         this.doctorService = doctorService;
         this.imageUtils = imageUtils;
         this.visitService = visitService;
+        this.patientService = patientService;
         add(new H2("New visit"));
         add(new H3("Step 1 : Choose competence areas and doctor"));
         List<DoctorButton> doctorButtons = new ArrayList<>();
         Div div = createButtons(this.specialityService.getAllSpecialities(), doctorButtons);
         add(div);
-
         Grid<DoctorPhotoUrlContainer> grid = new Grid<>(DoctorPhotoUrlContainer.class, false);
         VerticalLayout datetimeLayout = new VerticalLayout();
+        VerticalLayout reasonLayout = new VerticalLayout();
         AtomicReference<Doctor> doctorAtomicReference = new AtomicReference<>();
-        setupGrid(grid, datetimeLayout, doctorAtomicReference);
-
-        datetimeLayout.add(new H3("Step 2 : Choose applicable date and time"));
-        DateTimePicker dateTimePicker = new DateTimePicker();
         Visit visit = new Visit();
-        setupDateTimePicker(dateTimePicker, visit, doctorAtomicReference);
-        datetimeLayout.add(dateTimePicker);
-        datetimeLayout.setVisible(false);
-
+        setupGrid(grid, datetimeLayout, doctorAtomicReference, visit);
+        setupDatetimeLayout(datetimeLayout, reasonLayout, doctorAtomicReference, visit);
+        setupReasonLayout(reasonLayout, visit);
         HorizontalLayout searchLayout = getSearchLayout(doctorService, doctorButtons, grid);
         add(searchLayout);
         add(grid);
         add(datetimeLayout);
+        add(reasonLayout);
     }
 
-    private void setupDateTimePicker(DateTimePicker dateTimePicker, Visit visit, AtomicReference<Doctor> doctorReference) {
+    private void setupReasonLayout(VerticalLayout reasonLayout, Visit visit) {
+        reasonLayout.setVisible(false);
+        reasonLayout.add(new H3("Step 3 : Form your prescript visit reason"));
+        Button confirm = new Button("Confirm");
+        confirm.setVisible(false);
+        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        TextArea textArea = new TextArea();
+        textArea.setWidthFull();
+        textArea.setLabel("Visit reason");
+        Paragraph dialogPropsParagraph = new Paragraph();
+        textArea.addValueChangeListener(e -> {
+            if (!e.getSource().isEmpty()) {
+                visit.setReason(e.getValue());
+                String properties = "Doctor: " + visit.getDoctor().getCredentials().getFirstName() + " " +
+                        visit.getDoctor().getCredentials().getPatronymic() + " " +
+                        visit.getDoctor().getCredentials().getLastName() + "; " +
+                        "Date and time: " + visit.getDatetime().toLocalDateTime().format(
+                        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)
+                                .withLocale(Locale.ROOT)) +
+                        " " + visit.getDatetime().toLocalDateTime().toLocalTime() + "; " +
+                        "Reason: " + visit.getReason();
+                dialogPropsParagraph.setText(properties);
+                confirm.setVisible(true);
+            } else {
+                confirm.setVisible(false);
+            }
+        });
+        Dialog dialog = new Dialog();
+        dialog.setModal(true);
+        confirm.addClickListener(buttonClickEvent -> dialog.open());
+        dialog.add(new H3("Are you sure you want to create a visit with current properties?"));
+        dialog.add(dialogPropsParagraph);
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        Button cancelButton = new Button("Cancel", (e) -> dialog.close());
+        cancelButton.getStyle().set("margin-right", "auto");
+        Button okButton = new Button("OK", (e) -> dialog.close());
+        okButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        okButton.addClickListener(e -> {
+            createVisit(visit);
+            UiUtils.generateSuccessNotification("Visit created successfully");
+            UI.getCurrent().getPage().reload();
+        });
+        reasonLayout.add(textArea);
+        reasonLayout.add(confirm);
+        buttonLayout.add(cancelButton, okButton);
+        dialog.add(buttonLayout);
+    }
+
+    private void createVisit(Visit visit) {
+        PatientVisitPojo visitPojo = new PatientVisitPojo();
+        visitPojo.setDatetime(visit.getDatetime());
+        visitPojo.setActive(Boolean.TRUE);
+        visitPojo.setComments("");
+        visitPojo.setDiagnosis("");
+        visitPojo.setReason(visit.getReason());
+        visitPojo.setDoctorId(visit.getDoctor().getId());
+        visitService.createVisitBySelf(visitPojo);
+    }
+
+    private void setupDatetimeLayout(VerticalLayout datetimeLayout, VerticalLayout reasonLayout, AtomicReference<Doctor> doctorAtomicReference, Visit visit) {
+        datetimeLayout.add(new H3("Step 2 : Choose applicable date and time"));
+        DateTimePicker dateTimePicker = new DateTimePicker();
+        setupDateTimePicker(dateTimePicker, visit, doctorAtomicReference, reasonLayout);
+        datetimeLayout.add(dateTimePicker);
+        datetimeLayout.setVisible(false);
+    }
+
+    private void setupDateTimePicker(DateTimePicker dateTimePicker, Visit visit, AtomicReference<Doctor> doctorReference, VerticalLayout reasonLayout) {
         dateTimePicker.setLabel("Appointment date and time");
         dateTimePicker.setStep(Duration.ofMinutes(30));
         dateTimePicker.setHelperText("Must be within 120 days from today. Doctor's schedule: 8:00 AM - 16:00 PM (12:00 AM - 13:00 PM break), only weekdays");
@@ -117,11 +182,14 @@ public class VisitCreationView extends VerticalLayout {
         dateTimePicker.addValueChangeListener(e -> {
             if (binder.validate().isOk()) {
                 visit.setDatetime(Timestamp.valueOf(e.getValue()));
+                reasonLayout.setVisible(true);
+            } else {
+                reasonLayout.setVisible(false);
             }
         });
     }
 
-    private void setupGrid(Grid<DoctorPhotoUrlContainer> grid, VerticalLayout layout, AtomicReference<Doctor> selectedDoctor) {
+    private void setupGrid(Grid<DoctorPhotoUrlContainer> grid, VerticalLayout datetimeLayout, AtomicReference<Doctor> selectedDoctor, Visit visit) {
         grid.addColumn(createAvatarRenderer()).setHeader("Photo")
                 .setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(container -> {
@@ -136,10 +204,11 @@ public class VisitCreationView extends VerticalLayout {
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.addSelectionListener(e -> {
             if (e.getFirstSelectedItem().isPresent() && e.getFirstSelectedItem().get().getDoctor().getAvailable()) {
-                layout.setVisible(true);
+                datetimeLayout.setVisible(true);
                 selectedDoctor.set(e.getFirstSelectedItem().get().getDoctor());
+                visit.setDoctor(e.getFirstSelectedItem().get().getDoctor());
             } else {
-                layout.setVisible(false);
+                datetimeLayout.setVisible(false);
                 UiUtils.generateErrorNotification("This doctor is currently busy, try selecting another one").open();
             }
         });
