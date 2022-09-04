@@ -13,7 +13,7 @@ public class Operation {
     @Column(name = "id")
     private Integer id;
     @Basic
-    @Column(name = "operation_date")
+    @Column(name = "operation_date", columnDefinition = "DATE")
     private Timestamp operationDate;
     @Basic
     @Column(name = "name")

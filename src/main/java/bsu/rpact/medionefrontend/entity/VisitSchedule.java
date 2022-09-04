@@ -1,6 +1,10 @@
 package bsu.rpact.medionefrontend.entity;
 
+import bsu.rpact.medionefrontend.entity.resolver.DedupingObjectIdResolver;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -21,6 +25,8 @@ public class VisitSchedule {
     @JoinTable(name = "schedule_assert",
                 joinColumns = @JoinColumn(name = "schedule_id"),
                 inverseJoinColumns = @JoinColumn(name = "visit_id"))
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = VisitSchedule.class, resolver = DedupingObjectIdResolver.class)
+    @JsonIdentityReference(alwaysAsId = true)
     private List<Visit> visitList;
 
     public Integer getId() {

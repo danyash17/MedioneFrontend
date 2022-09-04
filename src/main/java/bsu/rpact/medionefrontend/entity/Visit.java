@@ -1,7 +1,10 @@
 package bsu.rpact.medionefrontend.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import bsu.rpact.medionefrontend.entity.resolver.DedupingObjectIdResolver;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -17,8 +20,8 @@ public class Visit {
     @Column(name = "id")
     private Integer id;
     @Basic
-    @Column(name = "datetime")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+    @Column(name = "datetime", columnDefinition = "DATE")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Timestamp datetime;
     @Basic
     @Column(name = "diagnosis")
@@ -83,15 +86,16 @@ public class Visit {
             joinColumns = @JoinColumn(name = "visit_id"),
             inverseJoinColumns = @JoinColumn(name = "schedule_id")
     )
-    @JsonBackReference(value = "visitScheds")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = VisitSchedule.class, resolver = DedupingObjectIdResolver.class)
+    @JsonIdentityReference(alwaysAsId = true)
     private Set<VisitSchedule> visitSchedules;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH}, fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id")
-    @JsonBackReference(value = "pat")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = Patient.class, resolver = DedupingObjectIdResolver.class)
     private Patient patient;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH})
     @JoinColumn(name = "doctor_id")
-    @JsonBackReference(value = "doc")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = Doctor.class, resolver = DedupingObjectIdResolver.class)
     private Doctor doctor;
 
     public Set<VisitSchedule> getVisitSchedules() {
