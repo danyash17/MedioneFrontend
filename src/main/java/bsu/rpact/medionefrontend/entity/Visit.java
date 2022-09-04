@@ -21,7 +21,7 @@ public class Visit {
     private Integer id;
     @Basic
     @Column(name = "datetime", columnDefinition = "DATE")
-    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd'T'HH:mm:ss.SSS", timezone="Europe/Moscow")
     private Timestamp datetime;
     @Basic
     @Column(name = "diagnosis")

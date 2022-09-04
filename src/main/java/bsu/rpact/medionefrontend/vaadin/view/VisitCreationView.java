@@ -232,7 +232,8 @@ public class VisitCreationView extends VerticalLayout {
             List<SpecialityName> selectedButtons = doctorButtons.stream().
                     filter(button -> button.isSelected()).map(button -> button.getSpecialityName()).
                     collect(Collectors.toList());
-            List<Doctor> doctorList = doctorService.getProperDoctors(selectedButtons);
+            List<Doctor> doctorList = doctorService.getProperDoctors(selectedButtons).stream().
+                    filter(doctor -> doctor.getVisitSchedule()!=null).collect(Collectors.toList());
             List<DoctorPhotoUrlContainer> doctorPhotoUrlContainers = doctorList.stream().
                     map(doctor -> new DoctorPhotoUrlContainer
                             (doctor, imageUtils.chacheByteArrToImage(doctor.getDoctorPhoto(),

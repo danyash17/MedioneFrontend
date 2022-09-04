@@ -31,9 +31,11 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Route(value = "visit", layout = MainLayout.class)
 @PageTitle("Visits")
@@ -65,7 +67,7 @@ public class VisitView extends VerticalLayout {
         grid.addColumn(createEmployeeRenderer()).setHeader("Doctor")
                 .setAutoWidth(true).setFlexGrow(0).setTextAlign(ColumnTextAlign.START);
         Grid.Column<Visit> dtColumn = grid.addColumn(visit -> {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
             return dateFormat.format(visit.getDatetime());
         }).setHeader("Date and Time").setTextAlign(ColumnTextAlign.START);
         grid.addColumn(createStatusComponentRenderer()).setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
@@ -99,13 +101,13 @@ public class VisitView extends VerticalLayout {
         binder.forField(dateTimePicker).asRequired("Date time must not be empty")
                 .bind(valueProvider -> valueProvider.getDatetime().toLocalDateTime(),
                         (Visit visit, LocalDateTime dt) -> {
-                        visit.setDatetime(Timestamp.valueOf(dt));
+                            visit.setDatetime(Timestamp.valueOf(dt));
                         });
-        setupDateTimePicker(dateTimePicker,atomicDoctorReference);
+        setupDateTimePicker(dateTimePicker, atomicDoctorReference);
         dtColumn.setEditorComponent(dateTimePicker);
 
         Button saveButton = new Button("Save", e -> {
-            getSaveConfirmationDialog(editor,atomicVisitReference.get()).open();
+            getSaveConfirmationDialog(editor, atomicVisitReference.get()).open();
         });
         Button cancelButton = new Button(VaadinIcon.TRASH.create(), e -> {
             getDeleteConfirmationDialog(editor).open();
@@ -129,6 +131,7 @@ public class VisitView extends VerticalLayout {
             dialog.close();
             editor.save();
             visitService.update(visit);
+            UI.getCurrent().getPage().reload();
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.add(new HorizontalLayout(cancelButton, saveButton));
@@ -153,7 +156,14 @@ public class VisitView extends VerticalLayout {
 
     private void setupGrid(Grid<Visit> activeGrid) {
         doGridInit(activeGrid);
-        activeGrid.setItems(visitService.getAllMyVisitsSelf());
+        List<Visit> visitList = visitService.getAllMyVisitsSelf();
+        visitList.sort(new Comparator<Visit>() {
+            @Override
+            public int compare(Visit o1, Visit o2) {
+                return o1.getDatetime().toLocalDateTime().compareTo(o2.getDatetime().toLocalDateTime());
+            }
+        });
+        activeGrid.setItems(visitList);
     }
 
     private static final SerializableBiConsumer<Span, Visit> statusComponentUpdater = (span, visit) -> {
