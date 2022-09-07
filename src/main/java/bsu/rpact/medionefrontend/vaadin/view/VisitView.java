@@ -2,6 +2,9 @@ package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.entity.Visit;
+import bsu.rpact.medionefrontend.pojo.RepresentativeDoctorSpecialityPojo;
+import bsu.rpact.medionefrontend.pojo.other.DoctorPhotoUrlContainer;
+import bsu.rpact.medionefrontend.service.DoctorSpecialityService;
 import bsu.rpact.medionefrontend.service.VisitService;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
@@ -9,6 +12,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datetimepicker.DateTimePicker;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
@@ -22,6 +26,7 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.selection.SelectionEvent;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -35,17 +40,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 @Route(value = "visit", layout = MainLayout.class)
 @PageTitle("Visits")
 public class VisitView extends VerticalLayout {
 
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
     private final VisitService visitService;
+    private final DoctorSpecialityService doctorSpecialityService;
     private final ImageUtils imageUtils;
 
-    public VisitView(VisitService visitService, ImageUtils imageUtils) {
+    public VisitView(VisitService visitService, DoctorSpecialityService doctorSpecialityService, ImageUtils imageUtils) {
         this.visitService = visitService;
+        this.doctorSpecialityService = doctorSpecialityService;
         this.imageUtils = imageUtils;
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         setSizeFull();
@@ -67,14 +74,14 @@ public class VisitView extends VerticalLayout {
         grid.addColumn(createEmployeeRenderer()).setHeader("Doctor")
                 .setAutoWidth(true).setFlexGrow(0).setTextAlign(ColumnTextAlign.START);
         Grid.Column<Visit> dtColumn = grid.addColumn(visit -> {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
-            return dateFormat.format(visit.getDatetime());
+            return DATE_FORMAT.format(visit.getDatetime());
         }).setHeader("Date and Time").setTextAlign(ColumnTextAlign.START);
         grid.addColumn(createStatusComponentRenderer()).setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
         AtomicReference<Doctor> atomicDoctorReference = new AtomicReference<>();
         AtomicReference<Visit> atomicVisitReference = new AtomicReference<>();
         Grid.Column<Visit> editColumn = grid.addComponentColumn(visit -> {
             Button editButton = new Button("Edit");
+            editButton.setEnabled(visit.getActive());
             editButton.addClickListener(e -> {
                 if (editor.isOpen())
                     editor.cancel();
@@ -118,6 +125,38 @@ public class VisitView extends VerticalLayout {
                 cancelButton);
         actions.setPadding(false);
         editColumn.setEditorComponent(actions);
+
+        grid.addSelectionListener(e -> {
+            setupEnquiryDialog(e);
+        });
+    }
+
+    private void setupEnquiryDialog(SelectionEvent<Grid<Visit>, Visit> e) {
+        Dialog dialog = new Dialog();
+        Visit visit = e.getFirstSelectedItem().get();
+        Doctor doctor = visit.getDoctor();
+        DoctorPhotoUrlContainer doctorPhotoUrlContainer = new DoctorPhotoUrlContainer();
+        initContainer(visit, doctor, doctorPhotoUrlContainer);
+        dialog.add(createDialogLayout(doctorPhotoUrlContainer, dialog, visit));
+        dialog.setCloseOnEsc(true);
+        dialog.open();
+    }
+
+    private void initContainer(Visit visit, Doctor doctor, DoctorPhotoUrlContainer doctorPhotoUrlContainer) {
+        doctorPhotoUrlContainer.setDoctor(visit.getDoctor());
+        String fullName = doctor.getCredentials().getFirstName() +
+                doctor.getCredentials().getPatronymic() +
+                doctor.getCredentials().getLastName();
+        doctorPhotoUrlContainer.setPhotoUrl(imageUtils.chacheByteArrToImage(visit.getDoctor().getDoctorPhoto(), fullName));
+    }
+
+    private void setupVisitResults(VerticalLayout layout, Visit visit) {
+        H3 diagnosis = new H3("Final diagnosis");
+        Label diagLabel = new Label(visit.getDiagnosis());
+        layout.add(diagnosis, diagLabel);
+        H3 comments = new H3("Comments");
+        Label commentsLabel = new Label(visit.getComments());
+        layout.add(comments, commentsLabel);
     }
 
     private Dialog getSaveConfirmationDialog(Editor<Visit> editor, Visit visit) {
@@ -231,5 +270,43 @@ public class VisitView extends VerticalLayout {
 
             }
         });
+    }
+
+    private VerticalLayout createDialogLayout(DoctorPhotoUrlContainer container, Dialog dialog, Visit visit) {
+        VerticalLayout layout = new VerticalLayout();
+
+        layout.add(new H1("Visit enquiry"));
+        layout.add(new Label("Booking time: " + DATE_FORMAT.format(visit.getDatetime())));
+        layout.add(new Label("Visit reason: " + visit.getReason()));
+        if (!visit.getActive()) {
+            setupVisitResults(layout, visit);
+        }
+        VerticalLayout doctorLayout = new VerticalLayout();
+        setupDoctorSection(container, doctorLayout);
+        Details details = new Details("About doctor", doctorLayout);
+        details.setOpened(false);
+        layout.add(details);
+        return layout;
+    }
+
+    private void setupDoctorSection(DoctorPhotoUrlContainer container, VerticalLayout layout) {
+        layout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
+        Image image = new Image(container.getPhotoUrl(), "");
+        image.setMaxWidth("530px");
+        image.setMaxHeight("630px");
+        layout.setMaxWidth("700px");
+        layout.add(image);
+        layout.add(new H2(container.getDoctor().getCredentials().getFirstName() + " " +
+                container.getDoctor().getCredentials().getPatronymic() + " " +
+                container.getDoctor().getCredentials().getLastName()));
+        layout.add(new Paragraph("Current hospital: " + container.getDoctor().getHospital()));
+        layout.add(new H4(container.getDoctor().getCommonInfo()));
+        Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
+        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader("Speciality");
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader("Institute of Accreditation");
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader("Work Experience");
+        grid.setItems(doctorSpecialityService.getDoctorSpecialities(container.getDoctor().getId()));
+        grid.setAllRowsVisible(true);
+        layout.add(grid);
     }
 }
