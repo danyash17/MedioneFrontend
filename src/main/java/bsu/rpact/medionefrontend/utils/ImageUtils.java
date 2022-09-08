@@ -1,7 +1,5 @@
 package bsu.rpact.medionefrontend.utils;
 
-import bsu.rpact.medionefrontend.session.SessionManager;
-import com.vaadin.flow.component.html.Image;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +14,7 @@ public class ImageUtils {
     public static final String PATH = "images/cached/";
     public static final String FORMAT = ".png";
 
-    public String chacheByteArrToImage(byte[] byteArr, String name) {
+    public String chacheByteArrToImageDoctor(byte[] byteArr, String name) {
         if (byteArr != null) {
             File srcFile = new File(RESOURCES + PATH + name + FORMAT);
             File targetFile = new File(TARGET_RESOURCES + PATH + name + FORMAT);
@@ -29,6 +27,21 @@ public class ImageUtils {
             }
         }
         return "images/doctorAvatar.png";
+    }
+
+    public String chacheByteArrToImagePatient(byte[] byteArr, String name) {
+        if (byteArr != null) {
+            File srcFile = new File(RESOURCES + PATH + name + FORMAT);
+            File targetFile = new File(TARGET_RESOURCES + PATH + name + FORMAT);
+            try {
+                FileUtils.writeByteArrayToFile(srcFile, byteArr);
+                FileUtils.writeByteArrayToFile(targetFile, byteArr);
+                return PATH + name+ FORMAT;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return "images/patientAvatar.png";
     }
 
 }

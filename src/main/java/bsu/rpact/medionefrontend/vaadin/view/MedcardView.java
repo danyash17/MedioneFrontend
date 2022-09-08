@@ -29,6 +29,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.apache.commons.lang3.StringUtils;
+import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,8 @@ public class MedcardView extends VerticalLayout {
     private final static int homeCharLimit = 10;
     private final static String residentalAddressRegex = "^[#.0-9a-zA-Z\\s,-]+$";
     private final static String homeNumberRegex = "[0-9]{1,}[A-Za-z0-9]{0,}";
+    public static final String FLAGSAPI_COM = "https://flagsapi.com/";
+    public static final String FORMAT = "/flat/64.png";
 
     private final SessionManager sessionManager;
     private final MedcardService medcardService;
@@ -72,23 +75,25 @@ public class MedcardView extends VerticalLayout {
         add(new Label("Expiring at: " + medcard.getValidTo()));
         add(new Label("Residental address: " + medcard.getResidentalAddress()));
         add(new H3("Illnesses"));
-        Grid<Illness> illnessGrid = new Grid<>(Illness.class, false);
+        PaginatedGrid<Illness> illnessGrid = new PaginatedGrid<>();
         VerticalLayout illnessLayout = getIllnessLayout(medcard, illnessGrid);
         add(illnessLayout);
 
         add(new H3("Operations"));
-        Grid<Operation> operationGrid = new Grid<>(Operation.class, false);
+        PaginatedGrid<Operation> operationGrid = new PaginatedGrid<>();
         VerticalLayout operationLayout = getOperationLayout(medcard, operationGrid);
         add(operationLayout);
     }
 
-    private VerticalLayout getOperationLayout(Medcard medcard, Grid<Operation> operationGrid) {
+    public static VerticalLayout getOperationLayout(Medcard medcard, PaginatedGrid<Operation> operationGrid) {
         operationGrid.addColumn(Operation::getId).setHeader("№");
         operationGrid.addColumn(Operation::getName).setHeader("Name");
         operationGrid.addColumn(Operation::getDescription).setHeader("Description");
         operationGrid.addColumn(Operation::getOperationDate).setHeader("Date");
         operationGrid.setItems(medcard.getOperationList());
         operationGrid.setAllRowsVisible(true);
+        operationGrid.setPageSize(10);
+        operationGrid.setPaginatorSize(5);
         GridListDataView<Operation> operationDataView =
                 operationGrid.setItems(medcard.getOperationList());
         operationGrid.getColumns().stream().forEach(item -> {
@@ -120,7 +125,7 @@ public class MedcardView extends VerticalLayout {
         return operationLayout;
     }
 
-    private VerticalLayout getIllnessLayout(Medcard medcard, Grid<Illness> illnessGrid) {
+    public static VerticalLayout getIllnessLayout(Medcard medcard, PaginatedGrid<Illness> illnessGrid) {
         illnessGrid.addColumn(Illness::getId).setHeader("№");
         illnessGrid.addColumn(Illness::getDescription).setHeader("Description");
         illnessGrid.addColumn(Illness::getIllFrom).setHeader("Ill From");
@@ -132,6 +137,8 @@ public class MedcardView extends VerticalLayout {
             item.setSortable(true);
         });
         illnessGrid.setAllRowsVisible(true);
+        illnessGrid.setPageSize(10);
+        illnessGrid.setPaginatorSize(5);
         TextField illnessSearchField = new TextField();
         illnessSearchField.setWidth("20%");
         illnessSearchField.setPlaceholder("Search");
@@ -157,7 +164,7 @@ public class MedcardView extends VerticalLayout {
         return illnessLayout;
     }
 
-    private boolean matchesTerm(String value, String searchTerm) {
+    private static boolean matchesTerm(String value, String searchTerm) {
         return value.toLowerCase().contains(searchTerm.toLowerCase());
     }
 
@@ -167,7 +174,7 @@ public class MedcardView extends VerticalLayout {
         List<Country> countryList = countryService.getAllCountries();
         countryList.forEach(item -> {
             item.setName(StringUtils.capitalize(item.getName()));
-            item.setFlag("https://flagsapi.com/" + item.getCode() + "/flat/64.png");
+            item.setFlag(FLAGSAPI_COM + item.getCode() + FORMAT);
         });
         countries.setItems(countryList);
         countries.setRenderer(createRenderer());

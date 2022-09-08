@@ -7,6 +7,8 @@
     "@polymer/iron-list": "3.1.0",
     "@polymer/iron-meta": "3.0.1",
     "@polymer/iron-resizable-behavior": "3.0.1",
+    "@polymer/paper-button": "^3.0.1",
+    "@polymer/paper-icon-button": "^3.0.2",
     "@polymer/polymer": "3.4.1",
     "@vaadin/accordion": "23.0.7",
     "@vaadin/app-layout": "23.0.7",
@@ -116,7 +118,9 @@
     "@vaadin/virtual-list": "23.0.7",
     "construct-style-sheets-polyfill": "3.0.4",
     "date-fns": "2.28.0",
-    "lit": "2.1.4"
+    "lit": "2.1.4",
+    "lit-element": "^2.2.1",
+    "lit-html": "^1.1.2"
   },
   "devDependencies": {
     "chokidar": "^3.5.0",
@@ -143,10 +147,12 @@
   "vaadin": {
     "dependencies": {
       "@polymer/iron-icon": "3.0.1",
-      "@polymer/iron-iconset-svg": "3.0.1",
+      "@polymer/iron-iconset-svg": "^3.0.1",
       "@polymer/iron-list": "3.1.0",
       "@polymer/iron-meta": "3.0.1",
       "@polymer/iron-resizable-behavior": "3.0.1",
+      "@polymer/paper-button": "^3.0.1",
+      "@polymer/paper-icon-button": "^3.0.2",
       "@polymer/polymer": "3.4.1",
       "@vaadin/accordion": "23.0.7",
       "@vaadin/app-layout": "23.0.7",
@@ -255,7 +261,9 @@
       "@vaadin/virtual-list": "23.0.7",
       "construct-style-sheets-polyfill": "3.0.4",
       "date-fns": "2.28.0",
-      "lit": "2.1.4"
+      "lit": "2.1.4",
+      "lit-element": "^2.2.1",
+      "lit-html": "^1.1.2"
     },
     "devDependencies": {
       "chokidar": "^3.5.0",
@@ -279,7 +287,7 @@
       "workbox-precaching": "6.5.0",
       "workbox-webpack-plugin": "6.5.0"
     },
-    "hash": "b3c83b292ffe5309b21d967803878990dc3f5ad8b9b55fa2d9c28357fb4d59f4"
+    "hash": "f74fa70da18a948af6b26b8b182b11f173250178776439b2d95eb34d053a5d4a"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -396,6 +404,10 @@
     "lit": "$lit",
     "@polymer/polymer": "$@polymer/polymer",
     "date-fns": "$date-fns",
-    "chokidar": "$chokidar"
+    "chokidar": "$chokidar",
+    "@polymer/paper-button": "$@polymer/paper-button",
+    "@polymer/paper-icon-button": "$@polymer/paper-icon-button",
+    "lit-element": "$lit-element",
+    "lit-html": "$lit-html"
   }
 }

@@ -9,7 +9,6 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -70,7 +69,8 @@ public class MainLayout extends AppLayout {
 
     private void createDrawer() {
         RouterLink homeLink = new RouterLink("Home", HomeView.class);
-        RouterLink visitLink = new RouterLink("Visits", VisitView.class);
+        RouterLink visitLink = new RouterLink("Visits",sessionManager.getRoleAttribute().equals(Role.PATIENT.name())
+                ? VisitViewPatient.class : sessionManager.getRoleAttribute().equals(Role.DOCTOR.name()) ? VisitViewDoctor.class : null);
         RouterLink profileLink = new RouterLink("Profile", ProfileView.class);
         RouterLink medcardLink = new RouterLink("Medcard", MedcardView.class);
         RouterLink documentLink = new RouterLink("Documents", DocumentView.class);

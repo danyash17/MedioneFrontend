@@ -236,7 +236,7 @@ public class VisitCreationView extends VerticalLayout {
                     filter(doctor -> doctor.getVisitSchedule()!=null).collect(Collectors.toList());
             List<DoctorPhotoUrlContainer> doctorPhotoUrlContainers = doctorList.stream().
                     map(doctor -> new DoctorPhotoUrlContainer
-                            (doctor, imageUtils.chacheByteArrToImage(doctor.getDoctorPhoto(),
+                            (doctor, imageUtils.chacheByteArrToImageDoctor(doctor.getDoctorPhoto(),
                                     doctor.getCredentials().getFirstName() +
                                             doctor.getCredentials().getPatronymic() +
                                             doctor.getCredentials().getLastName()
