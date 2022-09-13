@@ -70,4 +70,21 @@ public class VisitService {
             visitAdapter.updateByDoctorSelf(doctorVisitPojo, visit.getId());
         }
     }
+
+    public void createVisitScheduleBySelf() {
+        if (sessionManager.getRoleAttribute().equals(Role.PATIENT.name())) {
+            createVisitScheduleBySelfPatient();
+        }
+        else if (sessionManager.getRoleAttribute().equals(Role.DOCTOR.name())) {
+            createVisitScheduleBySelfDoctor();
+        }
+    }
+
+    private void createVisitScheduleBySelfDoctor() {
+        visitAdapter.createScheduleByDoctorSelf();
+    }
+
+    private void createVisitScheduleBySelfPatient() {
+        visitAdapter.createScheduleByPatientSelf();
+    }
 }

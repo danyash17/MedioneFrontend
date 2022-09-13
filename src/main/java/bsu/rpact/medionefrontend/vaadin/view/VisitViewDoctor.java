@@ -1,6 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.*;
+import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.service.DoctorSpecialityService;
 import bsu.rpact.medionefrontend.service.VisitService;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
@@ -45,12 +46,25 @@ public class VisitViewDoctor extends VerticalLayout {
     public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
     private final VisitService visitService;
     private final DoctorSpecialityService doctorSpecialityService;
+    private final DoctorService doctorService;
     private final ImageUtils imageUtils;
 
-    public VisitViewDoctor(VisitService visitService, DoctorSpecialityService doctorSpecialityService, ImageUtils imageUtils) {
+    public VisitViewDoctor(VisitService visitService, DoctorSpecialityService doctorSpecialityService, DoctorService doctorService, ImageUtils imageUtils) {
         this.visitService = visitService;
         this.doctorSpecialityService = doctorSpecialityService;
+        this.doctorService = doctorService;
         this.imageUtils = imageUtils;
+        if(doctorService.getDoctorSelf().getVisitSchedule()==null){
+            add(new H3("Visit schedule not set yet"));
+            add(new H4("Do you want to create new one?"));
+            Button button = new Button("Create");
+            button.addClickListener(e -> {
+                visitService.createVisitScheduleBySelf();
+                UI.getCurrent().getPage().reload();
+            });
+            add(button);
+            return;
+        }
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         setSizeFull();
         add(new H2("Visits"));

@@ -23,4 +23,13 @@ public class DoctorAdapter extends GeneralAdapter {
                 })
                 .block();
     }
+
+    public Doctor getSelf() {
+        return webClient.get()
+                .uri(doctorMapping + "/self")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(Doctor.class)
+                .block();
+    }
 }

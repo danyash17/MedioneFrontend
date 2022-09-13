@@ -1,12 +1,13 @@
 package bsu.rpact.medionefrontend.adapter;
 
-import bsu.rpact.medionefrontend.entity.Patient;
 import bsu.rpact.medionefrontend.entity.Visit;
 import bsu.rpact.medionefrontend.pojo.DoctorVisitPojo;
 import bsu.rpact.medionefrontend.pojo.PatientVisitPojo;
+import bsu.rpact.medionefrontend.pojo.VisitSchedulePojo;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -84,6 +85,26 @@ public class VisitAdapter extends GeneralAdapter {
                 .uri(mapping + "doctor/self/schedule/" + id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(Mono.just(visitPojo), DoctorVisitPojo.class)
+                .retrieve()
+                .bodyToMono(MessageResponse.class)
+                .block();
+    }
+
+    public MessageResponse createScheduleByDoctorSelf() {
+        return webClient.post()
+                .uri(mapping + "doctor/self/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(new VisitSchedulePojo()), VisitSchedulePojo.class)
+                .retrieve()
+                .bodyToMono(MessageResponse.class)
+                .block();
+    }
+
+    public MessageResponse createScheduleByPatientSelf() {
+        return webClient.post()
+                .uri(mapping+ "patient/self/schedule")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(new VisitSchedulePojo()), VisitSchedulePojo.class)
                 .retrieve()
                 .bodyToMono(MessageResponse.class)
                 .block();
