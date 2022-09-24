@@ -1,8 +1,11 @@
 package bsu.rpact.medionefrontend.vaadin.components;
 
+import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.enums.Role;
 import bsu.rpact.medionefrontend.service.AuthService;
+import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.session.SessionManager;
+import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.vaadin.view.*;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -22,10 +25,14 @@ public class MainLayout extends AppLayout {
 
     private final AuthService authService;
     private final SessionManager sessionManager;
+    private final DoctorService doctorService;
+    private final ImageUtils imageUtils;
 
-    public MainLayout(AuthService authService, SessionManager sessionManager) {
+    public MainLayout(AuthService authService, SessionManager sessionManager, DoctorService doctorService, ImageUtils imageUtils) {
         this.authService = authService;
         this.sessionManager = sessionManager;
+        this.doctorService = doctorService;
+        this.imageUtils = imageUtils;
         createHeader();
         createDrawer();
     }
@@ -123,7 +130,10 @@ public class MainLayout extends AppLayout {
                 break;
             }
             case DOCTOR: {
-                avatar.setImage("images/doctorAvatar.png");
+                Doctor doctor = doctorService.getDoctorSelf();
+                avatar.setImage(imageUtils.chacheByteArrToImageDoctor(doctor.getDoctorPhoto(),doctor.getCredentials().getFirstName() +
+                        doctor.getCredentials().getPatronymic() +
+                        doctor.getCredentials().getLastName()));
                 break;
             }
             case ADMIN: {

@@ -3,6 +3,8 @@ package bsu.rpact.medionefrontend.service;
 import bsu.rpact.medionefrontend.adapter.DoctorAdapter;
 import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.enums.SpecialityName;
+import bsu.rpact.medionefrontend.pojo.DoctorPojo;
+import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,5 +38,14 @@ public class DoctorService {
 
     public Doctor getDoctorSelf() {
         return doctorAdapter.getSelf();
+    }
+
+    public MessageResponse updateSelf(Doctor doctor) {
+        DoctorPojo doctorPojo = new DoctorPojo();
+        doctorPojo.setAvailable(doctor.getAvailable());
+        doctorPojo.setCommonInfo(doctor.getCommonInfo());
+        doctorPojo.setHospital(doctor.getHospital());
+        doctorPojo.setPhoto(doctor.getDoctorPhoto());
+        return doctorAdapter.updateSelf(doctorPojo);
     }
 }
