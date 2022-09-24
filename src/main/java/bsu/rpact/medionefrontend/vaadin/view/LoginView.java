@@ -9,8 +9,10 @@ import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -44,7 +46,10 @@ public class LoginView extends Composite<VerticalLayout> {
         Anchor link = new Anchor(route, "New here? Click and register");
         VerticalLayout layout = getContent();
         LoginForm loginForm = new LoginForm();
-        H1 header = new H1("Medione");
+        Image logo = new Image();
+        logo.setMaxWidth("270px");
+        logo.setMaxHeight("270px");
+        logo.setSrc("images/logo.png");
         loginForm.setForgotPasswordButtonVisible(false);
 
         loginForm.addLoginListener(loginEvent -> {
@@ -54,14 +59,14 @@ public class LoginView extends Composite<VerticalLayout> {
                 if (primaryLoginResponce != null && primaryLoginResponce.isEnabled2Fa()) {
                     provider.setTemporaryRequest(new LoginRequest(loginEvent.getUsername(), loginEvent.getPassword()));
                     provider.setTotpResponce(primaryLoginResponce);
-                    loginForm.getUI().ifPresent(ui -> ui.navigate(TwoFactorAuthenticationView.class));
+                    UI.getCurrent().navigate(TwoFactorAuthenticationView.class);
                 } else if (primaryLoginResponce != null) {
                     this.cookieHelper.addTokenCookie(primaryLoginResponce.getToken(), 90000);
                     this.sessionManager.generateAuthUserAttributes(primaryLoginResponce);
                     this.sessionManager.setTokenAttribute(primaryLoginResponce.getToken());
                     context.getBeansOfType(GeneralAdapter.class).entrySet().stream()
                             .forEach((adapter)->adapter.getValue().authenticateWebClient(primaryLoginResponce.getToken()));
-                    loginForm.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
+                    UI.getCurrent().navigate(HomeView.class);
                 }
             } catch (WebClientResponseException e) {
                 UiUtils.generateErrorNotification("Failed to login").open();
@@ -70,7 +75,7 @@ public class LoginView extends Composite<VerticalLayout> {
             }
         });
         layout.add(
-                header,
+                logo,
                 loginForm,
                 link
         );

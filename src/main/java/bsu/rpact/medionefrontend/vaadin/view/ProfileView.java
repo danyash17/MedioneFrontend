@@ -73,21 +73,44 @@ public class ProfileView extends VerticalLayout {
         add(new Label("Patronymic: " + sessionManager.getPatronymicAttribute()));
         add(new Label("Last name: " + sessionManager.getLastNameAttribute()));
         add(new Label("Phone: " + sessionManager.getPhoneAttribute()));
-        add(new Label("Role: " + sessionManager.getRoleAttribute()));
-        Badge badge = new Badge();
-        badge.setPrimary(true);
-        badge.setPill(true);
+        Badge badgeRole = new Badge();
+        badgeRole.setPrimary(true);
+        badgeRole.setPill(true);
+        switch (sessionManager.getRoleAttribute()){
+            case "PATIENT": {
+                badgeRole.setText("Patient");
+                badgeRole.setIcon(VaadinIcon.USER.create());
+                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
+                break;
+            }
+            case "DOCTOR": {
+                badgeRole.setText("Doctor");
+                badgeRole.setIcon(VaadinIcon.DOCTOR.create());
+                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
+                break;
+            }
+            case "ADMIN": {
+                badgeRole.setText("Administrator");
+                badgeRole.setIcon(VaadinIcon.SPECIALIST.create());
+                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
+                break;
+            }
+        }
+        add(new HorizontalLayout(new Label("Role: "), badgeRole));
+        Badge badge2Fa = new Badge();
+        badge2Fa.setPrimary(true);
+        badge2Fa.setPill(true);
         if(sessionManager.get2FaAttribute().booleanValue()){
-            badge.setText("Enabled");
-            badge.setVariant(Badge.BadgeVariant.CONTRAST);
-            badge.setIcon(VaadinIcon.LOCK.create());
+            badge2Fa.setText("Enabled");
+            badge2Fa.setVariant(Badge.BadgeVariant.CONTRAST);
+            badge2Fa.setIcon(VaadinIcon.LOCK.create());
         }
         else {
-            badge.setText("Disabled");
-            badge.setVariant(Badge.BadgeVariant.SUCCESS);
-            badge.setIcon(VaadinIcon.UNLOCK.create());
+            badge2Fa.setText("Disabled");
+            badge2Fa.setVariant(Badge.BadgeVariant.SUCCESS);
+            badge2Fa.setIcon(VaadinIcon.UNLOCK.create());
         }
-        add(new HorizontalLayout(new Label("Two-factor authorization"), badge));
+        add(new HorizontalLayout(new Label("Two-factor authorization"), badge2Fa));
         add(new H3("Profile settings"));
         Checkbox checkbox = new Checkbox();
         checkbox.setLabel("Use Two-Factor Authentication for this account");

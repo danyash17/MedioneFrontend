@@ -10,6 +10,7 @@
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-icon-button": "^3.0.2",
     "@polymer/polymer": "3.4.1",
+    "@vaadin-component-factory/vcf-toggle-button": "1.0.3",
     "@vaadin/accordion": "23.0.7",
     "@vaadin/app-layout": "23.0.7",
     "@vaadin/avatar": "23.0.7",
@@ -155,6 +156,7 @@
       "@polymer/paper-button": "^3.0.1",
       "@polymer/paper-icon-button": "^3.0.2",
       "@polymer/polymer": "3.4.1",
+      "@vaadin-component-factory/vcf-toggle-button": "1.0.3",
       "@vaadin/accordion": "23.0.7",
       "@vaadin/app-layout": "23.0.7",
       "@vaadin/avatar": "23.0.7",
@@ -289,7 +291,7 @@
       "workbox-precaching": "6.5.0",
       "workbox-webpack-plugin": "6.5.0"
     },
-    "hash": "b9421ed95eacf991e8ef49834d9eb764a82e52a484fe19a6521497ed09450d84"
+    "hash": "377b0b96226cfdca92697d3540b97edb09be1b5fc560b2d9a71d8228e3505480"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -411,6 +413,7 @@
     "@polymer/paper-icon-button": "$@polymer/paper-icon-button",
     "lit-element": "$lit-element",
     "lit-html": "$lit-html",
-    "cropperjs": "$cropperjs"
+    "cropperjs": "$cropperjs",
+    "@vaadin-component-factory/vcf-toggle-button": "$@vaadin-component-factory/vcf-toggle-button"
   }
 }

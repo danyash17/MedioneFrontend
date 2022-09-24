@@ -7,19 +7,24 @@ import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.vaadin.view.*;
+import com.vaadin.componentfactory.ToggleButton;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.dom.ThemeList;
 import com.vaadin.flow.router.HighlightConditions;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.WrappedSession;
+import com.vaadin.flow.theme.lumo.Lumo;
 
 public class MainLayout extends AppLayout {
 
@@ -39,7 +44,10 @@ public class MainLayout extends AppLayout {
 
     private void createHeader() {
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
-        H2 logo = new H2("Medione");
+        Image logo = new Image();
+        logo.setMaxWidth("90px");
+        logo.setMaxHeight("90px");
+        logo.setSrc("images/logo.png");
 
         Button logout = new Button("Log out", e ->{
             session.invalidate();
@@ -59,10 +67,22 @@ public class MainLayout extends AppLayout {
         credentials.expand();
         credentials.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         credentials.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        HorizontalLayout logoutLayout = new HorizontalLayout(logout);
+        HorizontalLayout logoutLayout = new HorizontalLayout();
         logoutLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         logoutLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-
+        ToggleButton toggle = new ToggleButton();
+        toggle.setLabel("Light theme");
+        toggle.addValueChangeListener(event -> {
+            event.getSource().setLabel(event.getValue() ? "Dark theme" : "Light theme");
+            ThemeList themeList = UI.getCurrent().getElement().getThemeList();
+            if(themeList.contains(Lumo.DARK)){
+                themeList.remove(Lumo.DARK);
+            }
+            else {
+                themeList.add(Lumo.DARK);
+            }
+        });
+        logoutLayout.add(toggle,logout);
 
         HorizontalLayout summaryLayout = new HorizontalLayout(header, credentials,logoutLayout);
         summaryLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -77,7 +97,7 @@ public class MainLayout extends AppLayout {
     private void createDrawer() {
         RouterLink homeLink = new RouterLink("Home", HomeView.class);
         RouterLink visitLink = new RouterLink("Visits",sessionManager.getRoleAttribute().equals(Role.PATIENT.name())
-                ? VisitViewPatient.class : sessionManager.getRoleAttribute().equals(Role.DOCTOR.name()) ? VisitViewDoctor.class : null);
+                ? VisitViewPatient.class : sessionManager.getRoleAttribute().equals(Role.DOCTOR.name()) ? VisitViewDoctor.class : HomeView.class);
         RouterLink profileLink = new RouterLink("Profile", ProfileView.class);
         RouterLink medcardLink = new RouterLink("Medcard", MedcardView.class);
         RouterLink documentLink = new RouterLink("Documents", DocumentView.class);
@@ -109,6 +129,7 @@ public class MainLayout extends AppLayout {
             case "ADMIN":{
                  layout = new VerticalLayout(
                         homeLink,
+                        profileLink,
                         notesLink
                 );
                  break;
