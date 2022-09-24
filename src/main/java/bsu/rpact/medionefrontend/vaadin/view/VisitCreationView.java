@@ -35,6 +35,7 @@ import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.apache.commons.lang3.StringUtils;
+import org.vaadin.addons.badge.Badge;
 
 import java.sql.Timestamp;
 import java.time.*;
@@ -124,7 +125,7 @@ public class VisitCreationView extends VerticalLayout {
         okButton.addClickListener(e -> {
             createVisit(visit);
             UiUtils.generateSuccessNotification("Visit created successfully");
-            UI.getCurrent().getPage().reload();
+            UI.getCurrent().navigate(VisitViewPatient.class);
         });
         reasonLayout.add(textArea);
         reasonLayout.add(confirm);
@@ -199,7 +200,24 @@ public class VisitCreationView extends VerticalLayout {
         }).setHeader("Credentials").setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(container -> StringUtils.join(container.getDoctor().getSpecialityList(), ',')).
                 setHeader(createSpecialityHeader()).setAutoWidth(true);
-        grid.addColumn(createStatusComponentRenderer()).setHeader("Status").setAutoWidth(true);
+        grid.addComponentColumn(container -> {
+            if(container.getDoctor().getAvailable()){
+                Badge badge = new Badge("Available");
+                badge.setVariant(Badge.BadgeVariant.SUCCESS);
+                badge.setPrimary(true);
+                badge.setPill(true);
+                badge.setIcon(VaadinIcon.CHECK_CIRCLE.create());
+                return badge;
+            }
+            else {
+                Badge badge = new Badge("Busy");
+                badge.setVariant(Badge.BadgeVariant.ERROR);
+                badge.setPrimary(true);
+                badge.setPill(true);
+                badge.setIcon(VaadinIcon.CLOSE_CIRCLE.create());
+                return badge;
+            }
+        }).setHeader("Status").setAutoWidth(true);
         grid.addColumn(createSelectRenderer(grid)).setAutoWidth(true);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.addSelectionListener(e -> {
@@ -213,17 +231,6 @@ public class VisitCreationView extends VerticalLayout {
             }
         });
         grid.setAllRowsVisible(true);
-    }
-
-    private ComponentRenderer<Span, DoctorPhotoUrlContainer> createStatusComponentRenderer() {
-        final SerializableBiConsumer<Span, DoctorPhotoUrlContainer> statusComponentUpdater = (span, container) -> {
-            boolean isAvailable = container.getDoctor().getAvailable();
-            String theme = String
-                    .format("badge %s", isAvailable ? "success" : "error");
-            span.getElement().setAttribute("theme", theme);
-            span.setText(container.getDoctor().getAvailable() ? "Available" : "Busy");
-        };
-        return new ComponentRenderer<>(Span::new, statusComponentUpdater);
     }
 
     private HorizontalLayout getSearchLayout(DoctorService doctorService, List<DoctorButton> doctorButtons, Grid<DoctorPhotoUrlContainer> grid) {

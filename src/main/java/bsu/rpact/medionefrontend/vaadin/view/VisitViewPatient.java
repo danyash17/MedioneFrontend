@@ -22,6 +22,7 @@ import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -34,6 +35,7 @@ import com.vaadin.flow.data.selection.SelectionEvent;
 import com.vaadin.flow.function.SerializableBiConsumer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.vaadin.addons.badge.Badge;
 import org.vaadin.klaudeta.PaginatedGrid;
 
 import java.sql.Timestamp;
@@ -98,7 +100,24 @@ public class VisitViewPatient extends VerticalLayout {
         Grid.Column<Visit> dtColumn = grid.addColumn(visit -> {
             return DATE_FORMAT.format(visit.getDatetime());
         }).setHeader("Date and Time").setTextAlign(ColumnTextAlign.START);
-        grid.addColumn(createStatusComponentRenderer()).setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
+        grid.addComponentColumn(visit -> {
+            if(visit.getActive()){
+                Badge badge = new Badge("Impending");
+                badge.setVariant(Badge.BadgeVariant.NORMAL);
+                badge.setPrimary(true);
+                badge.setPill(true);
+                badge.setIcon(VaadinIcon.CLOCK.create());
+                return badge;
+            }
+            else {
+                Badge badge = new Badge("Completed");
+                badge.setVariant(Badge.BadgeVariant.SUCCESS);
+                badge.setPrimary(true);
+                badge.setPill(true);
+                badge.setIcon(VaadinIcon.CHECK.create());
+                return badge;
+            }
+        }).setAutoWidth(true).setTextAlign(ColumnTextAlign.END);
         AtomicReference<Doctor> atomicDoctorReference = new AtomicReference<>();
         AtomicReference<Visit> atomicVisitReference = new AtomicReference<>();
         Grid.Column<Visit> editColumn = grid.addComponentColumn(visit -> {
@@ -230,17 +249,6 @@ public class VisitViewPatient extends VerticalLayout {
         activeGrid.setPaginatorSize(5);
     }
 
-    private static final SerializableBiConsumer<Span, Visit> statusComponentUpdater = (span, visit) -> {
-        String theme = String
-                .format("badge %s", visit.getActive() ? "success" : "error");
-        span.getElement().setAttribute("theme", theme);
-        span.setText(visit.getActive() ? "Upcoming" : "Archived");
-    };
-
-    private static ComponentRenderer<Span, Visit> createStatusComponentRenderer() {
-        return new ComponentRenderer<>(Span::new, statusComponentUpdater);
-    }
-
     private Renderer<Visit> createEmployeeRenderer() {
         return LitRenderer.<Visit>of(
                         "<vaadin-horizontal-layout style=\"align-items: center;\" theme=\"spacing\">"
@@ -333,5 +341,11 @@ public class VisitViewPatient extends VerticalLayout {
         grid.setItems(doctorSpecialityService.getDoctorSpecialities(container.getDoctor().getId()));
         grid.setAllRowsVisible(true);
         layout.add(grid);
+    }
+
+    private Icon createIcon(VaadinIcon vaadinIcon) {
+        Icon icon = vaadinIcon.create();
+        icon.getStyle().set("padding", "var(--lumo-space-xs");
+        return icon;
     }
 }
