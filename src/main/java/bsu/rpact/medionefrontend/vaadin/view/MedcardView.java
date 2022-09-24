@@ -218,7 +218,7 @@ public class MedcardView extends VerticalLayout {
             if (!addressTextArea.isInvalid()) {
                 MessageResponse response = medcardService.
                         createSelf(parseResidentalAddress(countries, addressTextArea, homeTextArea));
-                UI.getCurrent().navigate(MedcardView.class);
+                UI.getCurrent().getPage().reload();
                 UiUtils.generateSuccessNotification(response.getMessage());
             }
         });

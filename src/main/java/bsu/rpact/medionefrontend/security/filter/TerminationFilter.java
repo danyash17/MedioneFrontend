@@ -13,26 +13,30 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Component
-@Order(1)
-public class SetAuthorizationRequestHeaderFilter implements Filter {
-    @Value("${cookie.name.jwt}")
-    private String jwtCookieName;
+@Order(0)
+public class TerminationFilter implements Filter {
+    @Value("${cookie.name.terminator}")
+    private String terminatorCookieName;
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse responce = (HttpServletResponse) servletResponse;
-        Optional<Cookie> jwtCookie = Optional.empty();
+        Optional<Cookie> terminatorCookie = Optional.empty();
         if(request.getCookies()!=null) {
-            jwtCookie = Arrays.stream(request.getCookies())
-                    .filter(cookie -> jwtCookieName.equals(cookie.getName()))
+            terminatorCookie = Arrays.stream(request.getCookies())
+                    .filter(cookie -> terminatorCookieName.equals(cookie.getName()))
                     .findAny();
         }
-        if (jwtCookie.isPresent() && jwtCookie.get().getValue() != null) {
-            RequestDecorator requestWrapper = new RequestDecorator(request);
-            requestWrapper.addHeader("Authorization", " Bearer " + jwtCookie.get().getValue());
-            filterChain.doFilter(requestWrapper, servletResponse);
-            return;
+        if (terminatorCookie.isPresent() && terminatorCookie.get().getValue() != null) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null)
+                for (Cookie cookie : cookies) {
+                    cookie.setValue("");
+                    cookie.setPath("/");
+                    cookie.setMaxAge(0);
+                    responce.addCookie(cookie);
+                }
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }

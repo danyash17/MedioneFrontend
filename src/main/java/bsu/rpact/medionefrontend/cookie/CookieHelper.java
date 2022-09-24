@@ -11,6 +11,8 @@ public class CookieHelper {
 
     @Value("${cookie.name.jwt}")
     private String jwtCookieName;
+    @Value("${cookie.name.terminator}")
+    private String terminatorCookieName;
 
     public void addTokenCookie(String token, int age){
         Cookie jwtTokenCookie = new Cookie(jwtCookieName, token);
@@ -29,7 +31,7 @@ public class CookieHelper {
     }
 
     public void generateTerminatorCookie() {
-        Cookie terminator = new Cookie("terminator", "true");
+        Cookie terminator = new Cookie(terminatorCookieName, "true");
         terminator.setMaxAge(90000);
         terminator.setSecure(true);
         terminator.setHttpOnly(true);
