@@ -37,4 +37,22 @@ public class DoctorSpecialityAdapter extends GeneralAdapter {
                 .bodyToMono(MessageResponse.class)
                 .block();
     }
+
+    public MessageResponse updateSelf(DoctorSpecialityPojo doctorSpecialityPojo) {
+        return webClient.put()
+                .uri(doctorSpecialityMapping + "/self/specialities")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(doctorSpecialityPojo), DoctorSpecialityPojo.class)
+                .retrieve()
+                .bodyToMono(MessageResponse.class)
+                .block();
+    }
+
+    public MessageResponse deleteSelf(DoctorSpecialityPojo doctorSpecialityPojo) {
+        return webClient.delete()
+                .uri(doctorSpecialityMapping + "/self/specialities/" + doctorSpecialityPojo.getDescription())
+                .retrieve()
+                .bodyToMono(MessageResponse.class)
+                .block();
+    }
 }

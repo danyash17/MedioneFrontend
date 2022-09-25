@@ -47,7 +47,10 @@ import org.vaadin.addons.badge.Badge;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Route(value = "profile", layout = MainLayout.class)
 @PageTitle("Profile")
@@ -63,11 +66,17 @@ public class ProfileView extends VerticalLayout {
     private final static String[] allowedAvatarExtensions = new String[]{"image/*"};
     private final static int allowedFileSize = 20 * 1024 * 1024;
     private final static ByteArrayOutputStream os = new ByteArrayOutputStream(allowedFileSize);
+    private final ComboBox<SpecialityName> specialityNameComboBox = new ComboBox<>();
+    private final Button discardCancel = new Button();
 
     private Image avatar = new Image();
     private String currentMimeType;
     private byte[] croppedAvatar = new byte[allowedFileSize];
-    private boolean firstCall = true;
+
+    private Boolean firstCall = true;
+    private Boolean newSpeciality = false;
+
+    private AtomicReference<RepresentativeDoctorSpecialityPojo> editReference = new AtomicReference<>();
 
     private class FileReceiver implements Receiver {
 
@@ -185,15 +194,29 @@ public class ProfileView extends VerticalLayout {
             List<RepresentativeDoctorSpecialityPojo> currentSpecialityList =
                     doctorSpecialityService.getDoctorSpecialities(doctor.getId());
             Grid<RepresentativeDoctorSpecialityPojo> grid = initGrid(doctor, currentSpecialityList);
-            ComboBox<SpecialityName> comboBox = new ComboBox<>();
-            comboBox.setItems(SpecialityName.values());
-            comboBox.setItemLabelGenerator(SpecialityName::name);
-            Button button = new Button("Add Speciality");
-            button.addClickListener(e -> {
-                startSpecialityInit(comboBox.getValue(), grid, doctor, currentSpecialityList);
-                comboBox.setValue(null);
+            refreshSpecialityCombobox(grid);
+            specialityNameComboBox.setItemLabelGenerator(SpecialityName::name);
+            Button add = new Button("Add Speciality");
+            add.addClickListener(e -> {
+                newSpeciality = true;
+                startSpecialityInit(specialityNameComboBox.getValue(), grid, currentSpecialityList);
+                refreshSpecialityCombobox(grid);
+                specialityNameComboBox.setValue(null);
             });
-            add(new Div(new H4("Manage specialities"), new HorizontalLayout(comboBox, button)));
+            discardCancel.setEnabled(false);
+            discardCancel.setText("Discard/Cancel");
+            discardCancel.addClickListener(e -> {
+                GridListDataView<RepresentativeDoctorSpecialityPojo> listDataView = grid.getListDataView();
+                grid.getEditor().cancel();
+                if(newSpeciality) {
+                    newSpeciality = false;
+                    listDataView.removeItem(listDataView.getItem(listDataView.getItemCount() - 1));
+                }
+                refreshSpecialityCombobox(grid);
+                specialityNameComboBox.setValue(null);
+                discardCancel.setEnabled(false);
+            });
+            add(new Div(new H4("Manage specialities"), new HorizontalLayout(specialityNameComboBox, add, discardCancel)));
             add(grid);
         }
         add(new H4("Change password"));
@@ -233,6 +256,20 @@ public class ProfileView extends VerticalLayout {
         add(password,passwordConfirmation,applyPassword);
     }
 
+    private void refreshSpecialityCombobox(Grid grid) {
+        specialityNameComboBox.setItems(findProperSpecialities(grid));
+    }
+
+    private List<SpecialityName> findProperSpecialities(Grid grid) {
+        return Arrays.stream(SpecialityName.values()).filter(specialityName -> {
+            return grid.getListDataView().getItems().
+                    filter(item -> {
+                        RepresentativeDoctorSpecialityPojo pojo = (RepresentativeDoctorSpecialityPojo) item;
+                        return pojo.getSpeciality().equals(specialityName.name());
+                    }).findAny().isEmpty();
+        }).collect(Collectors.toList());
+    }
+
     private Grid initGrid(Doctor doctor, List<RepresentativeDoctorSpecialityPojo> currentSpecialityList) {
         Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
         grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader("Speciality");
@@ -240,20 +277,79 @@ public class ProfileView extends VerticalLayout {
         grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader("Work Experience").setTextAlign(ColumnTextAlign.CENTER).setKey("experience");
         grid.addColumn(
                 new ComponentRenderer<>(Button::new, (button, speciality) -> {
-                    setupDelete(currentSpecialityList, grid, button, speciality);
+                    setupEdit(grid, button, speciality);
                 })).setHeader("Manage").setKey("manage");
-        grid.addColumn(provider -> {return "";}).setKey("save");
+        grid.addColumn(
+                new ComponentRenderer<>(Button::new, (button, speciality) -> {
+                    setupDelete(currentSpecialityList, grid, button, speciality, doctor);
+                })).setKey("save");
         GridListDataView<RepresentativeDoctorSpecialityPojo> dataView = grid.setItems(currentSpecialityList);
         grid.setAllRowsVisible(true);
+        Editor<RepresentativeDoctorSpecialityPojo> editor = grid.getEditor();
+        Binder<RepresentativeDoctorSpecialityPojo> binder = new Binder<>();
+        editor.setBinder(binder);
+        editor.setBuffered(true);
+        TextField instituteField = new TextField();
+        binder.forField(instituteField)
+                .asRequired("Institute must not be empty")
+                .bind(RepresentativeDoctorSpecialityPojo::getInstitute, RepresentativeDoctorSpecialityPojo::setInstitute);
+        grid.getColumnByKey("institute").setEditorComponent(instituteField);
+        IntegerField integerField = new IntegerField();
+        integerField.setValue(1);
+        integerField.setHasControls(true);
+        integerField.setMin(1);
+        binder.forField(integerField)
+                .bind(RepresentativeDoctorSpecialityPojo::getExperience, RepresentativeDoctorSpecialityPojo::setExperience);
+        grid.getColumnByKey("experience").setEditorComponent(integerField);
+        Button saveButton = new Button("Save", e -> {
+            editor.save();
+            discardCancel.setEnabled(false);
+            MessageResponse response;
+            if(newSpeciality) {
+                response = doctorSpecialityService.saveDoctorSpecialitySelf(editReference.get());
+                populateNotification(response, "Speciality is successfully saved");
+            }
+            else
+            {
+                response = doctorSpecialityService.updateDoctorSpecialitySelf(editReference.get());
+                populateNotification(response, "Speciality is successfully updated");
+            }
+            editReference.set(null);
+            newSpeciality = null;
+
+        });
+        grid.getColumnByKey("save").setEditorComponent(saveButton);
         return grid;
     }
 
-    private void setupDelete(List<RepresentativeDoctorSpecialityPojo> currentSpecialityList, Grid<RepresentativeDoctorSpecialityPojo> grid, Button button, RepresentativeDoctorSpecialityPojo speciality) {
+    private void populateNotification(MessageResponse response, String message) {
+        if(response !=null){
+            UiUtils.generateSuccessNotification(message).open();
+        }
+        else {
+            UiUtils.generateErrorNotification("Something went wrong, please contact administrator").open();
+        }
+    }
+
+    private void setupDelete(List<RepresentativeDoctorSpecialityPojo> currentSpecialityList, Grid<RepresentativeDoctorSpecialityPojo> grid, Button button, RepresentativeDoctorSpecialityPojo speciality, Doctor doctor) {
         button.addThemeVariants(ButtonVariant.LUMO_ICON,
                 ButtonVariant.LUMO_ERROR,
                 ButtonVariant.LUMO_TERTIARY);
         button.addClickListener(e -> this.removeSpeciality(speciality, currentSpecialityList, grid));
         button.setIcon(new Icon(VaadinIcon.TRASH));
+    }
+
+    private void setupEdit(Grid<RepresentativeDoctorSpecialityPojo> grid, Button button, RepresentativeDoctorSpecialityPojo speciality) {
+        editReference.set(speciality);
+        Editor<RepresentativeDoctorSpecialityPojo> editor = grid.getEditor();
+        button.addClickListener(e -> {
+            discardCancel.setEnabled(true);
+            if (editor.isOpen()) {
+                editor.cancel();
+            }
+            editor.editItem(speciality);
+        });
+        button.setText("Edit");
     }
 
     public void addToDialog(ByteArrayOutputStream os, Dialog dialog, String mimeType) {
@@ -295,46 +391,28 @@ public class ProfileView extends VerticalLayout {
     }
 
     private void startSpecialityInit(SpecialityName specialityName, Grid<RepresentativeDoctorSpecialityPojo> grid,
-                                     Doctor doctor, List<RepresentativeDoctorSpecialityPojo> list) {
+                                     List<RepresentativeDoctorSpecialityPojo> list) {
         RepresentativeDoctorSpecialityPojo doctorSpecialityPojo = new RepresentativeDoctorSpecialityPojo();
         doctorSpecialityPojo.setSpeciality(specialityName.name());
         doctorSpecialityPojo.setExperience(0);
         doctorSpecialityPojo.setInstitute("");
+        editReference.set(doctorSpecialityPojo);
         grid.getListDataView().addItem(doctorSpecialityPojo);
-        Editor<RepresentativeDoctorSpecialityPojo> editor = grid.getEditor();
         grid.getEditor().editItem(doctorSpecialityPojo);
-        Binder<RepresentativeDoctorSpecialityPojo> binder = new Binder<>();
-        editor.setBinder(binder);
-        editor.setBuffered(true);
-        TextField instituteField = new TextField();
-        binder.forField(instituteField)
-                .asRequired("Institute must not be empty")
-                .bind(RepresentativeDoctorSpecialityPojo::getInstitute, RepresentativeDoctorSpecialityPojo::setInstitute);
-        grid.getColumnByKey("institute").setEditorComponent(instituteField);
-        IntegerField integerField = new IntegerField();
-        integerField.setValue(1);
-        integerField.setHasControls(true);
-        integerField.setMin(1);
-        binder.forField(integerField)
-                .bind(RepresentativeDoctorSpecialityPojo::getExperience, RepresentativeDoctorSpecialityPojo::setExperience);
-        grid.getColumnByKey("experience").setEditorComponent(integerField);
-        Button saveButton = new Button("Save", e -> {
-            editor.save();
-            MessageResponse response = doctorSpecialityService.saveDoctorSpecialitySelf(doctorSpecialityPojo);
-            if(response!=null){
-                UiUtils.generateSuccessNotification("Speciality is successfully added").open();
-            }
-        });
-        grid.getColumnByKey("save").setEditorComponent(saveButton);
+        discardCancel.setEnabled(true);
         this.refreshGrid(list, grid);
     }
 
     private void removeSpeciality(RepresentativeDoctorSpecialityPojo pojo,
-                                  List<RepresentativeDoctorSpecialityPojo> list, Grid<RepresentativeDoctorSpecialityPojo> grid) {
+                                  List<RepresentativeDoctorSpecialityPojo> list,
+                                  Grid<RepresentativeDoctorSpecialityPojo> grid) {
         if (pojo == null)
             return;
         list.remove(pojo);
+        MessageResponse response = doctorSpecialityService.deleteSelf(pojo);
+        populateNotification(response, "Speciality successfully deleted");
         this.refreshGrid(list, grid);
+        refreshSpecialityCombobox(grid);
     }
 
 }
