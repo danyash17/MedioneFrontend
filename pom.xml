@@ -96,6 +96,11 @@
             <artifactId>togglebutton</artifactId>
             <version>2.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.claspina</groupId>
+            <artifactId>confirm-dialog</artifactId>
+            <version>2.0.0</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>

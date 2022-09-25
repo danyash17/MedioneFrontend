@@ -43,6 +43,8 @@ import com.vaadin.flow.server.WrappedSession;
 import de.f0rce.cropper.Cropper;
 import de.f0rce.cropper.settings.CropperSettings;
 import de.f0rce.cropper.settings.enums.ViewMode;
+import org.claspina.confirmdialog.ButtonOption;
+import org.claspina.confirmdialog.ConfirmDialog;
 import org.vaadin.addons.badge.Badge;
 
 import java.io.ByteArrayOutputStream;
@@ -151,6 +153,7 @@ public class ProfileView extends VerticalLayout {
             sessionManager.set2FaAttribute(checkbox.getValue());
             UI.getCurrent().navigate(ProfileView.class);
         });
+        apply.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         layout.add(apply);
         add(layout);
         if(sessionManager.getRoleAttribute().equals("DOCTOR")) {
@@ -188,6 +191,7 @@ public class ProfileView extends VerticalLayout {
                 doctorService.updateSelf(doctor);
                 UI.getCurrent().navigate(ProfileView.class);
             });
+            applyAvatar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             add(new Div(new H4("Upload avatar"), upload));
             add(avatar);
             add(new HorizontalLayout(applyAvatar));
@@ -253,6 +257,7 @@ public class ProfileView extends VerticalLayout {
                 password.setInvalid(true);
             }
         });
+        applyPassword.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         add(password,passwordConfirmation,applyPassword);
     }
 
@@ -408,11 +413,19 @@ public class ProfileView extends VerticalLayout {
                                   Grid<RepresentativeDoctorSpecialityPojo> grid) {
         if (pojo == null)
             return;
-        list.remove(pojo);
-        MessageResponse response = doctorSpecialityService.deleteSelf(pojo);
-        populateNotification(response, "Speciality successfully deleted");
-        this.refreshGrid(list, grid);
-        refreshSpecialityCombobox(grid);
+        ConfirmDialog
+                .createQuestion()
+                .withCaption("Delete confirm")
+                .withMessage("Do you surely want to delete this speciality?")
+                .withCancelButton(ButtonOption.caption("Cancel"))
+                .withOkButton(() -> {
+                    list.remove(pojo);
+                    MessageResponse response = doctorSpecialityService.deleteSelf(pojo);
+                    populateNotification(response, "Speciality successfully deleted");
+                    this.refreshGrid(list, grid);
+                    refreshSpecialityCombobox(grid);
+                }, ButtonOption.focus(), ButtonOption.caption("YES"))
+                .open();
     }
 
 }
