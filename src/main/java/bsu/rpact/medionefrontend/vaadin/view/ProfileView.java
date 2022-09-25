@@ -2,9 +2,13 @@ package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Credentials;
 import bsu.rpact.medionefrontend.entity.Doctor;
+import bsu.rpact.medionefrontend.enums.SpecialityName;
+import bsu.rpact.medionefrontend.pojo.RepresentativeDoctorSpecialityPojo;
+import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.service.CredentialsService;
 import bsu.rpact.medionefrontend.service.DoctorService;
+import bsu.rpact.medionefrontend.service.DoctorSpecialityService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.utils.UiUtils;
@@ -12,15 +16,26 @@ import bsu.rpact.medionefrontend.utils.ValidatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.grid.ColumnTextAlign;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
+import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.PasswordField;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Receiver;
 import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinService;
@@ -32,6 +47,7 @@ import org.vaadin.addons.badge.Badge;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 @Route(value = "profile", layout = MainLayout.class)
 @PageTitle("Profile")
@@ -40,6 +56,7 @@ public class ProfileView extends VerticalLayout {
     private final SessionManager sessionManager;
     private final CredentialsService credentialsService;
     private final DoctorService doctorService;
+    private final DoctorSpecialityService doctorSpecialityService;
     private final AuthService authService;
     private final ImageUtils imageUtils;
 
@@ -61,10 +78,11 @@ public class ProfileView extends VerticalLayout {
         }
     }
 
-    public ProfileView(SessionManager sessionManager, CredentialsService credentialsService, DoctorService doctorService, AuthService authService, ImageUtils imageUtils) {
+    public ProfileView(SessionManager sessionManager, CredentialsService credentialsService, DoctorService doctorService, DoctorSpecialityService doctorSpecialityService, AuthService authService, ImageUtils imageUtils) {
         this.sessionManager = sessionManager;
         this.credentialsService = credentialsService;
         this.doctorService = doctorService;
+        this.doctorSpecialityService = doctorSpecialityService;
         this.authService = authService;
         this.imageUtils = imageUtils;
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
@@ -164,6 +182,19 @@ public class ProfileView extends VerticalLayout {
             add(new Div(new H4("Upload avatar"), upload));
             add(avatar);
             add(new HorizontalLayout(applyAvatar));
+            List<RepresentativeDoctorSpecialityPojo> currentSpecialityList =
+                    doctorSpecialityService.getDoctorSpecialities(doctor.getId());
+            Grid<RepresentativeDoctorSpecialityPojo> grid = initGrid(doctor, currentSpecialityList);
+            ComboBox<SpecialityName> comboBox = new ComboBox<>();
+            comboBox.setItems(SpecialityName.values());
+            comboBox.setItemLabelGenerator(SpecialityName::name);
+            Button button = new Button("Add Speciality");
+            button.addClickListener(e -> {
+                startSpecialityInit(comboBox.getValue(), grid, doctor, currentSpecialityList);
+                comboBox.setValue(null);
+            });
+            add(new Div(new H4("Manage specialities"), new HorizontalLayout(comboBox, button)));
+            add(grid);
         }
         add(new H4("Change password"));
         PasswordField password = new PasswordField();
@@ -202,6 +233,29 @@ public class ProfileView extends VerticalLayout {
         add(password,passwordConfirmation,applyPassword);
     }
 
+    private Grid initGrid(Doctor doctor, List<RepresentativeDoctorSpecialityPojo> currentSpecialityList) {
+        Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
+        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader("Speciality");
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader("Institute of Accreditation").setKey("institute");
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader("Work Experience").setTextAlign(ColumnTextAlign.CENTER).setKey("experience");
+        grid.addColumn(
+                new ComponentRenderer<>(Button::new, (button, speciality) -> {
+                    setupDelete(currentSpecialityList, grid, button, speciality);
+                })).setHeader("Manage").setKey("manage");
+        grid.addColumn(provider -> {return "";}).setKey("save");
+        GridListDataView<RepresentativeDoctorSpecialityPojo> dataView = grid.setItems(currentSpecialityList);
+        grid.setAllRowsVisible(true);
+        return grid;
+    }
+
+    private void setupDelete(List<RepresentativeDoctorSpecialityPojo> currentSpecialityList, Grid<RepresentativeDoctorSpecialityPojo> grid, Button button, RepresentativeDoctorSpecialityPojo speciality) {
+        button.addThemeVariants(ButtonVariant.LUMO_ICON,
+                ButtonVariant.LUMO_ERROR,
+                ButtonVariant.LUMO_TERTIARY);
+        button.addClickListener(e -> this.removeSpeciality(speciality, currentSpecialityList, grid));
+        button.setIcon(new Icon(VaadinIcon.TRASH));
+    }
+
     public void addToDialog(ByteArrayOutputStream os, Dialog dialog, String mimeType) {
         Button cropButton = new Button("Crop");
 
@@ -229,4 +283,58 @@ public class ProfileView extends VerticalLayout {
         dialog.add(crop, cropButton);
         dialog.open();
     }
+
+    private void refreshGrid(List<RepresentativeDoctorSpecialityPojo> doctorSpecialities,
+                             Grid<RepresentativeDoctorSpecialityPojo> grid) {
+        if (doctorSpecialities.size() > 0) {
+            grid.setVisible(true);
+            grid.getDataProvider().refreshAll();
+        } else {
+            grid.setVisible(false);
+        }
+    }
+
+    private void startSpecialityInit(SpecialityName specialityName, Grid<RepresentativeDoctorSpecialityPojo> grid,
+                                     Doctor doctor, List<RepresentativeDoctorSpecialityPojo> list) {
+        RepresentativeDoctorSpecialityPojo doctorSpecialityPojo = new RepresentativeDoctorSpecialityPojo();
+        doctorSpecialityPojo.setSpeciality(specialityName.name());
+        doctorSpecialityPojo.setExperience(0);
+        doctorSpecialityPojo.setInstitute("");
+        grid.getListDataView().addItem(doctorSpecialityPojo);
+        Editor<RepresentativeDoctorSpecialityPojo> editor = grid.getEditor();
+        grid.getEditor().editItem(doctorSpecialityPojo);
+        Binder<RepresentativeDoctorSpecialityPojo> binder = new Binder<>();
+        editor.setBinder(binder);
+        editor.setBuffered(true);
+        TextField instituteField = new TextField();
+        binder.forField(instituteField)
+                .asRequired("Institute must not be empty")
+                .bind(RepresentativeDoctorSpecialityPojo::getInstitute, RepresentativeDoctorSpecialityPojo::setInstitute);
+        grid.getColumnByKey("institute").setEditorComponent(instituteField);
+        IntegerField integerField = new IntegerField();
+        integerField.setValue(1);
+        integerField.setHasControls(true);
+        integerField.setMin(1);
+        binder.forField(integerField)
+                .bind(RepresentativeDoctorSpecialityPojo::getExperience, RepresentativeDoctorSpecialityPojo::setExperience);
+        grid.getColumnByKey("experience").setEditorComponent(integerField);
+        Button saveButton = new Button("Save", e -> {
+            editor.save();
+            MessageResponse response = doctorSpecialityService.saveDoctorSpecialitySelf(doctorSpecialityPojo);
+            if(response!=null){
+                UiUtils.generateSuccessNotification("Speciality is successfully added").open();
+            }
+        });
+        grid.getColumnByKey("save").setEditorComponent(saveButton);
+        this.refreshGrid(list, grid);
+    }
+
+    private void removeSpeciality(RepresentativeDoctorSpecialityPojo pojo,
+                                  List<RepresentativeDoctorSpecialityPojo> list, Grid<RepresentativeDoctorSpecialityPojo> grid) {
+        if (pojo == null)
+            return;
+        list.remove(pojo);
+        this.refreshGrid(list, grid);
+    }
+
 }
