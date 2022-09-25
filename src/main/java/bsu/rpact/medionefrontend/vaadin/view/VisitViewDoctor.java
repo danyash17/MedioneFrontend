@@ -154,7 +154,7 @@ public class VisitViewDoctor extends VerticalLayout {
             visit.setDiagnosis(diagnosis);
             visit.setComments(comments);
             visitService.update(visit);
-            UI.getCurrent().getPage().reload();
+            UI.getCurrent().navigate(VisitViewDoctor.class);
         });
         processButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.add(new H2("Are you sure you want to complete and archive this visit?"));
@@ -191,7 +191,7 @@ public class VisitViewDoctor extends VerticalLayout {
             dialog.close();
             editor.save();
             visitService.update(visit);
-            UI.getCurrent().getPage().reload();
+            UI.getCurrent().navigate(VisitViewDoctor.class);
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.add(new HorizontalLayout(cancelButton, saveButton));

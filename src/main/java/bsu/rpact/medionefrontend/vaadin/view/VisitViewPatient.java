@@ -212,7 +212,7 @@ public class VisitViewPatient extends VerticalLayout {
             dialog.close();
             editor.save();
             visitService.update(visit);
-            UI.getCurrent().getPage().reload();
+            UI.getCurrent().navigate(VisitViewPatient.class);
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.add(new HorizontalLayout(cancelButton, saveButton));

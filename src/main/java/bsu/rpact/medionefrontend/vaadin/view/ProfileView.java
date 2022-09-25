@@ -149,7 +149,7 @@ public class ProfileView extends VerticalLayout {
             credentials.setEnabled2Fa(checkbox.getValue());
             credentialsService.update(credentials, true);
             sessionManager.set2FaAttribute(checkbox.getValue());
-            UI.getCurrent().getPage().reload();
+            UI.getCurrent().navigate(ProfileView.class);
         });
         layout.add(apply);
         add(layout);
@@ -186,7 +186,7 @@ public class ProfileView extends VerticalLayout {
             Button applyAvatar = new Button("Apply", e -> {
                 doctor.setDoctorPhoto(croppedAvatar);
                 doctorService.updateSelf(doctor);
-                UI.getCurrent().getPage().reload();
+                UI.getCurrent().navigate(ProfileView.class);
             });
             add(new Div(new H4("Upload avatar"), upload));
             add(avatar);
