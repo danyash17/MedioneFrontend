@@ -6,6 +6,7 @@ import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
+import bsu.rpact.medionefrontend.utils.VersionUtils;
 import bsu.rpact.medionefrontend.vaadin.view.*;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.UI;
@@ -14,7 +15,6 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -28,18 +28,22 @@ import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.WrappedSession;
 import com.vaadin.flow.theme.lumo.Lumo;
 
+import java.io.IOException;
+
 public class MainLayout extends AppLayout {
 
     private final AuthService authService;
     private final SessionManager sessionManager;
     private final DoctorService doctorService;
     private final ImageUtils imageUtils;
+    private final VersionUtils versionUtils;
 
-    public MainLayout(AuthService authService, SessionManager sessionManager, DoctorService doctorService, ImageUtils imageUtils) {
+    public MainLayout(AuthService authService, SessionManager sessionManager, DoctorService doctorService, ImageUtils imageUtils, VersionUtils versionUtils) {
         this.authService = authService;
         this.sessionManager = sessionManager;
         this.doctorService = doctorService;
         this.imageUtils = imageUtils;
+        this.versionUtils = versionUtils;
         createHeader();
         createDrawer();
     }
@@ -50,20 +54,35 @@ public class MainLayout extends AppLayout {
         logo.setMaxWidth("90px");
         logo.setMaxHeight("90px");
         logo.setSrc("images/logo.png");
-
+        Label version = new Label();
+        try {
+            version = new Label(versionUtils.getCurrentVersion());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Label powered = new Label("Powered by openEHR©");
+        powered.getElement().getStyle().set("fontWeight", "200");
         Button logout = new Button("Log out", e ->{
             session.invalidate();
             authService.logout();
         });
         logout.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         logout.setIcon(VaadinIcon.SIGN_OUT.create());
-        HorizontalLayout header = new HorizontalLayout(new DrawerToggle(), logo);
+        VerticalLayout verticalLayout = new VerticalLayout();
+        verticalLayout.add(version);
+        verticalLayout.add(powered);
+        verticalLayout.setSpacing(false);
+        verticalLayout.setPadding(false);
+        verticalLayout.setMargin(false);
+        HorizontalLayout header = new HorizontalLayout(new DrawerToggle(), logo, verticalLayout);
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         Label credsLabel = new Label(session.getAttribute("firstName")+ " " +
                 session.getAttribute("patronymic") + " " +
                 session.getAttribute("lastName"));
-        credsLabel.addClassNames("bold");
+        credsLabel.getElement().getStyle().set("fontWeight", "bold");
 
 
         Avatar avatar = createAvatar(Role.valueOf(String.valueOf(session.getAttribute("role"))));

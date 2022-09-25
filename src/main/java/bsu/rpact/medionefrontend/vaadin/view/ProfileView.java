@@ -14,6 +14,7 @@ import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.ValidatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
+import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -27,6 +28,7 @@ import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerField;
@@ -158,6 +160,19 @@ public class ProfileView extends VerticalLayout {
         add(layout);
         if(sessionManager.getRoleAttribute().equals("DOCTOR")) {
             Doctor doctor = doctorService.getDoctorSelf();
+            ToggleButton status = new ToggleButton();
+            populateAvailability(status, doctor.getAvailable());
+            status.addValueChangeListener(e -> {
+                doctor.setAvailable(e.getValue());
+                doctorService.updateSelf(doctor);
+                populateAvailability(status, doctor.getAvailable());
+                Notification notification = doctor.getAvailable() ?
+                        UiUtils.generateSuccessNotification("You are now Available ") :
+                        UiUtils.generateErrorNotification("You are now Unreachable");
+                notification.open();
+            });
+            add(new H4("Current doctor status"));
+            add(status);
             avatar.setSrc(imageUtils.chacheByteArrToImageDoctor(doctor.getDoctorPhoto(),
                     doctor.getCredentials().getFirstName() +
                             doctor.getCredentials().getPatronymic() +
@@ -259,6 +274,17 @@ public class ProfileView extends VerticalLayout {
         });
         applyPassword.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         add(password,passwordConfirmation,applyPassword);
+    }
+
+    private void populateAvailability(ToggleButton status, boolean available) {
+        if(available){
+            status.setLabel("Available");
+            status.getElement().getStyle().set("color", "#158443");
+        }
+        else {
+            status.setLabel("Unreachable");
+            status.getElement().getStyle().set("color", "#cf2821");
+        }
     }
 
     private void refreshSpecialityCombobox(Grid grid) {
