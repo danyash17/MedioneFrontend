@@ -72,7 +72,6 @@ public class MainLayout extends AppLayout implements LocaleChangeObserver {
 
     private void createHeader() {
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
-        VaadinSession.getCurrent().setLocale(Locale.getDefault());
         Image logo = new Image();
         logo.setMaxWidth("90px");
         logo.setMaxHeight("90px");
@@ -107,34 +106,7 @@ public class MainLayout extends AppLayout implements LocaleChangeObserver {
                 session.getAttribute("lastName"));
         credsLabel.getElement().getStyle().set("fontWeight", "bold");
 
-        List<Country> countryList = new ArrayList<>();
-        Country eng = new Country("English", "EN", "Europe", "images/flags/gb.png");
-        countryList.add(eng);
-        countryList.add(new Country("Belarusian", "BY", "Europe", "images/flags/by.png"));
-        countryList.add(new Country("Russian", "RU", "Asia", "images/flags/ru.png"));
-        ComboBox<Country> locales = new ComboBox<>();
-        locales.setItems(countryList);
-        locales.setRenderer(createRenderer());
-        locales.setItemLabelGenerator(country -> country.getCode());
-        locales.setAllowCustomValue(false);
-        locales.setMaxWidth("100px");
-        locales.setValue(eng);
-        locales.addValueChangeListener(e -> {
-           switch (e.getValue().getCode()){
-               case "EN":{
-                   getUI().get().setLocale(I18nProvider.ENGLISH);
-                   break;
-               }
-               case "BY":{
-                   getUI().get().setLocale(I18nProvider.BELARUSIAN);
-                   break;
-               }
-               case "RU":{
-                   getUI().get().setLocale(I18nProvider.RUSSIAN);
-                   break;
-               }
-           }
-        });
+        LocalePicker localePicker = new LocalePicker();
 
         Avatar avatar = createAvatar(Role.valueOf(String.valueOf(session.getAttribute("role"))));
         HorizontalLayout credentials = new HorizontalLayout(credsLabel,avatar);
@@ -156,7 +128,7 @@ public class MainLayout extends AppLayout implements LocaleChangeObserver {
                 themeList.add(Lumo.DARK);
             }
         });
-        logoutLayout.add(locales, toggle, logout);
+        logoutLayout.add(localePicker, toggle, logout);
 
         HorizontalLayout summaryLayout = new HorizontalLayout(header, credentials,logoutLayout);
         summaryLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
@@ -237,15 +209,6 @@ public class MainLayout extends AppLayout implements LocaleChangeObserver {
             }
         }
         return avatar;
-    }
-
-    private Renderer<Country> createRenderer() {
-        StringBuilder tpl = new StringBuilder();
-        tpl.append("<div style=\"display: flex;\">");
-        tpl.append("  <img style=\"height: var(--lumo-size-m);\" src=\"${item.flag}\"/>");
-        tpl.append("</div>");
-
-        return LitRenderer.<Country>of(tpl.toString()).withProperty("flag", Country::getFlag);
     }
 
     @Override
