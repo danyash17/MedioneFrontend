@@ -101,8 +101,7 @@ public class RegistrationFormBinder implements LocaleChangeObserver {
                 MessageResponse response = authService.register(userBean);
                 String message = response.getMessage().toUpperCase(Locale.ROOT);
                 if(message.equals("PATIENT CREATED") ||
-                   message.equals("DOCTOR CREATED")  ||
-                   message.equals("ADMIN CREATED")) {
+                   message.equals("DOCTOR CREATED")) {
                     UiUtils.generateSuccessRegistrationNotification(userBean).open();
                 }
                 else if(message.contains("PHONE ALREADY EXISTS")){

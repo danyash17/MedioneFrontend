@@ -52,7 +52,7 @@ public class LoginView extends Composite<VerticalLayout> implements LocaleChange
         this.sessionManager = sessionManager;
         this.cookieHelper = cookieHelper;
         this.context = ctx;
-        UI.getCurrent().setLocale(Locale.getDefault());
+        VaadinSession.getCurrent().setLocale(Locale.getDefault());
         String route = RouteConfiguration.forSessionScope()
                 .getUrl(RegistrationView.class);
         link = new Anchor(route, getTranslation("login.register"));

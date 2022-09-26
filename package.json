@@ -10,6 +10,7 @@
     "@polymer/paper-button": "^3.0.1",
     "@polymer/paper-icon-button": "^3.0.2",
     "@polymer/polymer": "3.4.1",
+    "@vaadin-component-factory/vcf-pdf-viewer": "1.2.0",
     "@vaadin-component-factory/vcf-toggle-button": "1.0.3",
     "@vaadin/accordion": "23.0.7",
     "@vaadin/app-layout": "23.0.7",
@@ -122,7 +123,8 @@
     "date-fns": "2.28.0",
     "lit": "2.1.4",
     "lit-element": "^2.2.1",
-    "lit-html": "^1.1.2"
+    "lit-html": "^1.1.2",
+    "print-js": "1.6.0"
   },
   "devDependencies": {
     "chokidar": "^3.5.0",
@@ -156,6 +158,7 @@
       "@polymer/paper-button": "^3.0.1",
       "@polymer/paper-icon-button": "^3.0.2",
       "@polymer/polymer": "3.4.1",
+      "@vaadin-component-factory/vcf-pdf-viewer": "1.2.0",
       "@vaadin-component-factory/vcf-toggle-button": "1.0.3",
       "@vaadin/accordion": "23.0.7",
       "@vaadin/app-layout": "23.0.7",
@@ -267,7 +270,8 @@
       "date-fns": "2.28.0",
       "lit": "2.1.4",
       "lit-element": "^2.2.1",
-      "lit-html": "^1.1.2"
+      "lit-html": "^1.1.2",
+      "print-js": "1.6.0"
     },
     "devDependencies": {
       "chokidar": "^3.5.0",
@@ -291,7 +295,7 @@
       "workbox-precaching": "6.5.0",
       "workbox-webpack-plugin": "6.5.0"
     },
-    "hash": "377b0b96226cfdca92697d3540b97edb09be1b5fc560b2d9a71d8228e3505480"
+    "hash": "3a021855d0da6c05e56457bf3b290093631c35c5814bf0f7ee9535e7fafecb15"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -414,6 +418,8 @@
     "lit-element": "$lit-element",
     "lit-html": "$lit-html",
     "cropperjs": "$cropperjs",
-    "@vaadin-component-factory/vcf-toggle-button": "$@vaadin-component-factory/vcf-toggle-button"
+    "@vaadin-component-factory/vcf-toggle-button": "$@vaadin-component-factory/vcf-toggle-button",
+    "@vaadin-component-factory/vcf-pdf-viewer": "$@vaadin-component-factory/vcf-pdf-viewer",
+    "print-js": "$print-js"
   }
 }

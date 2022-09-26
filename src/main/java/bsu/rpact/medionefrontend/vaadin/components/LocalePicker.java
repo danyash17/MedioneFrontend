@@ -26,7 +26,7 @@ public class LocalePicker extends ComboBox<Country> {
         setItemLabelGenerator(country -> country.getCode());
         setAllowCustomValue(false);
         setMaxWidth("100px");
-        switch (UI.getCurrent().getLocale().getISO3Country()){
+        switch (VaadinSession.getCurrent().getLocale().getISO3Country()){
             case "GBR":{
                 setValue(eng);
                 break;
@@ -43,15 +43,15 @@ public class LocalePicker extends ComboBox<Country> {
         addValueChangeListener(e -> {
             switch (e.getValue().getCode()){
                 case "EN":{
-                    getUI().get().setLocale(I18nProvider.ENGLISH);
+                    VaadinSession.getCurrent().setLocale(I18nProvider.ENGLISH);
                     break;
                 }
                 case "BY":{
-                    getUI().get().setLocale(I18nProvider.BELARUSIAN);
+                    VaadinSession.getCurrent().setLocale(I18nProvider.BELARUSIAN);
                     break;
                 }
                 case "RU":{
-                    getUI().get().setLocale(I18nProvider.RUSSIAN);
+                    VaadinSession.getCurrent().setLocale(I18nProvider.RUSSIAN);
                     break;
                 }
             }
