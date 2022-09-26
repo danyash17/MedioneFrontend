@@ -5,6 +5,8 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.i18n.LocaleChangeEvent;
+import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.router.Route;
@@ -14,24 +16,36 @@ import com.vaadin.flow.server.WrappedSession;
 @PageTitle("Home")
 @PreserveOnRefresh
 @Route(value = "home", layout = MainLayout.class)
-public class HomeView extends VerticalLayout {
+public class HomeView extends VerticalLayout implements LocaleChangeObserver {
 
+    WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
+
+    private String welcome = getTranslation("home.welcome");
+    private String provide = getTranslation("home.provide");
+    private String profile = getTranslation("home.profile");
+    private String visits = getTranslation("home.visits");
+    private String documents = getTranslation("home.documents");
+    private String notes = getTranslation("home.notes");
+    private final H2 h2 = new H2(welcome + session.getAttribute("firstName"));
+    private final Paragraph provideParagraph = new Paragraph(provide);
+    private final Paragraph profileParagraph = new Paragraph(profile);
+    private final Paragraph visitsParagraph = new Paragraph(visits);
+    private final Paragraph documentsParagraph = new Paragraph(documents);
+    private final Paragraph notesParagraph = new Paragraph(notes);
 
     public HomeView() {
-        WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
 
         setSpacing(false);
 
         Image img = new Image("images/greeting.png", "greeting");
         img.setWidth("200px");
         add(img);
-
-        add(new H2("Glad to see you, " + session.getAttribute("firstName")));
-        add(new Paragraph("Medione Web app provide you an opportunity to manage your visits, documents and notes!"));
-        add(new Paragraph("▪To observate and change your profile data, click Profile at the side menu"));
-        add(new Paragraph("▪To rule your visits, click Visits at the side menu"));
-        add(new Paragraph("▪To work out with your documents, click Documents at the side menu"));
-        add(new Paragraph("▪To check your notes, click Notes at the side menu"));
+        add(h2);
+        add(provideParagraph);
+        add(profileParagraph);
+        add(visitsParagraph);
+        add(documentsParagraph);
+        add(notesParagraph);
 
         setSizeFull();
         setJustifyContentMode(JustifyContentMode.CENTER);
@@ -39,4 +53,19 @@ public class HomeView extends VerticalLayout {
         getStyle().set("text-align", "center");
     }
 
+    @Override
+    public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        welcome = getTranslation("home.welcome");
+        provide = getTranslation("home.provide");
+        profile = getTranslation("home.profile");
+        visits = getTranslation("home.visits");
+        documents = getTranslation("home.documents");
+        notes = getTranslation("home.notes");
+        h2.setText(welcome + session.getAttribute("firstName"));
+        provideParagraph.setText(provide);
+        profileParagraph.setText(profile);
+        visitsParagraph.setText(visits);
+        documentsParagraph.setText(documents);
+        notesParagraph.setText(notes);
+    }
 }
