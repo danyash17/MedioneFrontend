@@ -11,12 +11,14 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.i18n.LocaleChangeEvent;
+import com.vaadin.flow.i18n.LocaleChangeObserver;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class RegistrationForm extends FormLayout {
+public class RegistrationForm extends FormLayout implements LocaleChangeObserver {
 
     private H3 title;
 
@@ -38,24 +40,24 @@ public class RegistrationForm extends FormLayout {
 
 
     public RegistrationForm() {
-        title = new H3("Signup form");
-        firstName = new TextField("First name");
-        lastName = new TextField("Last name");
-        patronymic = new TextField("Patronymic");
-        phone = new TextField("Phone");
-        comboBox = new ComboBox<>("Role");
+        title = new H3(getTranslation("registration.title"));
+        firstName = new TextField(getTranslation("registration.first_name"));
+        lastName = new TextField(getTranslation("registration.last_name"));
+        patronymic = new TextField(getTranslation("registration.patronymic"));
+        phone = new TextField(getTranslation("registration.phone"));
+        comboBox = new ComboBox<>(getTranslation("registration.role"));
         comboBox.setItems(Arrays.asList(Role.values()).stream().map(item -> item.name()).collect(Collectors.toList()));
-        agreeWithRules = new Checkbox("Agree with rules");
+        agreeWithRules = new Checkbox(getTranslation("registration.rules"));
         agreeWithRules.getStyle().set("margin-top", "10px");
 
-        login = new TextField("Login");
-        password = new PasswordField("Password");
-        passwordConfirmation = new PasswordField("Confirm password");
+        login = new TextField(getTranslation("registration.login"));
+        password = new PasswordField(getTranslation("registration.password"));
+        passwordConfirmation = new PasswordField(getTranslation("registration.password_confirm"));
 
         setRequiredIndicatorVisible(firstName, lastName, patronymic, phone, comboBox, login, password,
                 passwordConfirmation, agreeWithRules);
 
-        submitButton = new Button("Register");
+        submitButton = new Button(getTranslation("registration.register_button"));
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         add(title, firstName, lastName, patronymic,
@@ -146,5 +148,19 @@ public class RegistrationForm extends FormLayout {
 
     public void setPasswordConfirmation(PasswordField passwordConfirmation) {
         this.passwordConfirmation = passwordConfirmation;
+    }
+
+    @Override
+    public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        title.setText(getTranslation("registration.title"));
+        firstName.setLabel(getTranslation("registration.first_name"));
+        lastName.setLabel(getTranslation("registration.last_name"));
+        patronymic.setLabel(getTranslation("registration.patronymic"));
+        phone.setLabel(getTranslation("registration.phone"));
+        comboBox.setLabel(getTranslation("registration.role"));
+        agreeWithRules.setLabel(getTranslation("registration.rules"));
+        login.setLabel(getTranslation("registration.login"));
+        password.setLabel(getTranslation("registration.password"));
+        passwordConfirmation.setLabel(getTranslation("registration.password_confirm"));
     }
 }

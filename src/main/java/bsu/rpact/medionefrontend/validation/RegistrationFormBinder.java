@@ -9,10 +9,12 @@ import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.ValidatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.RegistrationForm;
 import com.vaadin.flow.data.binder.*;
+import com.vaadin.flow.i18n.LocaleChangeEvent;
+import com.vaadin.flow.i18n.LocaleChangeObserver;
 
 import java.util.Locale;
 
-public class RegistrationFormBinder {
+public class RegistrationFormBinder implements LocaleChangeObserver {
 
     private final AuthService authService;
 
@@ -20,9 +22,9 @@ public class RegistrationFormBinder {
 
     private boolean enablePasswordValidation;
 
-    private String phoneErrorText = "This mobile phone number already reserved";
-    private String enterAnotherPhoneNumber = "Enter another phone number";
-    private String loginAlreadyReserved = "This login already reserved";
+    private String mobilePhoneNumberAlreadyReserved;
+    private String enterAnotherPhoneNumber;
+    private String loginAlreadyReserved;
 
     public RegistrationFormBinder(AuthService authService, RegistrationForm registrationForm) {
         this.authService = authService;
@@ -57,6 +59,10 @@ public class RegistrationFormBinder {
         binderPhone.forField(registrationForm.getPhone())
                 .withValidator(this::phoneValidate).bind("phone");
         binderRole.forField(registrationForm.getComboBox()).bind("role");
+
+        mobilePhoneNumberAlreadyReserved = registrationForm.getTranslation("register.messages.mobile_phone_number_already_reserved");
+        enterAnotherPhoneNumber = registrationForm.getTranslation("register.messages.enter_another_phone_number");
+        loginAlreadyReserved = registrationForm.getTranslation("register.messages.login_already_reserved");
 
         registrationForm.getPasswordField().addValueChangeListener(e ->{
             enablePasswordValidation = true;
@@ -100,9 +106,9 @@ public class RegistrationFormBinder {
                     UiUtils.generateSuccessRegistrationNotification(userBean).open();
                 }
                 else if(message.contains("PHONE ALREADY EXISTS")){
-                    UiUtils.generateErrorNotification(phoneErrorText).open();
+                    UiUtils.generateErrorNotification(mobilePhoneNumberAlreadyReserved).open();
                     registrationForm.getPhone().setErrorMessage(enterAnotherPhoneNumber);
-                    throw new PhoneAlreadyExsistsException(phoneErrorText);
+                    throw new PhoneAlreadyExsistsException(mobilePhoneNumberAlreadyReserved);
                 }
                 else if(message.contains("LOGIN ALREADY EXISTS")){
                     UiUtils.generateErrorNotification(loginAlreadyReserved).open();
@@ -110,7 +116,7 @@ public class RegistrationFormBinder {
                     throw new LoginAlreadyExsistsException(loginAlreadyReserved);
                 }
             } catch (IllegalArgumentException exception) {
-                UiUtils.generateErrorNotification("Registration failed :(");
+                UiUtils.generateErrorNotification(registrationForm.getTranslation("register.messages.registration_failed"));
             } catch (ValidationException e) {
                 UiUtils.generateErrorNotification(String.valueOf(e.getValidationErrors()));
             }
@@ -125,10 +131,7 @@ public class RegistrationFormBinder {
      */
     private ValidationResult passwordValidate(String pass1, ValueContext ctx) {
         if (pass1 == null || !ValidatorUtils.isValidPassword(pass1)) {
-            return ValidationResult.error("Password must be" +
-                    " 8-20 length\n" +
-                    ",contain at least one letter\n" +
-                    ",not contain any white space.");
+            return ValidationResult.error(registrationForm.getTranslation("register.messages.password_pattern"));
         }
         if (!enablePasswordValidation) {
             enablePasswordValidation = true;
@@ -138,34 +141,35 @@ public class RegistrationFormBinder {
         if (pass1 != null && pass1.equals(pass2)) {
             return ValidationResult.ok();
         }
-        return ValidationResult.error("Passwords do not match");
+        return ValidationResult.error(registrationForm.getTranslation("register.messages.passwords_do_not_match"));
     }
 
     private ValidationResult loginValidate(String login, ValueContext ctx) {
         if (login == null || !ValidatorUtils.isValidLogin(login)) {
             return ValidationResult.error(
-                    "The 3 logins parts are:\n" +
-                    "Maybe some digits as a prefix,\n" +
-                    ",but then definitely a letter\n" +
-                    ",and then maybe some digits and letters at the end");
+                    registrationForm.getTranslation("register.messages.login_pattern"));
         }
         return ValidationResult.ok();
     }
 
     private ValidationResult literalValidate(String literal, ValueContext ctx) {
         if (literal == null || !ValidatorUtils.isValidLiteral(literal)) {
-            return ValidationResult.error("Literal must contain only letters\n");
+            return ValidationResult.error(registrationForm.getTranslation("register.messages.literal_must_contain_only_letters"));
         }
         return ValidationResult.ok();
     }
 
     private ValidationResult phoneValidate(String phone, ValueContext ctx) {
         if (phone == null || !ValidatorUtils.isValidPhone(phone)) {
-            return ValidationResult.error("Phone starts with" +
-                    " 1-3 country code," +
-                    "then area code and subscriber number " +
-                    "between 8-11 digits");
+            return ValidationResult.error(registrationForm.getTranslation("register.messages.phone_pattern"));
         }
         return ValidationResult.ok();
+    }
+
+    @Override
+    public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        mobilePhoneNumberAlreadyReserved = registrationForm.getTranslation("register.messages.mobile_phone_number_already_reserved");
+        enterAnotherPhoneNumber = registrationForm.getTranslation("register.messages.enter_another_phone_number");
+        loginAlreadyReserved = registrationForm.getTranslation("register.messages.login_already_reserved");
     }
 }

@@ -2,9 +2,11 @@ package bsu.rpact.medionefrontend.vaadin.components;
 
 import bsu.rpact.medionefrontend.pojo.other.Country;
 import bsu.rpact.medionefrontend.vaadin.i18n.I18nProvider;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.server.VaadinSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,14 +17,29 @@ public class LocalePicker extends ComboBox<Country> {
         List<Country> countryList = new ArrayList<>();
         Country eng = new Country("English", "EN", "Europe", "images/flags/gb.png");
         countryList.add(eng);
-        countryList.add(new Country("Belarusian", "BY", "Europe", "images/flags/by.png"));
-        countryList.add(new Country("Russian", "RU", "Asia", "images/flags/ru.png"));
+        Country blr = new Country("Belarusian", "BY", "Europe", "images/flags/by.png");
+        countryList.add(blr);
+        Country rus = new Country("Russian", "RU", "Asia", "images/flags/ru.png");
+        countryList.add(rus);
         setItems(countryList);
         setRenderer(createRenderer());
         setItemLabelGenerator(country -> country.getCode());
         setAllowCustomValue(false);
         setMaxWidth("100px");
-        setValue(eng);
+        switch (UI.getCurrent().getLocale().getISO3Country()){
+            case "GBR":{
+                setValue(eng);
+                break;
+            }
+            case "BLR":{
+                setValue(blr);
+                break;
+            }
+            case "RUS":{
+                setValue(rus);
+                break;
+            }
+        }
         addValueChangeListener(e -> {
             switch (e.getValue().getCode()){
                 case "EN":{

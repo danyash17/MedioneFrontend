@@ -10,19 +10,21 @@ public class ValidatorUtils {
 
     public static boolean isValidPassword(String password)
     {
-        String regex = "(?=.*[a-z])"
-                + "(?=\\S+$).{8,20}$";
-        return doMatch(password, regex);
+        String latin = "(?=.*[a-z])(?=\\S+$).{8,20}.*\\d+.*$";
+        String cyrillic = "(?=.*[\\p{InCyrillic}])(?=\\S+$).{8,20}.*\\d+.*$";
+        return doMatch(password, latin) || doMatch(password, cyrillic);
     }
 
     public static boolean isValidLiteral(String literal){
-        String regex = "^[a-zA-Z][a-zA-Z]*$";
-        return doMatch(literal, regex);
+        String latin = "^[a-zA-Z][a-zA-Z]*$";
+        String cyrillic = "^[\\p{InCyrillic}][\\p{InCyrillic}]*$";
+        return doMatch(literal, latin) || doMatch(literal, cyrillic);
     }
 
     public static boolean isValidLogin(String login){
-        String regex = "^\\d*[a-zA-Z][a-zA-Z\\d]*$";
-        return doMatch(login, regex);
+        String latin = "^\\d*[a-zA-Z][a-zA-Z\\d]*$";
+        String cyrillic = "^\\d*[\\p{InCyrillic}][\\p{InCyrillic}\\d]*$";
+        return doMatch(login, latin) || doMatch(login,cyrillic);
     }
 
     public static boolean isValidPhone(String phone){
