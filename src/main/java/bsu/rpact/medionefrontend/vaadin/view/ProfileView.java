@@ -14,6 +14,7 @@ import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.ValidatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.i18n.components.UploadLocalizator;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -36,8 +37,11 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Receiver;
 import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.i18n.LocaleChangeEvent;
+import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinService;
@@ -58,7 +62,7 @@ import java.util.stream.Collectors;
 
 @Route(value = "profile", layout = MainLayout.class)
 @PageTitle("Profile")
-public class ProfileView extends VerticalLayout {
+public class ProfileView extends VerticalLayout implements LocaleChangeObserver {
 
     private final SessionManager sessionManager;
     private final CredentialsService credentialsService;
@@ -72,6 +76,53 @@ public class ProfileView extends VerticalLayout {
     private final static ByteArrayOutputStream os = new ByteArrayOutputStream(allowedFileSize);
     private final ComboBox<SpecialityName> specialityNameComboBox = new ComboBox<>();
     private final Button discardCancel = new Button();
+    private final H3 profileData = new H3(getTranslation("profile.profile_data"));
+    private String firstName = getTranslation("profile.first_name");
+    private String patronymic = getTranslation("profile.patronymic");
+    private String lastName = getTranslation("profile.last_name");
+    private String phone = getTranslation("profile.phone");
+    private String patient = getTranslation("profile.patient");
+    private String doctor = getTranslation("profile.doctor");
+    private String administrator = getTranslation("profile.admin");
+    private String role = getTranslation("profile.role");
+    private String enabled = getTranslation("profile.enabled");
+    private String disabled = getTranslation("profile.disabled");
+    private String twoFactor = getTranslation("profile.twofact");
+    private final H3 profileSettings = new H3(getTranslation("profile.profile_settings"));
+    private String use2Fa = getTranslation("profile.use2Fa");
+    private String applyLabel = getTranslation("profile.apply");
+    private String messageAvailable = getTranslation("profile.messages.available");
+    private String messageUnreachable = getTranslation("profile.messages_unreachable");
+    private final H4 currentDoctorStatus = new H4(getTranslation("profile.current_doctor_status"));
+    private String uploadAvatar = getTranslation("profile.upload_avatar");
+    private String addSpeciality = getTranslation("profile.add_speciality");
+    private String discardCancelLabel = getTranslation("profile.discard_cancel");
+    private String manageSpecialities = getTranslation("profile.manage_specialities");
+    private final H4 changePassword = new H4(getTranslation("profile.change_password"));
+    private String newPassword = getTranslation("profile.new_password");
+    private String confirmNewPassword = getTranslation("profile.confirm_password");
+    private String youSuccessfullyChangedYourPassword = getTranslation("profile.messages.you_successfully_changed_your_password");
+    private String passwordsDoesNotMatch = getTranslation("profile.messages.passwords_do_not_match");
+    private String passwordPattern = getTranslation("register.messages.password_pattern");
+    private String availableLabel = getTranslation("profile.available");
+    private String unreachableLabel = getTranslation("profile.unreachable");
+    private String specialityLabel = getTranslation("profile.speciality");
+    private String instituteOfAccreditation = getTranslation("profile.institute_of_accreditation");
+    private String workExperience = getTranslation("profile.work_experience");
+    private String manage = getTranslation("profile.manage");
+    private String instituteMustNotBeEmpty = getTranslation("profile.institute_must_not_be_empty");
+    private String saveLabel = getTranslation("profile.save");
+    private String specialityIsSuccessfullySaved = getTranslation("profile.messages.speciality_is_successfully_saved");
+    private String specialityIsSuccessfullyUpdated = getTranslation("profile.messages.speciality_is_successfully_updated");
+    private String somethingWentWrongPleaseContactAdministrator = getTranslation("profile.messages.something_went_wrong_please_contact_administrator");
+    private String editLabel = getTranslation("profile.edit");
+    private String cropLabel = getTranslation("profile.crop");
+    private String deleteConfirm = getTranslation("profile.deletion_confirmation");
+    private String doYouSureWantToDeleteSpeciality = getTranslation("profile.messages.do_you_sure_want_to_delete_speciality");
+    private String cancelLabel = getTranslation("profile.cancel");
+    private String specialitySuccessfullyDeleted = getTranslation("profile.messages.speciality_successfully_deleted");
+    private String yes = getTranslation("profile.yes");
+    private String avatarUploaded = getTranslation("profile.messages.avatar_uploaded");
 
     private Image avatar = new Image();
     private String currentMimeType;
@@ -99,56 +150,56 @@ public class ProfileView extends VerticalLayout {
         this.authService = authService;
         this.imageUtils = imageUtils;
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
-        add(new H3("Profile data"));
-        add(new Label("First name: " + sessionManager.getFirstNameAttribute()));
-        add(new Label("Patronymic: " + sessionManager.getPatronymicAttribute()));
-        add(new Label("Last name: " + sessionManager.getLastNameAttribute()));
-        add(new Label("Phone: " + sessionManager.getPhoneAttribute()));
+        add(profileData);
+        add(new Label(firstName + sessionManager.getFirstNameAttribute()));
+        add(new Label(patronymic + sessionManager.getPatronymicAttribute()));
+        add(new Label(lastName + sessionManager.getLastNameAttribute()));
+        add(new Label(phone + sessionManager.getPhoneAttribute()));
         Badge badgeRole = new Badge();
         badgeRole.setPrimary(true);
         badgeRole.setPill(true);
         switch (sessionManager.getRoleAttribute()){
             case "PATIENT": {
-                badgeRole.setText("Patient");
+                badgeRole.setText(patient);
                 badgeRole.setIcon(VaadinIcon.USER.create());
                 badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
                 break;
             }
             case "DOCTOR": {
-                badgeRole.setText("Doctor");
+                badgeRole.setText(doctor);
                 badgeRole.setIcon(VaadinIcon.DOCTOR.create());
                 badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
                 break;
             }
             case "ADMIN": {
-                badgeRole.setText("Administrator");
+                badgeRole.setText(administrator);
                 badgeRole.setIcon(VaadinIcon.SPECIALIST.create());
                 badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
                 break;
             }
         }
-        add(new HorizontalLayout(new Label("Role: "), badgeRole));
+        add(new HorizontalLayout(new Label(role), badgeRole));
         Badge badge2Fa = new Badge();
         badge2Fa.setPrimary(true);
         badge2Fa.setPill(true);
         if(sessionManager.get2FaAttribute().booleanValue()){
-            badge2Fa.setText("Enabled");
+            badge2Fa.setText(enabled);
             badge2Fa.setVariant(Badge.BadgeVariant.CONTRAST);
             badge2Fa.setIcon(VaadinIcon.LOCK.create());
         }
         else {
-            badge2Fa.setText("Disabled");
+            badge2Fa.setText(disabled);
             badge2Fa.setVariant(Badge.BadgeVariant.SUCCESS);
             badge2Fa.setIcon(VaadinIcon.UNLOCK.create());
         }
-        add(new HorizontalLayout(new Label("Two-factor authorization"), badge2Fa));
-        add(new H3("Profile settings"));
+        add(new HorizontalLayout(new Label(twoFactor), badge2Fa));
+        add(profileSettings);
         Checkbox checkbox = new Checkbox();
-        checkbox.setLabel("Use Two-Factor Authentication for this account");
+        checkbox.setLabel(use2Fa);
         checkbox.setValue(session.getAttribute("2FA").equals("true"));
         add(checkbox);
         HorizontalLayout layout = new HorizontalLayout();
-        Button apply = new Button("Apply", e -> {
+        Button apply = new Button(applyLabel, e -> {
             Credentials credentials = credentialsService.getSelf();
             credentials.setEnabled2Fa(checkbox.getValue());
             credentialsService.update(credentials, true);
@@ -167,11 +218,11 @@ public class ProfileView extends VerticalLayout {
                 doctorService.updateSelf(doctor);
                 populateAvailability(status, doctor.getAvailable());
                 Notification notification = doctor.getAvailable() ?
-                        UiUtils.generateSuccessNotification("You are now Available ") :
-                        UiUtils.generateErrorNotification("You are now Unreachable");
+                        UiUtils.generateSuccessNotification(messageAvailable) :
+                        UiUtils.generateErrorNotification(messageUnreachable);
                 notification.open();
             });
-            add(new H4("Current doctor status"));
+            add(currentDoctorStatus);
             add(status);
             avatar.setSrc(imageUtils.chacheByteArrToImageDoctor(doctor.getDoctorPhoto(),
                     doctor.getCredentials().getFirstName() +
@@ -192,6 +243,7 @@ public class ProfileView extends VerticalLayout {
             upload.setAcceptedFileTypes(allowedAvatarExtensions);
             upload.setMaxFiles(1);
             upload.setMaxFileSize(allowedFileSize);
+            upload.setI18n(new UploadLocalizator());
             upload.addSucceededListener(event -> {
                 Dialog dialog = new Dialog();
                 dialog.setHeight("600px");
@@ -201,13 +253,13 @@ public class ProfileView extends VerticalLayout {
                 firstCall = false;
                 this.addToDialog(os, dialog, event.getMIMEType());
             });
-            Button applyAvatar = new Button("Apply", e -> {
+            Button applyAvatar = new Button(applyLabel, e -> {
                 doctor.setDoctorPhoto(croppedAvatar);
                 doctorService.updateSelf(doctor);
                 UI.getCurrent().navigate(ProfileView.class);
             });
             applyAvatar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            add(new Div(new H4("Upload avatar"), upload));
+            add(new Div(new H4(uploadAvatar), upload));
             add(avatar);
             add(new HorizontalLayout(applyAvatar));
             List<RepresentativeDoctorSpecialityPojo> currentSpecialityList =
@@ -215,7 +267,7 @@ public class ProfileView extends VerticalLayout {
             Grid<RepresentativeDoctorSpecialityPojo> grid = initGrid(doctor, currentSpecialityList);
             refreshSpecialityCombobox(grid);
             specialityNameComboBox.setItemLabelGenerator(SpecialityName::name);
-            Button add = new Button("Add Speciality");
+            Button add = new Button(addSpeciality);
             add.addClickListener(e -> {
                 newSpeciality = true;
                 startSpecialityInit(specialityNameComboBox.getValue(), grid, currentSpecialityList);
@@ -223,7 +275,7 @@ public class ProfileView extends VerticalLayout {
                 specialityNameComboBox.setValue(null);
             });
             discardCancel.setEnabled(false);
-            discardCancel.setText("Discard/Cancel");
+            discardCancel.setText(discardCancelLabel);
             discardCancel.addClickListener(e -> {
                 GridListDataView<RepresentativeDoctorSpecialityPojo> listDataView = grid.getListDataView();
                 grid.getEditor().cancel();
@@ -235,22 +287,22 @@ public class ProfileView extends VerticalLayout {
                 specialityNameComboBox.setValue(null);
                 discardCancel.setEnabled(false);
             });
-            add(new Div(new H4("Manage specialities"), new HorizontalLayout(specialityNameComboBox, add, discardCancel)));
+            add(new Div(new H4(manageSpecialities), new HorizontalLayout(specialityNameComboBox, add, discardCancel)));
             add(grid);
         }
-        add(new H4("Change password"));
+        add(changePassword);
         PasswordField password = new PasswordField();
-        password.setLabel("New password");
+        password.setLabel(newPassword);
         PasswordField passwordConfirmation = new PasswordField();
-        passwordConfirmation.setLabel("Confirm new password");
-        Button applyPassword = new Button("Apply");
+        passwordConfirmation.setLabel(confirmNewPassword);
+        Button applyPassword = new Button(applyLabel);
         applyPassword.addClickListener(e -> {
             if(ValidatorUtils.isValidPassword(password.getValue())){
                 if(password.getValue().equals(passwordConfirmation.getValue())) {
                     Credentials credentials = credentialsService.getSelf();
                     credentials.setPassword(password.getValue());
                     credentialsService.update(credentials, true);
-                    UiUtils.generateSuccessNotification("You successfully changed your password").open();
+                    UiUtils.generateSuccessNotification(youSuccessfullyChangedYourPassword).open();
                     password.clear();
                     passwordConfirmation.clear();
                     password.setInvalid(false);
@@ -258,17 +310,14 @@ public class ProfileView extends VerticalLayout {
                 }
                 else {
                     passwordConfirmation.clear();
-                    passwordConfirmation.setErrorMessage("Passwords does not match");
+                    passwordConfirmation.setErrorMessage(passwordsDoesNotMatch);
                     passwordConfirmation.setInvalid(true);
                 }
             }
             else {
                 password.clear();
                 passwordConfirmation.clear();
-                password.setErrorMessage("Password must be" +
-                        "8-20 length\n" +
-                        ",contain at least one letter\n" +
-                        ",not contain any white space.");
+                password.setErrorMessage(passwordPattern);
                 password.setInvalid(true);
             }
         });
@@ -277,12 +326,13 @@ public class ProfileView extends VerticalLayout {
     }
 
     private void populateAvailability(ToggleButton status, boolean available) {
+        status.setValue(available);
         if(available){
-            status.setLabel("Available");
+            status.setLabel(availableLabel);
             status.getElement().getStyle().set("color", "#158443");
         }
         else {
-            status.setLabel("Unreachable");
+            status.setLabel(unreachableLabel);
             status.getElement().getStyle().set("color", "#cf2821");
         }
     }
@@ -303,13 +353,13 @@ public class ProfileView extends VerticalLayout {
 
     private Grid initGrid(Doctor doctor, List<RepresentativeDoctorSpecialityPojo> currentSpecialityList) {
         Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
-        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader("Speciality");
-        grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader("Institute of Accreditation").setKey("institute");
-        grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader("Work Experience").setTextAlign(ColumnTextAlign.CENTER).setKey("experience");
+        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader(specialityLabel);
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader(instituteOfAccreditation).setKey("institute");
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader(workExperience).setTextAlign(ColumnTextAlign.CENTER).setKey("experience");
         grid.addColumn(
                 new ComponentRenderer<>(Button::new, (button, speciality) -> {
                     setupEdit(grid, button, speciality);
-                })).setHeader("Manage").setKey("manage");
+                })).setHeader(manage).setKey("manage");
         grid.addColumn(
                 new ComponentRenderer<>(Button::new, (button, speciality) -> {
                     setupDelete(currentSpecialityList, grid, button, speciality, doctor);
@@ -322,7 +372,7 @@ public class ProfileView extends VerticalLayout {
         editor.setBuffered(true);
         TextField instituteField = new TextField();
         binder.forField(instituteField)
-                .asRequired("Institute must not be empty")
+                .asRequired(instituteMustNotBeEmpty)
                 .bind(RepresentativeDoctorSpecialityPojo::getInstitute, RepresentativeDoctorSpecialityPojo::setInstitute);
         grid.getColumnByKey("institute").setEditorComponent(instituteField);
         IntegerField integerField = new IntegerField();
@@ -332,18 +382,18 @@ public class ProfileView extends VerticalLayout {
         binder.forField(integerField)
                 .bind(RepresentativeDoctorSpecialityPojo::getExperience, RepresentativeDoctorSpecialityPojo::setExperience);
         grid.getColumnByKey("experience").setEditorComponent(integerField);
-        Button saveButton = new Button("Save", e -> {
+        Button saveButton = new Button(saveLabel, e -> {
             editor.save();
             discardCancel.setEnabled(false);
             MessageResponse response;
             if(newSpeciality) {
                 response = doctorSpecialityService.saveDoctorSpecialitySelf(editReference.get());
-                populateNotification(response, "Speciality is successfully saved");
+                populateNotification(response, specialityIsSuccessfullySaved);
             }
             else
             {
                 response = doctorSpecialityService.updateDoctorSpecialitySelf(editReference.get());
-                populateNotification(response, "Speciality is successfully updated");
+                populateNotification(response, specialityIsSuccessfullyUpdated);
             }
             editReference.set(null);
             newSpeciality = null;
@@ -358,7 +408,7 @@ public class ProfileView extends VerticalLayout {
             UiUtils.generateSuccessNotification(message).open();
         }
         else {
-            UiUtils.generateErrorNotification("Something went wrong, please contact administrator").open();
+            UiUtils.generateErrorNotification(somethingWentWrongPleaseContactAdministrator).open();
         }
     }
 
@@ -380,11 +430,11 @@ public class ProfileView extends VerticalLayout {
             }
             editor.editItem(speciality);
         });
-        button.setText("Edit");
+        button.setText(editLabel);
     }
 
     public void addToDialog(ByteArrayOutputStream os, Dialog dialog, String mimeType) {
-        Button cropButton = new Button("Crop");
+        Button cropButton = new Button(cropLabel);
 
         CropperSettings cropperSettings = new CropperSettings();
         cropperSettings.setAspectRatio(1);
@@ -405,6 +455,7 @@ public class ProfileView extends VerticalLayout {
                     String imageUri = crop.getImageUri();
                     avatar.setSrc(imageUri);
                     croppedAvatar = crop.getImageBase64();
+                    UiUtils.generateSuccessNotification(avatarUploaded).open();
                 });
 
         dialog.add(crop, cropButton);
@@ -441,17 +492,67 @@ public class ProfileView extends VerticalLayout {
             return;
         ConfirmDialog
                 .createQuestion()
-                .withCaption("Delete confirm")
-                .withMessage("Do you surely want to delete this speciality?")
-                .withCancelButton(ButtonOption.caption("Cancel"))
+                .withCaption(deleteConfirm)
+                .withMessage(doYouSureWantToDeleteSpeciality)
+                .withCancelButton(ButtonOption.caption(cancelLabel))
                 .withOkButton(() -> {
                     list.remove(pojo);
                     MessageResponse response = doctorSpecialityService.deleteSelf(pojo);
-                    populateNotification(response, "Speciality successfully deleted");
+                    populateNotification(response, specialitySuccessfullyDeleted);
                     this.refreshGrid(list, grid);
                     refreshSpecialityCombobox(grid);
-                }, ButtonOption.focus(), ButtonOption.caption("YES"))
+                }, ButtonOption.focus(), ButtonOption.caption(yes))
                 .open();
     }
 
+    @Override
+    public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        profileData.setText(getTranslation("profile.profile_data"));
+        firstName = getTranslation("profile.first_name");
+        patronymic = getTranslation("profile.patronymic");
+        lastName = getTranslation("profile.last_name");
+        phone = getTranslation("profile.phone");
+        patient = getTranslation("profile.patient");
+        doctor = getTranslation("profile.doctor");
+        administrator = getTranslation("profile.admin");
+        role = getTranslation("profile.role");
+        enabled = getTranslation("profile.enabled");
+        disabled = getTranslation("profile.disabled");
+        twoFactor = getTranslation("profile.twofact");
+        profileSettings.setText(getTranslation("profile.profile_settings"));
+        use2Fa = getTranslation("profile.use2Fa");
+        applyLabel = getTranslation("profile.apply");
+        messageAvailable = getTranslation("profile.messages.available");
+        messageUnreachable = getTranslation("profile.messages_unreachable");
+        currentDoctorStatus.setText(getTranslation("profile.current_doctor_status"));
+        uploadAvatar = getTranslation("profile.upload_avatar");
+        addSpeciality = getTranslation("profile.add_speciality");
+        discardCancelLabel = getTranslation("profile.discard_cancel");
+        manageSpecialities = getTranslation("profile.manage_specialities");
+        changePassword.setText(getTranslation("profile.change_password"));
+        newPassword = getTranslation("profile.new_password");
+        confirmNewPassword = getTranslation("profile.confirm_password");
+        youSuccessfullyChangedYourPassword = getTranslation("profile.messages.you_successfully_changed_your_password");
+        passwordsDoesNotMatch = getTranslation("profile.messages.passwords_do_not_match");
+        passwordPattern = getTranslation("register.messages.password_pattern");
+        availableLabel = getTranslation("profile.available");
+        unreachableLabel = getTranslation("profile.unreachable");
+        specialityLabel = getTranslation("profile.speciality");
+        instituteOfAccreditation = getTranslation("profile.institute_of_accreditation");
+        workExperience = getTranslation("profile.work_experience");
+        manage = getTranslation("profile.manage");
+        instituteMustNotBeEmpty = getTranslation("profile.institute_must_not_be_empty");
+        saveLabel = getTranslation("profile.save");
+        specialityIsSuccessfullySaved = getTranslation("profile.messages.speciality_is_successfully_saved");
+        specialityIsSuccessfullyUpdated = getTranslation("profile.messages.speciality_is_successfully_updated");
+        somethingWentWrongPleaseContactAdministrator = getTranslation("profile.messages.something_went_wrong_please_contact_administrator");
+        editLabel = getTranslation("profile.edit");
+        cropLabel = getTranslation("profile.crop");
+        deleteConfirm = getTranslation("profile.deletion_confirmation");
+        doYouSureWantToDeleteSpeciality = getTranslation("profile.messages.do_you_sure_want_to_delete_speciality");
+        cancelLabel = getTranslation("profile.cancel");
+        specialitySuccessfullyDeleted = getTranslation("profile.messages.speciality_successfully_deleted");
+        yes = getTranslation("profile.yes");
+        avatarUploaded = getTranslation("profile.messages.avatar_uploaded");
+    }
 }
