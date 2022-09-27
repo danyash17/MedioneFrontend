@@ -21,13 +21,14 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.data.selection.SelectionEvent;
-import com.vaadin.flow.function.SerializableBiConsumer;
+import com.vaadin.flow.i18n.LocaleChangeEvent;
+import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinSession;
 import org.vaadin.addons.badge.Badge;
 import org.vaadin.klaudeta.PaginatedGrid;
 
@@ -43,13 +44,46 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Route(value = "visitDoctor", layout = MainLayout.class)
 @PageTitle("Visits")
-public class VisitViewDoctor extends VerticalLayout {
+public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObserver {
 
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
+    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
     private final VisitService visitService;
     private final DoctorSpecialityService doctorSpecialityService;
     private final DoctorService doctorService;
     private final ImageUtils imageUtils;
+    private final H3 visitScheduleNotSetYet = new H3(getTranslation("visits.schedule_not_set"));
+    private final H4 doYouWantToCreateNewOne = new H4(getTranslation("visits.do_you_want_to_create_new_one"));
+    private final Button create = new Button(getTranslation("visits.create"));
+    private final H2 visits = new H2(getTranslation("visits.visits"));
+    private final PaginatedGrid<Visit> visitGrid = new PaginatedGrid<>();
+    private String reason = getTranslation("visits.reason");
+    private String patient = getTranslation("visits.patient");
+    private String impending = getTranslation("visits.impending");
+    private String completed = getTranslation("visits.completed");
+    private String process = getTranslation("visits.process");
+    private String processVisitResults = getTranslation("visits.process_visit_results");
+    private String diagnosis = getTranslation("visits.diagnosis");
+    private String commentsLabel = getTranslation("visits.comments");
+    private String cancel = getTranslation("visits.cancel");
+    private String processButtonLabel = getTranslation("visits.process");
+    private H2 areYouSureYouWantCompleteAndArchiveThisVisit = new H2(getTranslation("visits.are_you_sure_you_want_to_complete_and_archive_this_visit"));
+    private H3 finalDiagnosis = new H3(getTranslation("visits.final_diagnosis"));
+    private H3 comments = new H3(getTranslation("visits.comments"));
+    private H3 areYouSureYouWantToSaveThisVisit = new H3(getTranslation("visits.are_you_sure_you_want_to_save_this_visit"));
+    private String save = getTranslation("visits.save");
+    private H3 areYouSureYouWantToDeleteThisVisit = new H3(getTranslation("visits.are_you_sure_you_want_to_delete_this_visit"));
+    private String delete = getTranslation("visits.delete");
+    private H1 visitEnquiry = new H1(getTranslation("visits.visit_enquiry"));
+    private String bookingTime = getTranslation("visits.booking_time");
+    private String visitReason = getTranslation("visits.visit_reason");
+    private String aboutPatient = getTranslation("visits.about_patient");
+    private H2 patientMedcard = new H2(getTranslation("visits.patient_medcard"));
+    private String created = getTranslation("visits.created");
+    private String expiringAt = getTranslation("visits.expiring_at");
+    private String residentalAddress = getTranslation("visits.residental_address");
+    private String illnesses = getTranslation("visits.illnesses");
+    private String operations = getTranslation("visits.operations");
+    private String dateAndTime = getTranslation("visits.date_and_time");
 
     public VisitViewDoctor(VisitService visitService, DoctorSpecialityService doctorSpecialityService, DoctorService doctorService, ImageUtils imageUtils) {
         this.visitService = visitService;
@@ -57,35 +91,33 @@ public class VisitViewDoctor extends VerticalLayout {
         this.doctorService = doctorService;
         this.imageUtils = imageUtils;
         if(doctorService.getDoctorSelf().getVisitSchedule()==null){
-            add(new H3("Visit schedule not set yet"));
-            add(new H4("Do you want to create new one?"));
-            Button button = new Button("Create");
-            button.addClickListener(e -> {
+            add(visitScheduleNotSetYet);
+            add(doYouWantToCreateNewOne);
+            create.addClickListener(e -> {
                 visitService.createVisitScheduleBySelf();
                 UI.getCurrent().getPage().reload();
             });
-            add(button);
+            add(create);
             return;
         }
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         setSizeFull();
-        add(new H2("Visits"));
-        PaginatedGrid<Visit> visitGrid = new PaginatedGrid<>();
+        add(visits);
         setupGrid(visitGrid);
         add(visitGrid);
     }
 
     private void doGridInit(Grid<Visit> grid) {
         grid.getEditor().setBinder(new Binder<>(Visit.class));
-        grid.addColumn(Visit::getReason).setHeader("Reason").setTextAlign(ColumnTextAlign.START);
-        grid.addColumn(createRenderer()).setHeader("Patient")
+        grid.addColumn(Visit::getReason).setHeader(reason).setTextAlign(ColumnTextAlign.START).setKey("reason");
+        grid.addColumn(createRenderer()).setHeader(patient).setKey("patient")
                 .setAutoWidth(true).setFlexGrow(0).setTextAlign(ColumnTextAlign.START);
         grid.addColumn(visit -> {
             return DATE_FORMAT.format(visit.getDatetime());
-        }).setHeader("Date and Time").setTextAlign(ColumnTextAlign.START);
+        }).setHeader(dateAndTime).setKey("datetime").setTextAlign(ColumnTextAlign.START);
         grid.addComponentColumn(visit -> {
             if(visit.getActive()){
-                Badge badge = new Badge("Impending");
+                Badge badge = new Badge(impending);
                 badge.setVariant(Badge.BadgeVariant.NORMAL);
                 badge.setPrimary(true);
                 badge.setPill(true);
@@ -93,7 +125,7 @@ public class VisitViewDoctor extends VerticalLayout {
                 return badge;
             }
             else {
-                Badge badge = new Badge("Completed");
+                Badge badge = new Badge(completed);
                 badge.setVariant(Badge.BadgeVariant.SUCCESS);
                 badge.setPrimary(true);
                 badge.setPill(true);
@@ -104,7 +136,7 @@ public class VisitViewDoctor extends VerticalLayout {
         AtomicReference<Patient> atomicPatientReference = new AtomicReference<>();
         AtomicReference<Visit> atomicVisitReference = new AtomicReference<>();
         grid.addComponentColumn(visit -> {
-            Button editButton = new Button("Process");
+            Button editButton = new Button(process);
             editButton.setEnabled(visit.getActive());
             editButton.addClickListener(e -> {
                 atomicPatientReference.set(visit.getPatient());
@@ -125,17 +157,17 @@ public class VisitViewDoctor extends VerticalLayout {
         Dialog dialog = new Dialog();
         VerticalLayout layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
-        layout.add(new H2("Process visit results"));
+        layout.add(new H2(processVisitResults));
         TextArea diagnosis = new TextArea();
-        diagnosis.setLabel("Diagnosis");
+        diagnosis.setLabel(this.diagnosis);
         layout.add(diagnosis);
         TextArea comments = new TextArea();
-        comments.setLabel("Comments");
+        comments.setLabel(commentsLabel);
         layout.add(comments);
-        Button cancelButton = new Button("Cancel", (e) -> dialog.close());
+        Button cancelButton = new Button(cancel, (e) -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.getStyle().set("margin-right", "auto");
-        Button processButton = new Button("Process", (e) -> {
+        Button processButton = new Button(processButtonLabel, (e) -> {
             getProcessConfirmationDialog(visit, diagnosis.getValue(), comments.getValue()).open();
         });
         processButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -146,7 +178,7 @@ public class VisitViewDoctor extends VerticalLayout {
 
     private Dialog getProcessConfirmationDialog(Visit visit, String diagnosis, String comments) {
         Dialog dialog = new Dialog();
-        Button cancelButton = new Button("Cancel", (e) -> dialog.close());
+        Button cancelButton = new Button(cancel, (e) -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.getStyle().set("margin-right", "auto");
         Button processButton = new Button("OK", (e) -> {
@@ -154,10 +186,10 @@ public class VisitViewDoctor extends VerticalLayout {
             visit.setDiagnosis(diagnosis);
             visit.setComments(comments);
             visitService.update(visit);
-            UI.getCurrent().navigate(VisitViewDoctor.class);
+            UI.getCurrent().getPage().reload();
         });
         processButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        dialog.add(new H2("Are you sure you want to complete and archive this visit?"));
+        dialog.add(areYouSureYouWantCompleteAndArchiveThisVisit);
         dialog.add(new HorizontalLayout(cancelButton, processButton));
         return dialog;
     }
@@ -172,26 +204,24 @@ public class VisitViewDoctor extends VerticalLayout {
     }
 
     private void setupVisitResults(VerticalLayout layout, Visit visit) {
-        H3 diagnosis = new H3("Final diagnosis");
         Label diagLabel = new Label(visit.getDiagnosis());
-        layout.add(diagnosis, diagLabel);
-        H3 comments = new H3("Comments");
+        layout.add(finalDiagnosis, diagLabel);
         Label commentsLabel = new Label(visit.getComments());
         layout.add(comments, commentsLabel);
     }
 
     private Dialog getSaveConfirmationDialog(Editor<Visit> editor, Visit visit) {
         Dialog dialog = new Dialog();
-        dialog.add(new H3("Are you sure you want to save this visit?"));
+        dialog.add(areYouSureYouWantToSaveThisVisit);
         dialog.setCloseOnEsc(true);
-        Button cancelButton = new Button("Cancel", (e) -> dialog.close());
+        Button cancelButton = new Button(cancel, (e) -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.getStyle().set("margin-right", "auto");
-        Button saveButton = new Button("Save", (e) -> {
+        Button saveButton = new Button(save, (e) -> {
             dialog.close();
             editor.save();
             visitService.update(visit);
-            UI.getCurrent().navigate(VisitViewDoctor.class);
+            UI.getCurrent().getPage().reload();
         });
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         dialog.add(new HorizontalLayout(cancelButton, saveButton));
@@ -200,12 +230,12 @@ public class VisitViewDoctor extends VerticalLayout {
 
     private Dialog getDeleteConfirmationDialog(Editor<Visit> editor) {
         Dialog dialog = new Dialog();
-        dialog.add(new H3("Are you sure you want to delete this visit?"));
+        dialog.add(areYouSureYouWantToDeleteThisVisit);
         dialog.setCloseOnEsc(true);
-        Button cancelButton = new Button("Cancel", (e) -> dialog.close());
+        Button cancelButton = new Button(cancel, (e) -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.getStyle().set("margin-right", "auto");
-        Button deleteButton = new Button("Delete", (e) -> {
+        Button deleteButton = new Button(delete, (e) -> {
             dialog.close();
             editor.cancel();
         });
@@ -238,10 +268,8 @@ public class VisitViewDoctor extends VerticalLayout {
                                 + "</vaadin-horizontal-layout>")
                 .withProperty("pictureUrl", visit -> {
                     Patient patient = visit.getPatient();
-                    String fullName = patient.getCredentials().getFirstName() +
-                            patient.getCredentials().getPatronymic() +
-                            patient.getCredentials().getLastName();
-                    return imageUtils.chacheByteArrToImagePatient(null, fullName);
+                    String name = patient.getCredentials().getFirstName() + patient.getCredentials().getLastName();
+                    return name;
                 })
                 .withProperty("fullName", visit -> {
                     Patient patient = visit.getPatient();
@@ -286,16 +314,15 @@ public class VisitViewDoctor extends VerticalLayout {
 
     private VerticalLayout createDialogLayout(Dialog dialog, Visit visit) {
         VerticalLayout layout = new VerticalLayout();
-
-        layout.add(new H1("Visit enquiry"));
-        layout.add(new Label("Booking time: " + DATE_FORMAT.format(visit.getDatetime())));
-        layout.add(new Label("Visit reason: " + visit.getReason()));
+        layout.add(visitEnquiry);
+        layout.add(new Label(bookingTime + DATE_FORMAT.format(visit.getDatetime())));
+        layout.add(new Label(visitReason + visit.getReason()));
         if (!visit.getActive()) {
             setupVisitResults(layout, visit);
         }
         VerticalLayout patientLayout = new VerticalLayout();
         setupPatientSection(patientLayout, visit.getPatient());
-        Details details = new Details("About patient", patientLayout);
+        Details details = new Details(aboutPatient, patientLayout);
         details.setOpened(false);
         layout.add(details);
         return layout;
@@ -305,20 +332,59 @@ public class VisitViewDoctor extends VerticalLayout {
         layout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         layout.setWidth("700px");
         Medcard medcard = patient.getMedcard();
-        layout.add(new H2("Patient medcard"));
-        layout.add(new Label("Created: " + medcard.getDateCreated()));
-        layout.add(new Label("Expiring at: " + medcard.getValidTo()));
-        layout.add(new Label("Residental address: " + medcard.getResidentalAddress()));
-        layout.add(new H3("Illnesses"));
+        layout.add(patientMedcard);
+        layout.add(new Label(created + medcard.getDateCreated()));
+        layout.add(new Label(expiringAt + medcard.getValidTo()));
+        layout.add(new Label(residentalAddress + medcard.getResidentalAddress()));
+        layout.add(new H3(illnesses));
         PaginatedGrid<Illness> illnessGrid = new PaginatedGrid<>();
         VerticalLayout illnessLayout = MedcardView.getIllnessLayout(medcard, illnessGrid);
         illnessGrid.setWidthFull();
         layout.add(illnessLayout);
 
-        layout.add(new H3("Operations"));
+        layout.add(new H3(operations));
         PaginatedGrid<Operation> operationGrid = new PaginatedGrid<>();
         operationGrid.setWidthFull();
         VerticalLayout operationLayout = MedcardView.getOperationLayout(medcard, operationGrid);
         layout.add(operationLayout);
+    }
+
+    @Override
+    public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        visitScheduleNotSetYet.setText(getTranslation("visits.schedule_not_set"));
+        doYouWantToCreateNewOne.setText(getTranslation("visits.do_you_want_to_create_new_one"));
+        create.setText(getTranslation("visits.create"));
+        visits.setText(getTranslation("visits.visits"));
+        reason = getTranslation("visits.reason");
+        patient = getTranslation("visits.patient");
+        impending = getTranslation("visits.impending");
+        completed = getTranslation("visits.completed");
+        process = getTranslation("visits.process");
+        processVisitResults = getTranslation("visits.process_visit_results");
+        diagnosis = getTranslation("visits.diagnosis");
+        commentsLabel = getTranslation("visits.comments");
+        cancel = getTranslation("visits.cancel");
+        processButtonLabel = getTranslation("visits.process");
+        areYouSureYouWantCompleteAndArchiveThisVisit.setText(getTranslation("visits.are_you_sure_you_want_to_complete_and_archive_this_visit"));
+        finalDiagnosis.setText(getTranslation("visits.final_diagnosis"));
+        comments.setText(getTranslation("visits.comments"));
+        areYouSureYouWantToSaveThisVisit.setText(getTranslation("visits.are_you_sure_you_want_to_save_this_visit"));
+        save = getTranslation("visits.save");
+        areYouSureYouWantToDeleteThisVisit.setText(getTranslation("visits.are_you_sure_you_want_to_delete_this_visit"));
+        delete = getTranslation("visits.delete");
+        visitEnquiry = new H1(getTranslation("visits.visit_enquiry"));
+        bookingTime = getTranslation("visits.booking_time");
+        visitReason = getTranslation("visits.visit_reason");
+        aboutPatient = getTranslation("visits.about_patient");
+        patientMedcard.setText(getTranslation("visits.patient_medcard"));
+        created = getTranslation("visits.created");
+        expiringAt = getTranslation("visits.expiring_at");
+        residentalAddress = getTranslation("visits.residental_address");
+        illnesses = getTranslation("visits.illnesses");
+        operations = getTranslation("visits.operations");
+        dateAndTime = getTranslation("visits.date_and_time");
+        visitGrid.getColumnByKey("reason").setHeader(reason);
+        visitGrid.getColumnByKey("patient").setHeader(patient);
+        visitGrid.getColumnByKey("datetime").setHeader(dateAndTime);
     }
 }
