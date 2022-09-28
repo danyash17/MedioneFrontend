@@ -14,6 +14,7 @@ import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -23,7 +24,6 @@ import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.data.selection.SelectionEvent;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -39,14 +39,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Route(value = "visitDoctor", layout = MainLayout.class)
 @PageTitle("Visits")
 public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObserver {
 
-    public static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
+    public final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
     private final VisitService visitService;
     private final DoctorSpecialityService doctorSpecialityService;
     private final DoctorService doctorService;
@@ -148,7 +147,7 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         }).setWidth("150px").setFlexGrow(0);
         grid.setAllRowsVisible(true);
 
-        grid.addSelectionListener(e -> {
+        grid.addItemDoubleClickListener(e -> {
             setupEnquiryDialog(e);
         });
     }
@@ -194,9 +193,9 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         return dialog;
     }
 
-    private void setupEnquiryDialog(SelectionEvent<Grid<Visit>, Visit> e) {
+    private void setupEnquiryDialog(ItemDoubleClickEvent<Visit> e) {
         Dialog dialog = new Dialog();
-        Visit visit = e.getFirstSelectedItem().get();
+        Visit visit = e.getItem();
         dialog.add(createDialogLayout(dialog, visit));
         dialog.setCloseOnEsc(true);
         dialog.setWidth("800px");
@@ -383,8 +382,5 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         illnesses = getTranslation("visits.illnesses");
         operations = getTranslation("visits.operations");
         dateAndTime = getTranslation("visits.date_and_time");
-        visitGrid.getColumnByKey("reason").setHeader(reason);
-        visitGrid.getColumnByKey("patient").setHeader(patient);
-        visitGrid.getColumnByKey("datetime").setHeader(dateAndTime);
     }
 }

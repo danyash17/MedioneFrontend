@@ -77,6 +77,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
     private final ComboBox<SpecialityName> specialityNameComboBox = new ComboBox<>();
     private final Button discardCancel = new Button();
     private final H3 profileData = new H3(getTranslation("profile.profile_data"));
+    private String currentHospital = getTranslation("profile.current_hospital");
     private String firstName = getTranslation("profile.first_name");
     private String patronymic = getTranslation("profile.patronymic");
     private String lastName = getTranslation("profile.last_name");
@@ -155,6 +156,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         add(new Label(patronymic + sessionManager.getPatronymicAttribute()));
         add(new Label(lastName + sessionManager.getLastNameAttribute()));
         add(new Label(phone + sessionManager.getPhoneAttribute()));
+        boolean isDoctor = false;
         Badge badgeRole = new Badge();
         badgeRole.setPrimary(true);
         badgeRole.setPill(true);
@@ -169,6 +171,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
                 badgeRole.setText(doctor);
                 badgeRole.setIcon(VaadinIcon.DOCTOR.create());
                 badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
+                isDoctor = true;
                 break;
             }
             case "ADMIN": {
@@ -179,6 +182,16 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
             }
         }
         add(new HorizontalLayout(new Label(role), badgeRole));
+        if(isDoctor){
+            Doctor doctor = doctorService.getDoctorSelf();
+            Badge badgeHospital = new Badge();
+            badgeHospital.setPrimary(true);
+            badgeHospital.setPill(true);
+            badgeHospital.setText(doctor.getHospital());
+            badgeHospital.setVariant(Badge.BadgeVariant.NORMAL);
+            badgeHospital.setIcon(VaadinIcon.HOSPITAL.create());
+            add(new HorizontalLayout(new Label(currentHospital), badgeHospital));
+        }
         Badge badge2Fa = new Badge();
         badge2Fa.setPrimary(true);
         badge2Fa.setPill(true);
@@ -196,7 +209,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         add(profileSettings);
         Checkbox checkbox = new Checkbox();
         checkbox.setLabel(use2Fa);
-        checkbox.setValue(session.getAttribute("2FA").equals("true"));
+        checkbox.setValue(session.getAttribute("2FA").equals(Boolean.TRUE));
         add(checkbox);
         HorizontalLayout layout = new HorizontalLayout();
         Button apply = new Button(applyLabel, e -> {
