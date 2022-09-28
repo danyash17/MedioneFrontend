@@ -109,4 +109,12 @@ public class VisitAdapter extends GeneralAdapter {
                 .bodyToMono(MessageResponse.class)
                 .block();
     }
+
+    public MessageResponse deleteSelf(Integer id) {
+        return webClient.delete()
+                .uri(mapping + "patient/self/schedule/" + id)
+                .retrieve()
+                .bodyToMono(MessageResponse.class)
+                .block();
+    }
 }

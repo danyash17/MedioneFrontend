@@ -28,10 +28,10 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
-import com.vaadin.flow.function.SerializableBiConsumer;
+import com.vaadin.flow.i18n.LocaleChangeEvent;
+import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 
 @Route(value = "newvisit", layout = MainLayout.class)
 @PageTitle("Create Visit")
-public class VisitCreationView extends VerticalLayout {
+public class VisitCreationView extends VerticalLayout implements LocaleChangeObserver {
 
     private final SpecialityService specialityService;
     private final DoctorSpecialityService doctorSpecialityService;
@@ -57,6 +57,36 @@ public class VisitCreationView extends VerticalLayout {
     private final ImageUtils imageUtils;
     private final VisitService visitService;
     private final PatientService patientService;
+    private final Grid<DoctorPhotoUrlContainer> grid;
+    private H2 newVisit = new H2(getTranslation("visits.new_visit"));
+    private H3 stepOneChooseCompetenceAreasAndDoctor = new H3(getTranslation("visits.step_one_choose_competence_areas_and_doctor"));
+    private H3 stepThreeFormYourPrescriptVisitReason = new H3(getTranslation("visits.step_three_form_your_prescription_visit_reason"));
+    private Button confirmButton = new Button(getTranslation("visits.confirm"));
+    private TextArea visitReasonTextArea = new TextArea(getTranslation("visits.reason"));
+    private String doctor = getTranslation("visits.doctor");
+    private String doctorDDotSpace = getTranslation("visits.doctor_ddot_space");
+    private String reasonDDotSpace = getTranslation("visits.reason_ddot_space");
+    private H3 areYouSureYouWantToCreateVisitWithThisProperties = new H3(getTranslation("visits.are_you_sure_you_want_to_create_visit_with_these_properties"));
+    private H3 stepTwoChooseApplicableDateAndTime = new H3(getTranslation("visits.step_two_choose_applicable_date_and_time"));
+    private String appointmentDateAndTime = getTranslation("visits.appointment_date_and_time");
+    private DateTimePicker dateTimePicker = new DateTimePicker();
+    private String helperText = getTranslation("visits.pattern");
+    private String selectedDayOfWeekIsNotAvailable = getTranslation("visits.selected_day_of_week_is_not_available");
+    private String thisDatetimeIsNotAvailableForBooking = getTranslation("visits.this_date_time_is_not_available_for_booking");
+    private String photo = getTranslation("visits.photo");
+    private String available = getTranslation("profile.available");
+    private String busy = getTranslation("profile.unreachable");
+    private String status = getTranslation("visits.status");
+    private Button searchDoctors = new Button(getTranslation("visits.search_doctors"));
+    private String speciality = getTranslation("visits.speciality");
+    private String instituteOfAccreditation = getTranslation("profile.institute_of_accreditation");
+    private String workExperience = getTranslation("profile.work_experience");
+    private String forExtraInformationClickToggleDetails = getTranslation("visits.for_extra_information_click_toggle_details");
+    private String toggleDetails = getTranslation("visits.toggle_details");
+    private String credentials = getTranslation("visits.credentials");
+    private Span specialites = new Span(getTranslation("visits.specialities"));
+    private String hospital = getTranslation("profile.current_hospital");
+    private Button cancelButton = new Button(getTranslation("visits.cancel"));
 
     public VisitCreationView(SpecialityService specialityService, DoctorSpecialityService doctorSpecialityService, DoctorService doctorService, ImageUtils imageUtils, VisitService visitService, PatientService patientService) {
         this.specialityService = specialityService;
@@ -65,12 +95,12 @@ public class VisitCreationView extends VerticalLayout {
         this.imageUtils = imageUtils;
         this.visitService = visitService;
         this.patientService = patientService;
-        add(new H2("New visit"));
-        add(new H3("Step 1 : Choose competence areas and doctor"));
+        add(newVisit);
+        add(stepOneChooseCompetenceAreasAndDoctor);
         List<DoctorButton> doctorButtons = new ArrayList<>();
         Div div = createButtons(this.specialityService.getAllSpecialities(), doctorButtons);
         add(div);
-        Grid<DoctorPhotoUrlContainer> grid = new Grid<>(DoctorPhotoUrlContainer.class, false);
+        grid = new Grid<>(DoctorPhotoUrlContainer.class, false);
         VerticalLayout datetimeLayout = new VerticalLayout();
         VerticalLayout reasonLayout = new VerticalLayout();
         AtomicReference<Doctor> doctorAtomicReference = new AtomicReference<>();
@@ -87,48 +117,47 @@ public class VisitCreationView extends VerticalLayout {
 
     private void setupReasonLayout(VerticalLayout reasonLayout, Visit visit) {
         reasonLayout.setVisible(false);
-        reasonLayout.add(new H3("Step 3 : Form your prescript visit reason"));
-        Button confirm = new Button("Confirm");
-        confirm.setVisible(false);
-        confirm.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        TextArea textArea = new TextArea();
-        textArea.setWidthFull();
-        textArea.setLabel("Visit reason");
+        reasonLayout.add(stepThreeFormYourPrescriptVisitReason);
+        confirmButton.setEnabled(false);
+        confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        visitReasonTextArea = new TextArea();
+        visitReasonTextArea.setWidthFull();
         Paragraph dialogPropsParagraph = new Paragraph();
-        textArea.addValueChangeListener(e -> {
+        visitReasonTextArea.addValueChangeListener(e -> {
             if (!e.getSource().isEmpty()) {
                 visit.setReason(e.getValue());
-                String properties = "Doctor: " + visit.getDoctor().getCredentials().getFirstName() + " " +
+                doctor = doctorDDotSpace;
+                String properties = doctor + visit.getDoctor().getCredentials().getFirstName() + " " +
                         visit.getDoctor().getCredentials().getPatronymic() + " " +
                         visit.getDoctor().getCredentials().getLastName() + "; " +
                         "Date and time: " + visit.getDatetime().toLocalDateTime().format(
                         DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)
                                 .withLocale(Locale.ROOT)) +
                         " " + visit.getDatetime().toLocalDateTime().toLocalTime() + "; " +
-                        "Reason: " + visit.getReason();
+                        reasonDDotSpace + visit.getReason();
                 dialogPropsParagraph.setText(properties);
-                confirm.setVisible(true);
+                confirmButton.setEnabled(true);
             } else {
-                confirm.setVisible(false);
+                confirmButton.setEnabled(false);
             }
         });
         Dialog dialog = new Dialog();
         dialog.setModal(true);
-        confirm.addClickListener(buttonClickEvent -> dialog.open());
-        dialog.add(new H3("Are you sure you want to create a visit with current properties?"));
+        confirmButton.addClickListener(buttonClickEvent -> dialog.open());
+        dialog.add(areYouSureYouWantToCreateVisitWithThisProperties);
         dialog.add(dialogPropsParagraph);
         HorizontalLayout buttonLayout = new HorizontalLayout();
-        Button cancelButton = new Button("Cancel", (e) -> dialog.close());
+        cancelButton.addClickListener(e -> dialog.close());
         cancelButton.getStyle().set("margin-right", "auto");
         Button okButton = new Button("OK", (e) -> dialog.close());
         okButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         okButton.addClickListener(e -> {
             createVisit(visit);
-            UiUtils.generateSuccessNotification("Visit created successfully");
+            UiUtils.generateSuccessNotification(getTranslation("visit.visit_created_successfully"));
             UI.getCurrent().navigate(VisitViewPatient.class);
         });
-        reasonLayout.add(textArea);
-        reasonLayout.add(confirm);
+        reasonLayout.add(visitReasonTextArea);
+        reasonLayout.add(confirmButton);
         buttonLayout.add(cancelButton, okButton);
         dialog.add(buttonLayout);
     }
@@ -145,17 +174,16 @@ public class VisitCreationView extends VerticalLayout {
     }
 
     private void setupDatetimeLayout(VerticalLayout datetimeLayout, VerticalLayout reasonLayout, AtomicReference<Doctor> doctorAtomicReference, Visit visit) {
-        datetimeLayout.add(new H3("Step 2 : Choose applicable date and time"));
-        DateTimePicker dateTimePicker = new DateTimePicker();
+        datetimeLayout.add(stepTwoChooseApplicableDateAndTime);
         setupDateTimePicker(dateTimePicker, visit, doctorAtomicReference, reasonLayout);
         datetimeLayout.add(dateTimePicker);
         datetimeLayout.setVisible(false);
     }
 
     private void setupDateTimePicker(DateTimePicker dateTimePicker, Visit visit, AtomicReference<Doctor> doctorReference, VerticalLayout reasonLayout) {
-        dateTimePicker.setLabel("Appointment date and time");
+        dateTimePicker.setLabel(appointmentDateAndTime);
         dateTimePicker.setStep(Duration.ofMinutes(30));
-        dateTimePicker.setHelperText("Must be within 120 days from today. Doctor's schedule: 8:00 AM - 16:00 PM (12:00 AM - 13:00 PM break), only weekdays");
+        dateTimePicker.setHelperText(helperText);
         dateTimePicker.setAutoOpen(true);
         LocalDateTime now = LocalDateTime.now().minusMinutes(LocalDateTime.now().getMinute());
         dateTimePicker.setMin(now);
@@ -166,7 +194,7 @@ public class VisitCreationView extends VerticalLayout {
             boolean validWeekDay = startDateTime.getDayOfWeek().getValue() >= 1
                     && startDateTime.getDayOfWeek().getValue() <= 5;
             return validWeekDay;
-        }, "The selected day of week is not available").withValidator(startDateTime -> {
+        }, selectedDayOfWeekIsNotAvailable).withValidator(startDateTime -> {
             LocalTime valueTime = LocalTime.of(startDateTime.getHour(), startDateTime.getMinute());
             List<Visit> visitList = visitService.getAllVisitsOfDoctor(doctorReference.get().getId());
             boolean validDaySchedule = !(LocalTime.of(8, 0).isAfter(valueTime)
@@ -175,7 +203,7 @@ public class VisitCreationView extends VerticalLayout {
             boolean validVisitSchedule = visitList.stream().allMatch(currentVisit ->
                     !currentVisit.getDatetime().toLocalDateTime().toLocalTime().equals(valueTime));
             return validDaySchedule && validVisitSchedule;
-        }, "This datetime is not available for booking").bind(
+        }, thisDatetimeIsNotAvailableForBooking).bind(
                 valueProvider -> valueProvider.getDatetime().toLocalDateTime(),
                 (Visit vis, LocalDateTime dt) -> {
                     vis.setDatetime(Timestamp.valueOf(dt));
@@ -191,18 +219,18 @@ public class VisitCreationView extends VerticalLayout {
     }
 
     private void setupGrid(Grid<DoctorPhotoUrlContainer> grid, VerticalLayout datetimeLayout, AtomicReference<Doctor> selectedDoctor, Visit visit) {
-        grid.addColumn(createAvatarRenderer()).setHeader("Photo")
-                .setAutoWidth(true).setFlexGrow(0);
+        grid.addColumn(createAvatarRenderer()).setHeader(photo)
+                .setAutoWidth(true).setKey("photo").setFlexGrow(0);
         grid.addColumn(container -> {
             return container.getDoctor().getCredentials().getFirstName() + " " +
                     container.getDoctor().getCredentials().getPatronymic() + " " +
                     container.getDoctor().getCredentials().getLastName();
-        }).setHeader("Credentials").setAutoWidth(true).setFlexGrow(0);
+        }).setHeader(credentials).setKey("credentials").setAutoWidth(true).setFlexGrow(0);
         grid.addColumn(container -> StringUtils.join(container.getDoctor().getSpecialityList(), ',')).
                 setHeader(createSpecialityHeader()).setAutoWidth(true);
         grid.addComponentColumn(container -> {
             if(container.getDoctor().getAvailable()){
-                Badge badge = new Badge("Available");
+                Badge badge = new Badge(available);
                 badge.setVariant(Badge.BadgeVariant.SUCCESS);
                 badge.setPrimary(true);
                 badge.setPill(true);
@@ -210,15 +238,26 @@ public class VisitCreationView extends VerticalLayout {
                 return badge;
             }
             else {
-                Badge badge = new Badge("Busy");
+                Badge badge = new Badge(busy);
                 badge.setVariant(Badge.BadgeVariant.ERROR);
                 badge.setPrimary(true);
                 badge.setPill(true);
                 badge.setIcon(VaadinIcon.CLOSE_CIRCLE.create());
                 return badge;
             }
-        }).setHeader("Status").setAutoWidth(true);
-        grid.addColumn(createSelectRenderer(grid)).setAutoWidth(true);
+        }).setHeader(status).setKey("status").setAutoWidth(true);
+        grid.addComponentColumn(container -> {
+            Button toggleButton = new Button();
+            toggleButton.setText(toggleDetails);
+            toggleButton.addClickListener(e -> {
+                Dialog dialog = new Dialog();
+                dialog.setCloseOnEsc(true);
+                VerticalLayout dialogLayout = createDialogLayout(container);
+                dialog.add(dialogLayout);
+                dialog.open();
+            });
+            return toggleButton;
+        }).setKey("toggle").setAutoWidth(true);
         grid.addThemeVariants(GridVariant.LUMO_ROW_STRIPES);
         grid.addSelectionListener(e -> {
             if (e.getFirstSelectedItem().isPresent() && e.getFirstSelectedItem().get().getDoctor().getAvailable()) {
@@ -227,15 +266,14 @@ public class VisitCreationView extends VerticalLayout {
                 visit.setDoctor(e.getFirstSelectedItem().get().getDoctor());
             } else {
                 datetimeLayout.setVisible(false);
-                UiUtils.generateErrorNotification("This doctor is currently busy, try selecting another one").open();
+                UiUtils.generateErrorNotification(getTranslation("visits.the_doctor_is_busy_select_another")).open();
             }
         });
         grid.setAllRowsVisible(true);
     }
 
     private HorizontalLayout getSearchLayout(DoctorService doctorService, List<DoctorButton> doctorButtons, Grid<DoctorPhotoUrlContainer> grid) {
-        Button search = new Button("Search doctors");
-        search.addClickListener(e -> {
+        searchDoctors.addClickListener(e -> {
             List<SpecialityName> selectedButtons = doctorButtons.stream().
                     filter(button -> button.isSelected()).map(button -> button.getSpecialityName()).
                     collect(Collectors.toList());
@@ -251,7 +289,7 @@ public class VisitCreationView extends VerticalLayout {
                     collect(Collectors.toList());
             grid.setItems(doctorPhotoUrlContainers);
         });
-        HorizontalLayout layout = new HorizontalLayout(search);
+        HorizontalLayout layout = new HorizontalLayout(searchDoctors);
         layout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         layout.setJustifyContentMode(JustifyContentMode.CENTER);
         layout.setWidthFull();
@@ -295,19 +333,6 @@ public class VisitCreationView extends VerticalLayout {
                 .withProperty("lastName", doctorPhotoUrlContainer -> doctorPhotoUrlContainer.getDoctor().getCredentials().getLastName());
     }
 
-    private Renderer<DoctorPhotoUrlContainer> createSelectRenderer(
-            Grid<DoctorPhotoUrlContainer> grid) {
-        return LitRenderer.<DoctorPhotoUrlContainer>of(
-                        "<vaadin-button theme=\"tertiary\" @click=\"${handleClick}\">Toggle details</vaadin-button>")
-                .withFunction("handleClick", container -> {
-                    Dialog dialog = new Dialog();
-                    dialog.setCloseOnEsc(true);
-                    VerticalLayout dialogLayout = createDialogLayout(container);
-                    dialog.add(dialogLayout);
-                    dialog.open();
-                });
-    }
-
     private VerticalLayout createDialogLayout(DoctorPhotoUrlContainer container) {
         VerticalLayout layout = new VerticalLayout();
         layout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
@@ -319,12 +344,12 @@ public class VisitCreationView extends VerticalLayout {
         layout.add(new H2(container.getDoctor().getCredentials().getFirstName() + " " +
                 container.getDoctor().getCredentials().getPatronymic() + " " +
                 container.getDoctor().getCredentials().getLastName()));
-        layout.add(new Paragraph("Current hospital: " + container.getDoctor().getHospital()));
+        layout.add(new Paragraph(hospital + ": " + container.getDoctor().getHospital()));
         layout.add(new H4(container.getDoctor().getCommonInfo()));
         Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
-        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader("Speciality");
-        grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader("Institute of Accreditation");
-        grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader("Work Experience");
+        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader(speciality);
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader(instituteOfAccreditation);
+        grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader(workExperience);
         grid.setItems(doctorSpecialityService.getDoctorSpecialities(container.getDoctor().getId()));
         grid.setAllRowsVisible(true);
         layout.add(grid);
@@ -332,14 +357,13 @@ public class VisitCreationView extends VerticalLayout {
     }
 
     private Component createSpecialityHeader() {
-        Span span = new Span("Specialities");
         Icon icon = VaadinIcon.INFO_CIRCLE.create();
         icon.getElement()
-                .setAttribute("title", "For extra information click the Toggle Details");
+                .setAttribute("title", forExtraInformationClickToggleDetails);
         icon.getStyle().set("height", "var(--lumo-font-size-m)")
                 .set("color", "var(--lumo-contrast-70pct)");
 
-        HorizontalLayout layout = new HorizontalLayout(span, icon);
+        HorizontalLayout layout = new HorizontalLayout(specialites, icon);
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.setSpacing(false);
 
@@ -347,4 +371,42 @@ public class VisitCreationView extends VerticalLayout {
     }
 
 
+    @Override
+    public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        status = getTranslation("visits.status");
+        newVisit.setText(getTranslation("visits.new_visit"));
+        stepOneChooseCompetenceAreasAndDoctor.setText(getTranslation("visits.step_one_choose_competence_areas_and_doctor"));
+        stepThreeFormYourPrescriptVisitReason.setText(getTranslation("visits.step_three_form_your_prescription_visit_reason"));
+        confirmButton.setText(getTranslation("visits.confirm"));
+        visitReasonTextArea.setLabel(getTranslation("visits.reason"));
+        doctor = getTranslation("visits.doctor");
+        doctorDDotSpace = getTranslation("visits.doctor_ddot_space");
+        reasonDDotSpace = getTranslation("visits.reason_ddot_space");
+        areYouSureYouWantToCreateVisitWithThisProperties.setText(getTranslation("visits.are_you_sure_you_want_to_create_visit_with_these_properties"));
+        stepTwoChooseApplicableDateAndTime.setText(getTranslation("visits.step_two_choose_applicable_date_and_time"));
+        appointmentDateAndTime = getTranslation("visits.appointment_date_and_time");
+        helperText = getTranslation("visits.pattern");
+        selectedDayOfWeekIsNotAvailable = getTranslation("visits.selected_day_of_week_is_not_available");
+        thisDatetimeIsNotAvailableForBooking = getTranslation("visits.this_date_time_is_not_available_for_booking");
+        photo = getTranslation("visits.photo");
+        available = getTranslation("profile.available");
+        busy = getTranslation("profile.unreachable");
+        searchDoctors.setText(getTranslation("visits.search_doctors"));
+        speciality = getTranslation("visits.speciality");
+        instituteOfAccreditation = getTranslation("profile.institute_of_accreditation");
+        workExperience = getTranslation("profile.work_experience");
+        forExtraInformationClickToggleDetails = getTranslation("visits.for_extra_information_click_toggle_details");
+        toggleDetails = getTranslation("visits.toggle_details");
+        credentials = getTranslation("visits.credentials");
+        specialites.setText(getTranslation("visits.specialities"));
+        hospital = getTranslation("profile.current_hospital");
+        cancelButton.setText(getTranslation("visits.cancel"));
+
+        dateTimePicker.setLabel(appointmentDateAndTime);
+        dateTimePicker.setHelperText(helperText);
+        grid.getColumnByKey("photo").setHeader(photo);
+        grid.getColumnByKey("credentials").setHeader(credentials);
+        grid.getColumnByKey("status").setHeader(status);
+        grid.getListDataView().refreshAll();
+    }
 }

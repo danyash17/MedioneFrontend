@@ -92,6 +92,7 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
     private String speciality = getTranslation("profile.speciality");
     private Grid<RepresentativeDoctorSpecialityPojo> doctorSpecialityGrid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
     private final PaginatedGrid<Visit> visitGrid = new PaginatedGrid<>();
+    private Binder<Visit> binder;
 
     public VisitViewPatient(SessionManager sessionManager, VisitService visitService, DoctorSpecialityService doctorSpecialityService, ImageUtils imageUtils, DoctorService doctorService, PatientService patientService) {
         this.sessionManager = sessionManager;
@@ -163,7 +164,7 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         }).setWidth("150px").setFlexGrow(0);
         grid.setAllRowsVisible(true);
 
-        Binder<Visit> binder = new Binder<>(Visit.class);
+        binder = new Binder<>(Visit.class);
         editor.setBinder(binder);
         editor.setBuffered(true);
         TextField reasonField = new TextField();
@@ -187,7 +188,7 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
             getSaveConfirmationDialog(editor, atomicVisitReference.get()).open();
         });
         Button cancelButton = new Button(VaadinIcon.TRASH.create(), e -> {
-            getDeleteConfirmationDialog(editor).open();
+            getDeleteConfirmationDialog(editor,atomicVisitReference).open();
         });
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ICON,
                 ButtonVariant.LUMO_ERROR);
@@ -248,7 +249,7 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         return dialog;
     }
 
-    private Dialog getDeleteConfirmationDialog(Editor<Visit> editor) {
+    private Dialog getDeleteConfirmationDialog(Editor<Visit> editor, AtomicReference<Visit> visitAtomicReference) {
         Dialog dialog = new Dialog();
         dialog.add(new H3(areYouSureYouWantToDeleteThisVisit));
         dialog.setCloseOnEsc(true);
@@ -256,6 +257,8 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         cancelButton.getStyle().set("margin-right", "auto");
         Button deleteButton = new Button(delete, (e) -> {
+            visitService.deleteVisitBySelf(visitAtomicReference.get().getId());
+            visitGrid.getListDataView().removeItem(visitAtomicReference.get());
             dialog.close();
             editor.cancel();
         });

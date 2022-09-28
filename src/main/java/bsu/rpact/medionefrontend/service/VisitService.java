@@ -5,6 +5,7 @@ import bsu.rpact.medionefrontend.entity.Visit;
 import bsu.rpact.medionefrontend.enums.Role;
 import bsu.rpact.medionefrontend.pojo.DoctorVisitPojo;
 import bsu.rpact.medionefrontend.pojo.PatientVisitPojo;
+import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,5 +87,9 @@ public class VisitService {
 
     private void createVisitScheduleBySelfPatient() {
         visitAdapter.createScheduleByPatientSelf();
+    }
+
+    public MessageResponse deleteVisitBySelf(Integer id) {
+        return visitAdapter.deleteSelf(id);
     }
 }
