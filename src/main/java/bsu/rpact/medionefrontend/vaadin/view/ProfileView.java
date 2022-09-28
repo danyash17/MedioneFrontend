@@ -14,6 +14,7 @@ import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.ValidatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.i18n.components.SpecialityLocalizator;
 import bsu.rpact.medionefrontend.vaadin.i18n.components.UploadLocalizator;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.UI;
@@ -57,6 +58,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -279,7 +281,9 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
                     doctorSpecialityService.getDoctorSpecialities(doctor.getId());
             Grid<RepresentativeDoctorSpecialityPojo> grid = initGrid(doctor, currentSpecialityList);
             refreshSpecialityCombobox(grid);
-            specialityNameComboBox.setItemLabelGenerator(SpecialityName::name);
+            specialityNameComboBox.setItemLabelGenerator(specialityName -> {
+                return getTranslation(specialityName.name().toLowerCase(Locale.ROOT));
+            });
             Button add = new Button(addSpeciality);
             add.addClickListener(e -> {
                 newSpeciality = true;
@@ -366,7 +370,9 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
 
     private Grid initGrid(Doctor doctor, List<RepresentativeDoctorSpecialityPojo> currentSpecialityList) {
         Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
-        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader(specialityLabel);
+        grid.addColumn(doctorSpeciality -> {
+            return SpecialityLocalizator.localize(doctorSpeciality.getSpeciality());
+        }).setHeader(specialityLabel);
         grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader(instituteOfAccreditation).setKey("institute");
         grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader(workExperience).setTextAlign(ColumnTextAlign.CENTER).setKey("experience");
         grid.addColumn(

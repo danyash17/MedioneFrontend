@@ -5,6 +5,9 @@ import com.vaadin.flow.component.button.Button;
 
 public class DoctorButton extends Button {
 
+    public DoctorButton() {
+    }
+
     public DoctorButton(String speciality) {
         super(speciality);
     }

@@ -12,6 +12,7 @@ import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.vaadin.components.DoctorButton;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.i18n.components.SpecialityLocalizator;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -42,6 +43,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,6 +60,7 @@ public class VisitCreationView extends VerticalLayout implements LocaleChangeObs
     private final VisitService visitService;
     private final PatientService patientService;
     private final Grid<DoctorPhotoUrlContainer> grid;
+    private final List<DoctorButton> doctorButtons = new ArrayList<>();
     private H2 newVisit = new H2(getTranslation("visits.new_visit"));
     private H3 stepOneChooseCompetenceAreasAndDoctor = new H3(getTranslation("visits.step_one_choose_competence_areas_and_doctor"));
     private H3 stepThreeFormYourPrescriptVisitReason = new H3(getTranslation("visits.step_three_form_your_prescription_visit_reason"));
@@ -97,7 +100,6 @@ public class VisitCreationView extends VerticalLayout implements LocaleChangeObs
         this.patientService = patientService;
         add(newVisit);
         add(stepOneChooseCompetenceAreasAndDoctor);
-        List<DoctorButton> doctorButtons = new ArrayList<>();
         Div div = createButtons(this.specialityService.getAllSpecialities(), doctorButtons);
         add(div);
         grid = new Grid<>(DoctorPhotoUrlContainer.class, false);
@@ -226,7 +228,9 @@ public class VisitCreationView extends VerticalLayout implements LocaleChangeObs
                     container.getDoctor().getCredentials().getPatronymic() + " " +
                     container.getDoctor().getCredentials().getLastName();
         }).setHeader(credentials).setKey("credentials").setAutoWidth(true).setFlexGrow(0);
-        grid.addColumn(container -> StringUtils.join(container.getDoctor().getSpecialityList(), ',')).
+        grid.addColumn(container -> StringUtils.join(container.getDoctor().getSpecialityList().
+                        stream().map(spec -> SpecialityLocalizator.localize(spec.getDescription())).
+                        collect(Collectors.toList()) , ',')).
                 setHeader(createSpecialityHeader()).setAutoWidth(true);
         grid.addComponentColumn(container -> {
             if(container.getDoctor().getAvailable()){
@@ -300,8 +304,9 @@ public class VisitCreationView extends VerticalLayout implements LocaleChangeObs
         Div div = new Div();
         div.setMaxWidth("1000px");
         for (Speciality speciality : specialityList) {
-            DoctorButton button = new DoctorButton(speciality.getDescription());
+            DoctorButton button = new DoctorButton();
             button.setSpecialityName(SpecialityName.valueOf(speciality.getDescription()));
+            button.setText(SpecialityLocalizator.localize(speciality.getDescription()));
             setupButton(button);
             div.add(button);
             buttonList.add(button);
@@ -335,19 +340,27 @@ public class VisitCreationView extends VerticalLayout implements LocaleChangeObs
 
     private VerticalLayout createDialogLayout(DoctorPhotoUrlContainer container) {
         VerticalLayout layout = new VerticalLayout();
+        Badge badgeHospital = new Badge();
+        badgeHospital.setPrimary(true);
+        badgeHospital.setPill(true);
+        badgeHospital.setText(container.getDoctor().getHospital());
+        badgeHospital.setVariant(Badge.BadgeVariant.NORMAL);
+        badgeHospital.setIcon(VaadinIcon.HOSPITAL.create());
         layout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
         Image image = new Image(container.getPhotoUrl(), "");
         image.setMaxWidth("530px");
         image.setMaxHeight("630px");
-        layout.setMaxWidth("700px");
+        layout.setMinWidth("700px");
         layout.add(image);
         layout.add(new H2(container.getDoctor().getCredentials().getFirstName() + " " +
                 container.getDoctor().getCredentials().getPatronymic() + " " +
                 container.getDoctor().getCredentials().getLastName()));
-        layout.add(new Paragraph(hospital + ": " + container.getDoctor().getHospital()));
+        layout.add(new HorizontalLayout(new Label(hospital), badgeHospital));
         layout.add(new H4(container.getDoctor().getCommonInfo()));
         Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
-        grid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader(speciality);
+        grid.addColumn(doctorSpeciality -> {
+            return SpecialityLocalizator.localize(doctorSpeciality.getSpeciality());
+        }).setHeader(speciality);
         grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader(instituteOfAccreditation);
         grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader(workExperience);
         grid.setItems(doctorSpecialityService.getDoctorSpecialities(container.getDoctor().getId()));
@@ -407,6 +420,10 @@ public class VisitCreationView extends VerticalLayout implements LocaleChangeObs
         grid.getColumnByKey("photo").setHeader(photo);
         grid.getColumnByKey("credentials").setHeader(credentials);
         grid.getColumnByKey("status").setHeader(status);
-        grid.getListDataView().refreshAll();
+        grid.setItems(Collections.EMPTY_LIST);
+        doctorButtons.stream().forEach(doctorButton -> {
+            doctorButton.setText(
+                    (SpecialityLocalizator.localize(doctorButton.getSpecialityName().name().toLowerCase(Locale.ROOT))));
+        });
     }
 }
