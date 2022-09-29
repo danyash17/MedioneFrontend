@@ -38,7 +38,6 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Receiver;
 import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
@@ -78,7 +77,28 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
     private final static ByteArrayOutputStream os = new ByteArrayOutputStream(allowedFileSize);
     private final ComboBox<SpecialityName> specialityNameComboBox = new ComboBox<>();
     private final Button discardCancel = new Button();
+    private final Button addButton = new Button();
+    private final Upload upload = new Upload(new FileReceiver());
+    private final ToggleButton status = new ToggleButton();
+    private final Checkbox checkbox = new Checkbox();
+    private final Label firstNameLabel = new Label();
+    private final Label patronymicLabel = new Label();
+    private final Label lastNameLabel = new Label();
+    private final Label phoneLabel = new Label();
+    private final Badge badgeRole = new Badge();
+    private final Label roleLabel = new Label();
+    private final Label hospitalLabel = new Label();
+    private final Label twoFaLabel = new Label();
+    private final Badge badge2Fa = new Badge();
+    private final PasswordField passwordField = new PasswordField();
+    private final PasswordField passwordConfirmation = new PasswordField();
+    private String applyLabel = getTranslation("profile.apply");
+    private final Button applyButton2Fa = new Button(applyLabel);
+    private final Button applyButtonAvatar = new Button(applyLabel);
+    private final Button applyPassword =  new Button(applyLabel);
+    private Button saveButton = new Button(getTranslation("profile.save"));
     private final H3 profileData = new H3(getTranslation("profile.profile_data"));
+    private Grid<RepresentativeDoctorSpecialityPojo> specialityGrid;
     private String currentHospital = getTranslation("profile.current_hospital");
     private String firstName = getTranslation("profile.first_name");
     private String patronymic = getTranslation("profile.patronymic");
@@ -93,7 +113,6 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
     private String twoFactor = getTranslation("profile.twofact");
     private final H3 profileSettings = new H3(getTranslation("profile.profile_settings"));
     private String use2Fa = getTranslation("profile.use2Fa");
-    private String applyLabel = getTranslation("profile.apply");
     private String messageAvailable = getTranslation("profile.messages.available");
     private String messageUnreachable = getTranslation("profile.messages_unreachable");
     private final H4 currentDoctorStatus = new H4(getTranslation("profile.current_doctor_status"));
@@ -102,6 +121,8 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
     private String discardCancelLabel = getTranslation("profile.discard_cancel");
     private String manageSpecialities = getTranslation("profile.manage_specialities");
     private final H4 changePassword = new H4(getTranslation("profile.change_password"));
+    private final H4 manageSpecialitiesH4 = new H4(manageSpecialities);
+    private final H4 uploadAvatarH4 =new H4(uploadAvatar);
     private String newPassword = getTranslation("profile.new_password");
     private String confirmNewPassword = getTranslation("profile.confirm_password");
     private String youSuccessfullyChangedYourPassword = getTranslation("profile.messages.you_successfully_changed_your_password");
@@ -154,37 +175,20 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         this.imageUtils = imageUtils;
         WrappedSession session = VaadinService.getCurrentRequest().getWrappedSession();
         add(profileData);
-        add(new Label(firstName + sessionManager.getFirstNameAttribute()));
-        add(new Label(patronymic + sessionManager.getPatronymicAttribute()));
-        add(new Label(lastName + sessionManager.getLastNameAttribute()));
-        add(new Label(phone + sessionManager.getPhoneAttribute()));
-        boolean isDoctor = false;
-        Badge badgeRole = new Badge();
+        firstNameLabel.setText(firstName + sessionManager.getFirstNameAttribute());
+        add(firstNameLabel);
+        patronymicLabel.setText(patronymic + sessionManager.getPatronymicAttribute());
+        add(patronymicLabel);
+        lastNameLabel.setText(lastName + sessionManager.getLastNameAttribute());
+        add(lastNameLabel);
+        phoneLabel.setText(phone + sessionManager.getPhoneAttribute());
+        add(phoneLabel);
         badgeRole.setPrimary(true);
         badgeRole.setPill(true);
-        switch (sessionManager.getRoleAttribute()){
-            case "PATIENT": {
-                badgeRole.setText(patient);
-                badgeRole.setIcon(VaadinIcon.USER.create());
-                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
-                break;
-            }
-            case "DOCTOR": {
-                badgeRole.setText(doctor);
-                badgeRole.setIcon(VaadinIcon.DOCTOR.create());
-                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
-                isDoctor = true;
-                break;
-            }
-            case "ADMIN": {
-                badgeRole.setText(administrator);
-                badgeRole.setIcon(VaadinIcon.SPECIALIST.create());
-                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
-                break;
-            }
-        }
-        add(new HorizontalLayout(new Label(role), badgeRole));
-        if(isDoctor){
+        setupBadgeRole(sessionManager, badgeRole);
+        roleLabel.setText(role);
+        add(new HorizontalLayout(roleLabel, badgeRole));
+        if(sessionManager.getRoleAttribute().equals("DOCTOR")){
             Doctor doctor = doctorService.getDoctorSelf();
             Badge badgeHospital = new Badge();
             badgeHospital.setPrimary(true);
@@ -192,41 +196,31 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
             badgeHospital.setText(doctor.getHospital());
             badgeHospital.setVariant(Badge.BadgeVariant.NORMAL);
             badgeHospital.setIcon(VaadinIcon.HOSPITAL.create());
-            add(new HorizontalLayout(new Label(currentHospital), badgeHospital));
+            hospitalLabel.setText(currentHospital);
+            add(new HorizontalLayout(hospitalLabel, badgeHospital));
         }
-        Badge badge2Fa = new Badge();
         badge2Fa.setPrimary(true);
         badge2Fa.setPill(true);
-        if(sessionManager.get2FaAttribute().booleanValue()){
-            badge2Fa.setText(enabled);
-            badge2Fa.setVariant(Badge.BadgeVariant.CONTRAST);
-            badge2Fa.setIcon(VaadinIcon.LOCK.create());
-        }
-        else {
-            badge2Fa.setText(disabled);
-            badge2Fa.setVariant(Badge.BadgeVariant.SUCCESS);
-            badge2Fa.setIcon(VaadinIcon.UNLOCK.create());
-        }
-        add(new HorizontalLayout(new Label(twoFactor), badge2Fa));
+        setupBadge2Fa(sessionManager, badge2Fa);
+        twoFaLabel.setText(twoFactor);
+        add(new HorizontalLayout(twoFaLabel, badge2Fa));
         add(profileSettings);
-        Checkbox checkbox = new Checkbox();
         checkbox.setLabel(use2Fa);
         checkbox.setValue(session.getAttribute("2FA").equals(Boolean.TRUE));
         add(checkbox);
         HorizontalLayout layout = new HorizontalLayout();
-        Button apply = new Button(applyLabel, e -> {
+        applyButton2Fa.addClickListener(e -> {
             Credentials credentials = credentialsService.getSelf();
             credentials.setEnabled2Fa(checkbox.getValue());
             credentialsService.update(credentials, true);
             sessionManager.set2FaAttribute(checkbox.getValue());
             UI.getCurrent().navigate(ProfileView.class);
         });
-        apply.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        layout.add(apply);
+        applyButton2Fa.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        layout.add(applyButton2Fa);
         add(layout);
         if(sessionManager.getRoleAttribute().equals("DOCTOR")) {
             Doctor doctor = doctorService.getDoctorSelf();
-            ToggleButton status = new ToggleButton();
             populateAvailability(status, doctor.getAvailable());
             status.addValueChangeListener(e -> {
                 doctor.setAvailable(e.getValue());
@@ -254,7 +248,6 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
                     this.addToDialog(os, dialog, currentMimeType);
                 }
             });
-            Upload upload = new Upload(new FileReceiver());
             upload.setAcceptedFileTypes(allowedAvatarExtensions);
             upload.setMaxFiles(1);
             upload.setMaxFileSize(allowedFileSize);
@@ -268,61 +261,58 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
                 firstCall = false;
                 this.addToDialog(os, dialog, event.getMIMEType());
             });
-            Button applyAvatar = new Button(applyLabel, e -> {
+            applyButtonAvatar.addClickListener(e -> {
                 doctor.setDoctorPhoto(croppedAvatar);
                 doctorService.updateSelf(doctor);
                 UI.getCurrent().navigate(ProfileView.class);
             });
-            applyAvatar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            add(new Div(new H4(uploadAvatar), upload));
+            applyButtonAvatar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            add(new Div(uploadAvatarH4, upload));
             add(avatar);
-            add(new HorizontalLayout(applyAvatar));
+            add(new HorizontalLayout(applyButtonAvatar));
             List<RepresentativeDoctorSpecialityPojo> currentSpecialityList =
                     doctorSpecialityService.getDoctorSpecialities(doctor.getId());
-            Grid<RepresentativeDoctorSpecialityPojo> grid = initGrid(doctor, currentSpecialityList);
-            refreshSpecialityCombobox(grid);
+            specialityGrid = initGrid(doctor, currentSpecialityList);
+            refreshSpecialityCombobox(specialityGrid);
             specialityNameComboBox.setItemLabelGenerator(specialityName -> {
                 return getTranslation(specialityName.name().toLowerCase(Locale.ROOT));
             });
-            Button add = new Button(addSpeciality);
-            add.addClickListener(e -> {
+            addButton.setText(addSpeciality);
+            addButton.addClickListener(e -> {
                 newSpeciality = true;
-                startSpecialityInit(specialityNameComboBox.getValue(), grid, currentSpecialityList);
-                refreshSpecialityCombobox(grid);
+                startSpecialityInit(specialityNameComboBox.getValue(), specialityGrid, currentSpecialityList);
+                refreshSpecialityCombobox(specialityGrid);
                 specialityNameComboBox.setValue(null);
             });
             discardCancel.setEnabled(false);
             discardCancel.setText(discardCancelLabel);
             discardCancel.addClickListener(e -> {
-                GridListDataView<RepresentativeDoctorSpecialityPojo> listDataView = grid.getListDataView();
-                grid.getEditor().cancel();
+                GridListDataView<RepresentativeDoctorSpecialityPojo> listDataView = specialityGrid.getListDataView();
+                specialityGrid.getEditor().cancel();
                 if(newSpeciality) {
                     newSpeciality = false;
                     listDataView.removeItem(listDataView.getItem(listDataView.getItemCount() - 1));
                 }
-                refreshSpecialityCombobox(grid);
+                refreshSpecialityCombobox(specialityGrid);
                 specialityNameComboBox.setValue(null);
                 discardCancel.setEnabled(false);
             });
-            add(new Div(new H4(manageSpecialities), new HorizontalLayout(specialityNameComboBox, add, discardCancel)));
-            add(grid);
+            add(new Div(manageSpecialitiesH4, new HorizontalLayout(specialityNameComboBox, addButton, discardCancel)));
+            add(specialityGrid);
         }
         add(changePassword);
-        PasswordField password = new PasswordField();
-        password.setLabel(newPassword);
-        PasswordField passwordConfirmation = new PasswordField();
+        passwordField.setLabel(newPassword);
         passwordConfirmation.setLabel(confirmNewPassword);
-        Button applyPassword = new Button(applyLabel);
         applyPassword.addClickListener(e -> {
-            if(ValidatorUtils.isValidPassword(password.getValue())){
-                if(password.getValue().equals(passwordConfirmation.getValue())) {
+            if(ValidatorUtils.isValidPassword(passwordField.getValue())){
+                if(passwordField.getValue().equals(passwordConfirmation.getValue())) {
                     Credentials credentials = credentialsService.getSelf();
-                    credentials.setPassword(password.getValue());
+                    credentials.setPassword(passwordField.getValue());
                     credentialsService.update(credentials, true);
                     UiUtils.generateSuccessNotification(youSuccessfullyChangedYourPassword).open();
-                    password.clear();
+                    passwordField.clear();
                     passwordConfirmation.clear();
-                    password.setInvalid(false);
+                    passwordField.setInvalid(false);
                     passwordConfirmation.setInvalid(false);
                 }
                 else {
@@ -332,14 +322,50 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
                 }
             }
             else {
-                password.clear();
+                passwordField.clear();
                 passwordConfirmation.clear();
-                password.setErrorMessage(passwordPattern);
-                password.setInvalid(true);
+                passwordField.setErrorMessage(passwordPattern);
+                passwordField.setInvalid(true);
             }
         });
         applyPassword.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        add(password,passwordConfirmation,applyPassword);
+        add(passwordField, passwordConfirmation, applyPassword);
+    }
+
+    private void setupBadge2Fa(SessionManager sessionManager, Badge badge2Fa) {
+        if(sessionManager.get2FaAttribute().booleanValue()){
+            badge2Fa.setText(enabled);
+            badge2Fa.setVariant(Badge.BadgeVariant.CONTRAST);
+            badge2Fa.setIcon(VaadinIcon.LOCK.create());
+        }
+        else {
+            badge2Fa.setText(disabled);
+            badge2Fa.setVariant(Badge.BadgeVariant.SUCCESS);
+            badge2Fa.setIcon(VaadinIcon.UNLOCK.create());
+        }
+    }
+
+    private void setupBadgeRole(SessionManager sessionManager, Badge badgeRole) {
+        switch (sessionManager.getRoleAttribute()){
+            case "PATIENT": {
+                badgeRole.setText(patient);
+                badgeRole.setIcon(VaadinIcon.USER.create());
+                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
+                break;
+            }
+            case "DOCTOR": {
+                badgeRole.setText(doctor);
+                badgeRole.setIcon(VaadinIcon.DOCTOR.create());
+                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
+                break;
+            }
+            case "ADMIN": {
+                badgeRole.setText(administrator);
+                badgeRole.setIcon(VaadinIcon.SPECIALIST.create());
+                badgeRole.setVariant(Badge.BadgeVariant.NORMAL);
+                break;
+            }
+        }
     }
 
     private void populateAvailability(ToggleButton status, boolean available) {
@@ -372,7 +398,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         Grid<RepresentativeDoctorSpecialityPojo> grid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
         grid.addColumn(doctorSpeciality -> {
             return SpecialityLocalizator.localize(doctorSpeciality.getSpeciality());
-        }).setHeader(specialityLabel);
+        }).setHeader(specialityLabel).setKey("speciality");
         grid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader(instituteOfAccreditation).setKey("institute");
         grid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader(workExperience).setTextAlign(ColumnTextAlign.CENTER).setKey("experience");
         grid.addColumn(
@@ -401,7 +427,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         binder.forField(integerField)
                 .bind(RepresentativeDoctorSpecialityPojo::getExperience, RepresentativeDoctorSpecialityPojo::setExperience);
         grid.getColumnByKey("experience").setEditorComponent(integerField);
-        Button saveButton = new Button(saveLabel, e -> {
+        saveButton.addClickListener(e -> {
             editor.save();
             discardCancel.setEnabled(false);
             MessageResponse response;
@@ -553,6 +579,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         confirmNewPassword = getTranslation("profile.confirm_password");
         youSuccessfullyChangedYourPassword = getTranslation("profile.messages.you_successfully_changed_your_password");
         passwordsDoesNotMatch = getTranslation("profile.messages.passwords_do_not_match");
+        currentHospital = getTranslation("profile.current_hospital");
         passwordPattern = getTranslation("register.messages.password_pattern");
         availableLabel = getTranslation("profile.available");
         unreachableLabel = getTranslation("profile.unreachable");
@@ -573,5 +600,37 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         specialitySuccessfullyDeleted = getTranslation("profile.messages.speciality_successfully_deleted");
         yes = getTranslation("profile.yes");
         avatarUploaded = getTranslation("profile.messages.avatar_uploaded");
+        discardCancel.setText(discardCancelLabel);
+        addButton.setText(addSpeciality);
+        saveButton.setText(saveLabel);
+        manageSpecialitiesH4.setText(manageSpecialities);
+        upload.setI18n(new UploadLocalizator());
+        uploadAvatarH4.setText(uploadAvatar);
+        populateAvailability(status,status.getValue());
+        applyButton2Fa.setText(applyLabel);
+        applyButtonAvatar.setText(applyLabel);
+        applyPassword.setText(applyLabel);
+        checkbox.setLabel(use2Fa);
+        firstNameLabel.setText(firstName + sessionManager.getFirstNameAttribute());
+        patronymicLabel.setText(patronymic + sessionManager.getPatronymicAttribute());
+        lastNameLabel.setText(lastName + sessionManager.getLastNameAttribute());
+        phoneLabel.setText(phone + sessionManager.getPhoneAttribute());
+        roleLabel.setText(role);
+        hospitalLabel.setText(currentHospital);
+        twoFaLabel.setText(twoFactor);
+        passwordField.setLabel(newPassword);
+        passwordConfirmation.setLabel(confirmNewPassword);
+
+        if(specialityGrid!=null) {
+            specialityGrid.getColumnByKey("speciality").setHeader(specialityLabel);
+            specialityGrid.getColumnByKey("institute").setHeader(instituteOfAccreditation);
+            specialityGrid.getColumnByKey("experience").setHeader(workExperience);
+            specialityGrid.getColumnByKey("manage").setHeader(manage);
+            specialityGrid.getListDataView().refreshAll();
+        }
+        if(sessionManager!=null){
+            setupBadgeRole(sessionManager,badgeRole);
+            setupBadge2Fa(sessionManager, badge2Fa);
+        }
     }
 }
