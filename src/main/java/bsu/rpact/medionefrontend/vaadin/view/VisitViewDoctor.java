@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @PageTitle("Visits")
 public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObserver {
 
-    public final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
+    public SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
     private final VisitService visitService;
     private final DoctorSpecialityService doctorSpecialityService;
     private final DoctorService doctorService;
@@ -116,7 +116,8 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         }).setHeader(dateAndTime).setKey("datetime").setTextAlign(ColumnTextAlign.START);
         grid.addComponentColumn(visit -> {
             if(visit.getActive()){
-                Badge badge = new Badge(impending);
+                Badge badge = new Badge();
+                badge.setText(impending);
                 badge.setVariant(Badge.BadgeVariant.NORMAL);
                 badge.setPrimary(true);
                 badge.setPill(true);
@@ -124,7 +125,8 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
                 return badge;
             }
             else {
-                Badge badge = new Badge(completed);
+                Badge badge = new Badge();
+                badge.setText(completed);
                 badge.setVariant(Badge.BadgeVariant.SUCCESS);
                 badge.setPrimary(true);
                 badge.setPill(true);
@@ -135,7 +137,8 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         AtomicReference<Patient> atomicPatientReference = new AtomicReference<>();
         AtomicReference<Visit> atomicVisitReference = new AtomicReference<>();
         grid.addComponentColumn(visit -> {
-            Button editButton = new Button(process);
+            Button editButton = new Button();
+            editButton.setText(process);
             editButton.setEnabled(visit.getActive());
             editButton.addClickListener(e -> {
                 atomicPatientReference.set(visit.getPatient());
@@ -350,6 +353,7 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
 
     @Override
     public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
         visitScheduleNotSetYet.setText(getTranslation("visits.schedule_not_set"));
         doYouWantToCreateNewOne.setText(getTranslation("visits.do_you_want_to_create_new_one"));
         create.setText(getTranslation("visits.create"));
@@ -371,7 +375,7 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         save = getTranslation("visits.save");
         areYouSureYouWantToDeleteThisVisit.setText(getTranslation("visits.are_you_sure_you_want_to_delete_this_visit"));
         delete = getTranslation("visits.delete");
-        visitEnquiry = new H1(getTranslation("visits.visit_enquiry"));
+        visitEnquiry.setText(getTranslation("visits.visit_enquiry"));
         bookingTime = getTranslation("visits.booking_time");
         visitReason = getTranslation("visits.visit_reason");
         aboutPatient = getTranslation("visits.about_patient");
@@ -382,5 +386,10 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         illnesses = getTranslation("visits.illnesses");
         operations = getTranslation("visits.operations");
         dateAndTime = getTranslation("visits.date_and_time");
+
+        visitGrid.getColumnByKey("reason").setHeader(reason);
+        visitGrid.getColumnByKey("patient").setHeader(patient);
+        visitGrid.getColumnByKey("datetime").setHeader(dateAndTime);
+        visitGrid.getListDataView().refreshAll();
     }
 }

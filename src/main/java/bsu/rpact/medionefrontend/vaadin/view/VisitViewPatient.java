@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @PageTitle("Visits")
 public class VisitViewPatient extends VerticalLayout implements LocaleChangeObserver {
 
-    public final static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
+    public SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
     private final SessionManager sessionManager;
     private final VisitService visitService;
     private final DoctorSpecialityService doctorSpecialityService;
@@ -132,7 +132,8 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         }).setHeader(dateAndTime).setKey("datetime").setTextAlign(ColumnTextAlign.START);
         grid.addComponentColumn(visit -> {
             if(visit.getActive()){
-                Badge badge = new Badge(impending);
+                Badge badge = new Badge();
+                badge.setText(impending);
                 badge.setVariant(Badge.BadgeVariant.NORMAL);
                 badge.setPrimary(true);
                 badge.setPill(true);
@@ -140,7 +141,8 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
                 return badge;
             }
             else {
-                Badge badge = new Badge(completed);
+                Badge badge = new Badge();
+                badge.setText(completed);
                 badge.setVariant(Badge.BadgeVariant.SUCCESS);
                 badge.setPrimary(true);
                 badge.setPill(true);
@@ -151,7 +153,8 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         AtomicReference<Doctor> atomicDoctorReference = new AtomicReference<>();
         AtomicReference<Visit> atomicVisitReference = new AtomicReference<>();
         Grid.Column<Visit> editColumn = grid.addComponentColumn(visit -> {
-            Button editButton = new Button(edit);
+            Button editButton = new Button();
+            editButton.setText(edit);
             editButton.setEnabled(visit.getActive());
             editButton.addClickListener(e -> {
                 if (editor.isOpen())
@@ -339,6 +342,7 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
 
     private VerticalLayout createDialogLayout(DoctorPhotoUrlContainer container, Dialog dialog, Visit visit) {
         VerticalLayout layout = new VerticalLayout();
+        layout.setMinWidth("700px");
         doctorSpecialityGrid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
         layout.add(new H1(visitEnquiry));
         layout.add(new Label(bookingTime + DATE_FORMAT.format(visit.getDatetime())));
@@ -359,12 +363,18 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         Image image = new Image(container.getPhotoUrl(), "");
         image.setMaxWidth("530px");
         image.setMaxHeight("630px");
-        layout.setMaxWidth("700px");
+        layout.setMinWidth("700px");
         layout.add(image);
         layout.add(new H2(container.getDoctor().getCredentials().getFirstName() + " " +
                 container.getDoctor().getCredentials().getPatronymic() + " " +
                 container.getDoctor().getCredentials().getLastName()));
-        layout.add(new Paragraph(currentHospital + container.getDoctor().getHospital()));
+        Badge badgeHospital = new Badge();
+        badgeHospital.setPrimary(true);
+        badgeHospital.setPill(true);
+        badgeHospital.setText(container.getDoctor().getHospital());
+        badgeHospital.setVariant(Badge.BadgeVariant.NORMAL);
+        badgeHospital.setIcon(VaadinIcon.HOSPITAL.create());
+        layout.add(new HorizontalLayout(new Label(currentHospital), badgeHospital));
         layout.add(new H4(container.getDoctor().getCommonInfo()));
         doctorSpecialityGrid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader(speciality);
         doctorSpecialityGrid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader(instituteOfAccreditation);
@@ -382,6 +392,7 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
 
     @Override
     public void localeChange(LocaleChangeEvent localeChangeEvent) {
+        DATE_FORMAT = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", VaadinSession.getCurrent().getLocale());
         visitScheduleNotSetYet.setText(getTranslation("visits.schedule_not_set"));
         doYouWantToCreateNewOne.setText((getTranslation("visits.do_you_want_to_create_new_one")));
         buttonCreate.setText(getTranslation("visits.create"));
@@ -413,8 +424,10 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         instituteOfAccreditation = getTranslation("profile.institute_of_accreditation");
         workExperience = getTranslation("profile.work_experience");
         speciality = getTranslation("profile.speciality");
+
         visitGrid.getColumnByKey("reason").setHeader(reason);
         visitGrid.getColumnByKey("doctor").setHeader(doctor);
         visitGrid.getColumnByKey("datetime").setHeader(dateAndTime);
+        visitGrid.getListDataView().refreshAll();
     }
 }
