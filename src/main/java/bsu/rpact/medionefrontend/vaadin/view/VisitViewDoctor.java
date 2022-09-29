@@ -15,15 +15,19 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.ItemDoubleClickEvent;
+import com.vaadin.flow.component.grid.dataview.GridListDataView;
 import com.vaadin.flow.component.grid.editor.Editor;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.renderer.Renderer;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.PageTitle;
@@ -55,6 +59,8 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
     private final Button create = new Button(getTranslation("visits.create"));
     private final H2 visits = new H2(getTranslation("visits.visits"));
     private final PaginatedGrid<Visit> visitGrid = new PaginatedGrid<>();
+    private TextField operationSearchField = new TextField();
+    private TextField illnessSearchField = new TextField();
     private String reason = getTranslation("visits.reason");
     private String patient = getTranslation("visits.patient");
     private String impending = getTranslation("visits.impending");
@@ -340,15 +346,104 @@ public class VisitViewDoctor extends VerticalLayout implements LocaleChangeObser
         layout.add(new Label(residentalAddress + medcard.getResidentalAddress()));
         layout.add(new H3(illnesses));
         PaginatedGrid<Illness> illnessGrid = new PaginatedGrid<>();
-        VerticalLayout illnessLayout = MedcardView.getIllnessLayout(medcard, illnessGrid);
+        VerticalLayout illnessLayout = getIllnessLayout(medcard, illnessGrid);
         illnessGrid.setWidthFull();
         layout.add(illnessLayout);
 
         layout.add(new H3(operations));
         PaginatedGrid<Operation> operationGrid = new PaginatedGrid<>();
         operationGrid.setWidthFull();
-        VerticalLayout operationLayout = MedcardView.getOperationLayout(medcard, operationGrid);
+        VerticalLayout operationLayout = getOperationLayout(medcard, operationGrid);
         layout.add(operationLayout);
+    }
+
+    public VerticalLayout getOperationLayout(Medcard medcard, PaginatedGrid<Operation> operationGrid) {
+        String name = getTranslation("medcard.name");
+        String description = getTranslation("medcard.description");
+        String date = getTranslation("medcard.date");
+        String search = getTranslation("medcard.search");
+        operationGrid.addColumn(Operation::getId).setHeader("№");
+        operationGrid.addColumn(Operation::getName).setHeader(name).setKey("name");
+        operationGrid.addColumn(Operation::getDescription).setHeader(description).setKey("description");
+        operationGrid.addColumn(Operation::getOperationDate).setHeader(date).setKey("date");
+        operationGrid.setItems(medcard.getOperationList());
+        operationGrid.setAllRowsVisible(true);
+        operationGrid.setPageSize(10);
+        operationGrid.setPaginatorSize(5);
+        GridListDataView<Operation> operationDataView =
+                operationGrid.setItems(medcard.getOperationList());
+        operationGrid.getColumns().stream().forEach(item -> {
+            item.setResizable(true);
+            item.setSortable(true);
+        });
+        operationSearchField.setWidth("20%");
+        operationSearchField.setPlaceholder(search);
+        operationSearchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        operationSearchField.setValueChangeMode(ValueChangeMode.EAGER);
+        operationSearchField.addValueChangeListener(e -> operationDataView.refreshAll());
+
+        operationDataView.addFilter(item -> {
+            String searchTerm = operationSearchField.getValue().trim();
+            if (searchTerm.isEmpty())
+                return true;
+            boolean matchesId = matchesTerm(String.valueOf(item.getId()),
+                    searchTerm);
+            boolean matchesDescription = matchesTerm(item.getDescription(), searchTerm);
+            boolean matchesName = matchesTerm(item.getName(),
+                    searchTerm);
+            boolean matchesDate = matchesTerm(String.valueOf(item.getOperationDate()),
+                    searchTerm);
+            return matchesId || matchesDescription || matchesName || matchesDate;
+        });
+        VerticalLayout operationLayout = new VerticalLayout(operationSearchField, operationGrid);
+        operationLayout.setPadding(false);
+        return operationLayout;
+    }
+
+    public VerticalLayout getIllnessLayout(Medcard medcard, PaginatedGrid<Illness> illnessGrid) {
+        String illFrom = getTranslation("medcard.ill_from");
+        String illTo = getTranslation("medcard.ill_to");
+        String description = getTranslation("medcard.description");
+        String search = getTranslation("medcard.search");
+        illnessGrid.addColumn(Illness::getId).setHeader("№");
+        illnessGrid.addColumn(Illness::getDescription).setHeader(description).setKey("description");
+        illnessGrid.addColumn(Illness::getIllFrom).setHeader(illFrom).setKey("illFrom");
+        illnessGrid.addColumn(Illness::getIllTo).setHeader(illTo).setKey("illTo");
+        GridListDataView<Illness> illnessDataView =
+                illnessGrid.setItems(medcard.getIllnessList());
+        illnessGrid.getColumns().stream().forEach(item -> {
+            item.setResizable(true);
+            item.setSortable(true);
+        });
+        illnessGrid.setAllRowsVisible(true);
+        illnessGrid.setPageSize(10);
+        illnessGrid.setPaginatorSize(5);
+        illnessSearchField.setWidth("20%");
+        illnessSearchField.setPlaceholder(search);
+        illnessSearchField.setPrefixComponent(new Icon(VaadinIcon.SEARCH));
+        illnessSearchField.setValueChangeMode(ValueChangeMode.EAGER);
+        illnessSearchField.addValueChangeListener(e -> illnessDataView.refreshAll());
+
+        illnessDataView.addFilter(item -> {
+            String searchTerm = illnessSearchField.getValue().trim();
+            if (searchTerm.isEmpty())
+                return true;
+            boolean matchesId = matchesTerm(String.valueOf(item.getId()),
+                    searchTerm);
+            boolean matchesDescription = matchesTerm(item.getDescription(), searchTerm);
+            boolean matchesFrom = matchesTerm(String.valueOf(item.getIllFrom()),
+                    searchTerm);
+            boolean matchesTo = matchesTerm(String.valueOf(item.getIllTo()),
+                    searchTerm);
+            return matchesId || matchesDescription || matchesFrom || matchesTo;
+        });
+        VerticalLayout illnessLayout = new VerticalLayout(illnessSearchField, illnessGrid);
+        illnessLayout.setPadding(false);
+        return illnessLayout;
+    }
+
+    private static boolean matchesTerm(String value, String searchTerm) {
+        return value.toLowerCase().contains(searchTerm.toLowerCase());
     }
 
     @Override

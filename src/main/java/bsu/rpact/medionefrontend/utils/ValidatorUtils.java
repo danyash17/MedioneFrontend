@@ -8,6 +8,18 @@ import java.util.regex.Pattern;
 @Component
 public class ValidatorUtils {
 
+    public static boolean isValidResidentalAddress(String address){
+        String latin = "^[#.0-9a-zA-Z\\s,-]+$";
+        String cyrillic = "^[#.0-9\\p{InCyrillic}\\s,-]+$";
+        return doMatch(address, latin) || doMatch(address, cyrillic);
+    }
+
+    public static boolean isValidHomeNumber(String address){
+        String latin = "[0-9]{1,}[A-Za-z0-9]{0,}";
+        String cyrillic = "[0-9]{1,}[\\p{InCyrillic}0-9]{0,}";
+        return doMatch(address, latin) || doMatch(address, cyrillic);
+    }
+
     public static boolean isValidPassword(String password)
     {
         String latin = "(?=.*[a-z])(?=\\S+$).{8,20}.*\\d+.*$";
