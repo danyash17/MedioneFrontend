@@ -330,12 +330,12 @@ public class MedcardView extends VerticalLayout implements LocaleChangeObserver 
             expiringAtLabel.setText(expiringDdotSpace + medcard.getValidTo());
             residentalAddressLabel.setText(residentalAddressDdotSpace + medcard.getResidentalAddress());
         }
-        if(illnessGrid!=null){
+        if(illnessGrid!=null && !illnessGrid.getColumns().isEmpty()){
             illnessGrid.getColumnByKey("description").setHeader(description);
             illnessGrid.getColumnByKey("illFrom").setHeader(illFrom);
             illnessGrid.getColumnByKey("illTo").setHeader(illTo);
         }
-        if(operationGrid!=null){
+        if(operationGrid!=null && !operationGrid.getColumns().isEmpty()){
             operationGrid.getColumnByKey("name").setHeader(name);
             operationGrid.getColumnByKey("description").setHeader(description);
             operationGrid.getColumnByKey("date").setHeader(date);

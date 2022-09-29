@@ -15,6 +15,10 @@ import com.vaadin.flow.router.RouteConfiguration;
 @Route(value = "restricted")
 public class RestrictedView extends VerticalLayout {
 
+    private final String message = getTranslation("restricted.message");
+    private final String lookAround = getTranslation("restricted.look_around");
+    private final String returnToLogin = getTranslation("restricted.return");
+
     public RestrictedView() {
         setSpacing(false);
 
@@ -22,11 +26,11 @@ public class RestrictedView extends VerticalLayout {
         img.setWidth("200px");
         add(img);
 
-        add(new H2("Oops, it seems like you trying to access secured page without authorization"));
-        add(new Paragraph("Look around, little hacker :)"));
+        add(new H2(message));
+        add(new Paragraph(lookAround));
         String route = RouteConfiguration.forSessionScope()
                 .getUrl(LoginView.class);
-        Anchor link = new Anchor(route, "Return to login");
+        Anchor link = new Anchor(route, returnToLogin);
         add(link);
 
         setSizeFull();
