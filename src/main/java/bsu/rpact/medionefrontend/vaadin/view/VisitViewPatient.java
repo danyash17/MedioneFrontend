@@ -425,9 +425,11 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         workExperience = getTranslation("profile.work_experience");
         speciality = getTranslation("profile.speciality");
 
-        visitGrid.getColumnByKey("reason").setHeader(reason);
-        visitGrid.getColumnByKey("doctor").setHeader(doctor);
-        visitGrid.getColumnByKey("datetime").setHeader(dateAndTime);
-        visitGrid.getListDataView().refreshAll();
+        if(visitGrid!=null && !visitGrid.getColumns().isEmpty()) {
+            visitGrid.getColumnByKey("reason").setHeader(reason);
+            visitGrid.getColumnByKey("doctor").setHeader(doctor);
+            visitGrid.getColumnByKey("datetime").setHeader(dateAndTime);
+            visitGrid.getListDataView().refreshAll();
+        }
     }
 }
