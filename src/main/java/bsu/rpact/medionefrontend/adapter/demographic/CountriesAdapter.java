@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.pojo.other.Country;
 import org.springframework.beans.factory.annotation.Autowired;

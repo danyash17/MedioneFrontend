@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.service;
 
-import bsu.rpact.medionefrontend.adapter.JwtTokenizationAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.JwtTokenizationAdapter;
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
 import bsu.rpact.medionefrontend.pojo.authentication.*;
 import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;

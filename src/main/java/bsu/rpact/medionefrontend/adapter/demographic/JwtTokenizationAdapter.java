@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.pojo.authentication.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Component
-public class JwtTokenizationAdapter extends GeneralAdapter{
+public class JwtTokenizationAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.auth}")
     private String loginMapping;

@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.pojo.DoctorPojo;
@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
-public class DoctorAdapter extends GeneralAdapter {
+public class DoctorAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.doctors}")
     private String doctorMapping;

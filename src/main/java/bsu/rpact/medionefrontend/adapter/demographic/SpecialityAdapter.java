@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.entity.Speciality;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class SpecialityAdapter extends GeneralAdapter{
+public class SpecialityAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.speciality}")
     private String specialityMapping;

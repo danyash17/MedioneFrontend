@@ -1,6 +1,5 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
-import bsu.rpact.medionefrontend.entity.Medcard;
 import bsu.rpact.medionefrontend.entity.Patient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -9,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 @Component
-public class PatientAdapter extends GeneralAdapter{
+public class PatientAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.patient}")
     private String mapping;

@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.entity.Visit;
 import bsu.rpact.medionefrontend.pojo.DoctorVisitPojo;
@@ -7,7 +7,6 @@ import bsu.rpact.medionefrontend.pojo.VisitSchedulePojo;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -15,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
-public class VisitAdapter extends GeneralAdapter {
+public class VisitAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.visit}")
     private String mapping;

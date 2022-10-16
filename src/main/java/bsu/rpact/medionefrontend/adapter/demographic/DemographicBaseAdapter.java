@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
@@ -6,7 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import javax.annotation.PostConstruct;
 
-public class GeneralAdapter {
+public class DemographicBaseAdapter {
     @Value("${mappings.preambule}")
     protected String restPreambule;
     @Value(("${frontend.mappings.preambule}"))

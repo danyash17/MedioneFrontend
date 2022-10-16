@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.service;
 
-import bsu.rpact.medionefrontend.adapter.CountriesAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.CountriesAdapter;
 import bsu.rpact.medionefrontend.pojo.other.Country;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

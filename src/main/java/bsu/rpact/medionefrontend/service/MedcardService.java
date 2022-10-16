@@ -1,8 +1,7 @@
 package bsu.rpact.medionefrontend.service;
 
-import bsu.rpact.medionefrontend.adapter.MedcardAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.MedcardAdapter;
 import bsu.rpact.medionefrontend.entity.Medcard;
-import bsu.rpact.medionefrontend.exception.MedcardNotSetException;
 import bsu.rpact.medionefrontend.pojo.MedcardPojo;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;

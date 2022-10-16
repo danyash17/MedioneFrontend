@@ -1,17 +1,15 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.entity.Credentials;
 import bsu.rpact.medionefrontend.pojo.CredentialsNoIdPojo;
-import bsu.rpact.medionefrontend.pojo.authentication.ChangePasswordRequest;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
-import bsu.rpact.medionefrontend.pojo.authentication.RegisterRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Component
-public class CredentialsAdapter extends GeneralAdapter{
+public class CredentialsAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.credentials}")
     private String credentialsMapping;

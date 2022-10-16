@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
-import bsu.rpact.medionefrontend.adapter.GeneralAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.DemographicBaseAdapter;
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
 import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
 import bsu.rpact.medionefrontend.pojo.authentication.PrimaryLoginResponce;
@@ -79,7 +79,7 @@ public class LoginView extends Composite<VerticalLayout> implements LocaleChange
                     this.cookieHelper.addTokenCookie(primaryLoginResponce.getToken(), 90000);
                     this.sessionManager.generateAuthUserAttributes(primaryLoginResponce);
                     this.sessionManager.setTokenAttribute(primaryLoginResponce.getToken());
-                    context.getBeansOfType(GeneralAdapter.class).entrySet().stream()
+                    context.getBeansOfType(DemographicBaseAdapter.class).entrySet().stream()
                             .forEach((adapter)->adapter.getValue().authenticateWebClient(primaryLoginResponce.getToken()));
                     UI.getCurrent().navigate(HomeView.class);
                 }

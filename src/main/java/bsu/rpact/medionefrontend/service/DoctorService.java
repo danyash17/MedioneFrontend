@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.service;
 
-import bsu.rpact.medionefrontend.adapter.DoctorAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.DoctorAdapter;
 import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.enums.SpecialityName;
 import bsu.rpact.medionefrontend.pojo.DoctorPojo;

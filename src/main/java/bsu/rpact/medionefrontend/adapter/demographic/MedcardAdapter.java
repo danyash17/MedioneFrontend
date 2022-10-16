@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.entity.Medcard;
 import bsu.rpact.medionefrontend.pojo.MedcardPojo;
@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 import java.util.Optional;
 
 @Component
-public class MedcardAdapter extends GeneralAdapter {
+public class MedcardAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.patient.self.medcard}")
     protected String selfMedcardMapping;

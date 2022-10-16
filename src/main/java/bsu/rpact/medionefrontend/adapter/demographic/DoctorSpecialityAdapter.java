@@ -1,6 +1,5 @@
-package bsu.rpact.medionefrontend.adapter;
+package bsu.rpact.medionefrontend.adapter.demographic;
 
-import bsu.rpact.medionefrontend.entity.DoctorSpeciality;
 import bsu.rpact.medionefrontend.pojo.DoctorSpecialityPojo;
 import bsu.rpact.medionefrontend.pojo.RepresentativeDoctorSpecialityPojo;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
@@ -13,7 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
-public class DoctorSpecialityAdapter extends GeneralAdapter {
+public class DoctorSpecialityAdapter extends DemographicBaseAdapter {
 
     @Value("${mappings.doctors.speciality}")
     protected String doctorSpecialityMapping;

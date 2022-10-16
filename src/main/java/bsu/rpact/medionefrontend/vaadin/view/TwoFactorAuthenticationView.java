@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
-import bsu.rpact.medionefrontend.adapter.GeneralAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.DemographicBaseAdapter;
 import bsu.rpact.medionefrontend.cookie.CookieHelper;
 import bsu.rpact.medionefrontend.pojo.authentication.JwtResponce;
 import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;
@@ -60,7 +60,7 @@ public class TwoFactorAuthenticationView extends VerticalLayout {
             if(jwtResponce!=null){
                 this.cookieHelper.addTokenCookie(jwtResponce.getToken(), 90000);
                 this.sessionManager.generateAuthUserAttributes(jwtResponce);
-                context.getBeansOfType(GeneralAdapter.class).entrySet().stream().forEach((adapter)->adapter.getValue().initWebClient());
+                context.getBeansOfType(DemographicBaseAdapter.class).entrySet().stream().forEach((adapter)->adapter.getValue().initWebClient());
                 input.getUI().ifPresent(ui -> ui.navigate(HomeView.class));
             }
         });
