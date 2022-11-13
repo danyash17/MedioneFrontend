@@ -24,4 +24,6 @@ public class FhirBaseAdapter {
     public IGenericClient getClient() {
         return client;
     }
+
+    public FhirContext getContext(){return context;}
 }

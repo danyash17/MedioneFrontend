@@ -1,5 +1,6 @@
 package bsu.rpact.medionefrontend.utils;
 
+import com.vaadin.flow.component.html.Image;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +43,20 @@ public class ImageUtils {
             }
         }
         return "images/patientAvatar.png";
+    }
+
+    public Image getImageByDocumentType(String documentType){
+        Image image;
+        switch (documentType){
+            case "Observation" : {
+                image = new Image("icons/documents/observation.png", "icons/question.png");
+                break;
+            }
+            default: {
+                image = new Image("icons/documents/question.png", null);
+            }
+        }
+        return image;
     }
 
 }
