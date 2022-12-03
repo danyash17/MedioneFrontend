@@ -4,8 +4,6 @@ import bsu.rpact.medionefrontend.enums.FhirId;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
 import bsu.rpact.medionefrontend.utils.FhirBadgeInterpretator;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H3;
@@ -21,8 +19,6 @@ import org.hl7.fhir.r4.model.Observation;
 import org.vaadin.addons.badge.Badge;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Optional;
 
 @Route(value = "observation", layout = MainLayout.class)

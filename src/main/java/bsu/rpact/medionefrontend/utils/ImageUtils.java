@@ -52,8 +52,12 @@ public class ImageUtils {
                 image = new Image("icons/documents/observation.png", "icons/question.png");
                 break;
             }
+            case "Procedure" : {
+                image = new Image("icons/documents/procedure.png", "icons/question.png");
+                break;
+            }
             default: {
-                image = new Image("icons/documents/question.png", null);
+                image = new Image("icons/documents/question.png", "icons/documents/question.png");
             }
         }
         return image;

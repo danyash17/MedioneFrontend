@@ -32,7 +32,7 @@ class MedioneFrontendApplicationTests {
     }
 
     @Test
-    void create(){
+    void createObservation(){
         Observation observation = new Observation();
         observation.setStatus(Observation.ObservationStatus.FINAL);
         CodeableConcept codeableConcept = new CodeableConcept();
@@ -54,6 +54,7 @@ class MedioneFrontendApplicationTests {
         Identifier frontendIdentifier = new Identifier();
         String firstWordLetters = Arrays.stream(observation.getCode().getCodingFirstRep()
                         .getDisplay().split(" "))
+                .filter(s -> s.matches("[a-zA-Z0-9]*"))
                 .map(s -> s.substring(0, 1))
                 .collect(Collectors.joining());
         String identifierFirstWordLettersAndTime = firstWordLetters+DATETIME.getTime();
@@ -89,6 +90,77 @@ class MedioneFrontendApplicationTests {
         MethodOutcome outcome = fhirBaseAdapter.getClient()
                 .create()
                 .resource(observation)
+                .execute();
+        IIdType id = outcome.getId();
+        System.out.println(id);
+    }
+
+    @Test
+    void createProcedure(){
+        Procedure procedure = new Procedure();
+        procedure.setStatus(Procedure.ProcedureStatus.COMPLETED);
+        CodeableConcept codeableConcept = new CodeableConcept();
+        Coding coding = new Coding();
+        coding.setSystem("http://snomed.info/sct");
+        coding.setCode("90105005");
+        coding.setDisplay("Biopsy of soft tissue of forearm (Procedure)");
+        codeableConcept.addCoding(coding);
+        codeableConcept.setText("Biopsy of suspected melanoma L) arm");
+        procedure.setCode(codeableConcept);
+        DateTimeType dateType = new DateTimeType();
+        dateType.setValue(DATETIME);
+        procedure.setPerformed(dateType);
+        Identifier businessIdentifier = new Identifier();
+        businessIdentifier.setValue("19");
+        businessIdentifier.setSystem(FhirId.Patient.name());
+        Identifier performerIdentifier = new Identifier();
+        performerIdentifier.setValue("1");
+        performerIdentifier.setSystem(FhirId.Doctor.name());
+        Identifier frontendIdentifier = new Identifier();
+        String firstWordLetters = Arrays.stream(procedure.getCode().getCodingFirstRep()
+                        .getDisplay().split(" "))
+                .filter(s -> s.matches("[a-zA-Z0-9]*"))
+                .map(s -> s.substring(0, 1))
+                .collect(Collectors.joining());
+        String identifierFirstWordLettersAndTime = firstWordLetters+DATETIME.getTime();
+        frontendIdentifier.setValue(identifierFirstWordLettersAndTime);
+        frontendIdentifier.setSystem(FhirId.Frontend.name());
+        procedure.setIdentifier(Arrays.asList(businessIdentifier,frontendIdentifier, performerIdentifier));
+        Reference reason = new Reference();
+        reason.setDisplay("Dark lesion l) forearm. getting darker last 3 months.");
+        procedure.setReasonReference(Arrays.asList(reason));
+        CodeableConcept bodySite = new CodeableConcept();
+        Coding bodyCode = new Coding();
+        bodyCode.setCode("368225008");
+        bodyCode.setDisplay("Entire Left Forearm");
+        bodyCode.setSystem("http://snomed.info/sct");
+        bodySite.setCoding(Arrays.asList(bodyCode));
+        bodySite.setText("Left forearm");
+        procedure.setBodySite(Arrays.asList(bodySite));
+        CodeableConcept complication = new CodeableConcept();
+        Coding complicationCoding = new Coding();
+        complicationCoding.setCode("67750007");
+        complicationCoding.setDisplay("Ineffective airway clearance (finding)");
+        complicationCoding.setSystem("http://snomed.info/sct");
+        complication.setText("Ineffective airway clearance");
+        procedure.setComplication(Arrays.asList(complication));
+        CodeableConcept followUp = new CodeableConcept();
+        followUp.setText("Review in clinic");
+        procedure.setFollowUp(Arrays.asList(followUp));
+        Annotation annotation = new Annotation();
+        annotation.setText("Standard Biopsy");
+        procedure.setNote(Arrays.asList(annotation));
+        CodeableConcept usedConcept = new CodeableConcept();
+        Coding used = new Coding();
+        used.setSystem("http://snomed.info/sct");
+        used.setDisplay("Needle, device (physical object)");
+        used.setCode("79068005");
+        usedConcept.setCoding(Arrays.asList(used));
+        usedConcept.setText("30-guage needle");
+        procedure.setUsedCode(Arrays.asList(usedConcept));
+        MethodOutcome outcome = fhirBaseAdapter.getClient()
+                .create()
+                .resource(procedure)
                 .execute();
         IIdType id = outcome.getId();
         System.out.println(id);
