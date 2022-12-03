@@ -1,24 +1,20 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
-import bsu.rpact.medionefrontend.enums.FhirId;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.ObservationService;
 import bsu.rpact.medionefrontend.service.medical.ProcedureService;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
+import bsu.rpact.medionefrontend.utils.RippleCardFactory;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import bsu.rpact.medionefrontend.vaadin.components.ListContentPanel;
 import com.github.appreciated.card.RippleClickableCard;
-import com.github.appreciated.card.content.IconItem;
-import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -27,10 +23,8 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.VaadinSession;
 import org.hl7.fhir.r4.model.*;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Route(value = "documents", layout = MainLayout.class)
@@ -43,6 +37,7 @@ public class PatientDocumentView extends VerticalLayout {
     private final SessionManager sessionManager;
     private final FhirCashingContainer fhirCashingContainer;
     private final ImageUtils imageUtils;
+    private final RippleCardFactory rippleCardFactory;
 
     private final ListContentPanel listContentPanel;
     private final TextField searchField;
@@ -62,13 +57,14 @@ public class PatientDocumentView extends VerticalLayout {
     private Integer totalPages;
     private Label currentNumber = new Label();
 
-    public PatientDocumentView(ObservationService observationService, ProcedureService procedureService, PatientService patientService, SessionManager sessionManager, FhirCashingContainer fhirCashingContainer, ImageUtils imageUtils) {
+    public PatientDocumentView(ObservationService observationService, ProcedureService procedureService, PatientService patientService, SessionManager sessionManager, FhirCashingContainer fhirCashingContainer, ImageUtils imageUtils, RippleCardFactory rippleCardFactory) {
         this.observationService = observationService;
         this.procedureService = procedureService;
         this.patientService = patientService;
         this.sessionManager = sessionManager;
         this.fhirCashingContainer = fhirCashingContainer;
         this.imageUtils = imageUtils;
+        this.rippleCardFactory = rippleCardFactory;
         Optional<Patient> optionalPatient = patientService.getSelf();
         if (optionalPatient.isPresent()) {
             patient = optionalPatient.get();
@@ -140,15 +136,15 @@ public class PatientDocumentView extends VerticalLayout {
     private RippleClickableCard getProperCard(DomainResource resource) {
         if (resource instanceof Observation){
             Observation observation = (Observation) resource;
-            return getObservationCard(observation);
+            return rippleCardFactory.getObservationCard(observation);
         }
         if (resource instanceof DiagnosticReport){
             DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
-            return getDiagnosticReportCard(diagnosticReport);
+            return rippleCardFactory.getDiagnosticReportCard(diagnosticReport);
         }
         if (resource instanceof Procedure){
             Procedure procedure = (Procedure) resource;
-            return getProcedureCard(procedure);
+            return rippleCardFactory.getProcedureCard(procedure);
         }
         return null;
     }
@@ -178,79 +174,6 @@ public class PatientDocumentView extends VerticalLayout {
     private List<DomainResource> sortDomainResourcesToList(Map<Date,DomainResource> map){
         Map<Date,DomainResource> sortedMap = new TreeMap<>(map);
         return new ArrayList<>(sortedMap.values());
-    }
-
-    private RippleClickableCard getObservationCard(Observation observation){
-        Image img = imageUtils.getImageByDocumentType(observation.getResourceType().toString());
-        img.setWidth("40px");
-        img.setHeight("40px");
-        Optional<Identifier> frontendId = observation.getIdentifier().stream().filter(item -> item.getSystem().equals(FhirId.Frontend.name())).findFirst();
-        String coding = observation.getCode().getCoding().get(0).getDisplay();
-        String display = frontendId.isPresent() ? coding + " [" + frontendId.get().getValue() + "]" : coding + " UNDEFINED";
-        RippleClickableCard card = new RippleClickableCard(
-                getComponentEventListener(observation),
-                new IconItem(img, display, observation.getIssued() != null ? observation.getIssued().toString() : null)
-        );
-        card.setWidthFull();
-        card.setHeight("100px");
-        return card;
-    }
-
-    private RippleClickableCard getDiagnosticReportCard(DiagnosticReport diagnosticReport){
-        Image img = imageUtils.getImageByDocumentType(diagnosticReport.getResourceType().toString());
-        img.setWidth("40px");
-        img.setHeight("40px");
-        Optional<Identifier> frontendId = diagnosticReport.getIdentifier().stream().filter(item -> item.getSystem().equals(FhirId.Frontend.name())).findFirst();
-        String coding = diagnosticReport.getCode().getCoding().get(0).getDisplay();
-        String display = frontendId.isPresent() ? coding + " [" + frontendId.get().getValue() + "]" : coding + " UNDEFINED";
-        RippleClickableCard card = new RippleClickableCard(
-                getComponentEventListener(diagnosticReport),
-                new IconItem(img, display, diagnosticReport.getIssued() != null ? diagnosticReport.getIssued().toString() : null)
-        );
-        card.setWidthFull();
-        card.setHeight("100px");
-        return card;
-    }
-
-    private RippleClickableCard getProcedureCard(Procedure procedure){
-        Image img = imageUtils.getImageByDocumentType(procedure.getResourceType().toString());
-        img.setWidth("40px");
-        img.setHeight("40px");
-        Optional<Identifier> frontendId = procedure.getIdentifier().stream().filter(item -> item.getSystem().equals(FhirId.Frontend.name())).findFirst();
-        String coding = procedure.getCode().getCoding().get(0).getDisplay();
-        String display = frontendId.isPresent() ? coding + " [" + frontendId.get().getValue() + "]" : coding + " UNDEFINED";
-        RippleClickableCard card = new RippleClickableCard(
-                getComponentEventListener(procedure),
-                new IconItem(img, display, procedure.getPerformedDateTimeType().getValue().toString() != null ? procedure.getPerformedDateTimeType().getValue().toString() : null)
-        );
-        card.setWidthFull();
-        card.setHeight("100px");
-        return card;
-    }
-
-    private ComponentEventListener getComponentEventListener(DomainResource domainResource) {
-        return componentEvent -> {
-            switch (domainResource.getClass().getSimpleName()){
-                case "Observation":{
-                    Observation observation = (Observation) domainResource;
-                    fhirCashingContainer.setObservation(observation);
-                    UI.getCurrent().navigate(ObservationView.class);
-                    break;
-                }
-                case "DiagnosticReport":{
-                    DiagnosticReport report = (DiagnosticReport) domainResource;
-                    fhirCashingContainer.setReport(report);
-                    UI.getCurrent().navigate(DiagnosticReportView.class);
-                    break;
-                }
-                case "Procedure":{
-                    Procedure procedure = (Procedure) domainResource;
-                    fhirCashingContainer.setProcedure(procedure);
-                    UI.getCurrent().navigate(ProcedureView.class);
-                    break;
-                }
-            }
-        };
     }
 
     private HorizontalLayout setupPagingLayout() {
