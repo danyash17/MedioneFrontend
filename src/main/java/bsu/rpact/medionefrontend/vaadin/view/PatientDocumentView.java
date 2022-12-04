@@ -2,6 +2,7 @@ package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
 import bsu.rpact.medionefrontend.service.PatientService;
+import bsu.rpact.medionefrontend.service.medical.DiagnosticReportService;
 import bsu.rpact.medionefrontend.service.medical.ObservationService;
 import bsu.rpact.medionefrontend.service.medical.ProcedureService;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
@@ -33,6 +34,7 @@ public class PatientDocumentView extends VerticalLayout {
 
     private final ObservationService observationService;
     private final ProcedureService procedureService;
+    private final DiagnosticReportService diagnosticReportService;
     private final PatientService patientService;
     private final SessionManager sessionManager;
     private final FhirCashingContainer fhirCashingContainer;
@@ -48,7 +50,7 @@ public class PatientDocumentView extends VerticalLayout {
     private final Button searchButton;
     private final DatePicker datePicker;
     private List<Observation> observationList;
-    private List<DiagnosticReport> diagnosticReportList;
+    private Map<DiagnosticReport, Observation> diagnosticReportMap;
     private List<Procedure> procedureList;
     private Patient patient;
     private HorizontalLayout pagingLayout;
@@ -57,9 +59,10 @@ public class PatientDocumentView extends VerticalLayout {
     private Integer totalPages;
     private Label currentNumber = new Label();
 
-    public PatientDocumentView(ObservationService observationService, ProcedureService procedureService, PatientService patientService, SessionManager sessionManager, FhirCashingContainer fhirCashingContainer, ImageUtils imageUtils, RippleCardFactory rippleCardFactory) {
+    public PatientDocumentView(ObservationService observationService, ProcedureService procedureService, DiagnosticReportService diagnosticReportService, PatientService patientService, SessionManager sessionManager, FhirCashingContainer fhirCashingContainer, ImageUtils imageUtils, RippleCardFactory rippleCardFactory) {
         this.observationService = observationService;
         this.procedureService = procedureService;
+        this.diagnosticReportService = diagnosticReportService;
         this.patientService = patientService;
         this.sessionManager = sessionManager;
         this.fhirCashingContainer = fhirCashingContainer;
@@ -76,6 +79,7 @@ public class PatientDocumentView extends VerticalLayout {
         observations.setValue(true);
         reports = new Checkbox();
         reports.setLabel("Diagnostic reports");
+        reports.setValue(true);
         procedures = new Checkbox();
         procedures.setLabel("Procedures");
         procedures.setValue(true);
@@ -152,17 +156,21 @@ public class PatientDocumentView extends VerticalLayout {
     private Map<Date, DomainResource> buildDomainResourcesMap() {
         Map<Date, DomainResource> domainResources = new HashMap<>();
         if(observations.getValue()){
-            List<Observation> observationList = observationService.search(Patient.class, patient.getId());
+            observationList = observationService.search(Patient.class, patient.getId());
             observationList.stream().forEach(item -> {
                 if (item!=null && item.getIssued()!=null)
                 domainResources.put(item.getIssued(), item);
             });
         }
         if(reports.getValue()){
-
+            diagnosticReportMap = diagnosticReportService.searchIncluded(Patient.class, patient.getId());
+            diagnosticReportMap.keySet().stream().forEach(item -> {
+                if (item!=null && item.getIssued()!=null)
+                    domainResources.put(item.getIssued(), item);
+            });
         }
         if(procedures.getValue()){
-            List<Procedure> procedureList = procedureService.search(Patient.class, patient.getId());
+            procedureList = procedureService.search(Patient.class, patient.getId());
             procedureList.stream().forEach(item -> {
                 if (item!=null && item.getPerformedDateTimeType()!=null)
                     domainResources.put(item.getPerformedDateTimeType().getValue(), item);

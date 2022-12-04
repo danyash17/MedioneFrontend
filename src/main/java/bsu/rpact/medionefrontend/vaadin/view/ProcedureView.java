@@ -29,11 +29,15 @@ public class ProcedureView extends VerticalLayout {
     private String PATTERN = "yyyy-MM-dd";
     private SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(PATTERN);
 
-    private final FhirCashingContainer container;
+    private FhirCashingContainer container;
 
     public ProcedureView(FhirCashingContainer container) {
         this.container = container;
         Procedure procedure = container.getProcedure();
+        doInit(procedure);
+    }
+
+    protected void doInit(Procedure procedure) {
         HorizontalLayout layout = new HorizontalLayout();
         layout.setJustifyContentMode(JustifyContentMode.CENTER);
         layout.setAlignItems(Alignment.CENTER);

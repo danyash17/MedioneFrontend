@@ -3,6 +3,7 @@ package bsu.rpact.medionefrontend;
 import bsu.rpact.medionefrontend.adapter.medical.FhirBaseAdapter;
 import bsu.rpact.medionefrontend.enums.FhirId;
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.model.api.Include;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import org.hl7.fhir.instance.model.api.IIdType;
@@ -167,6 +168,46 @@ class MedioneFrontendApplicationTests {
     }
 
     @Test
+    void createDiagnosticReport(){
+        DiagnosticReport report = new DiagnosticReport();
+        report.setStatus(DiagnosticReport.DiagnosticReportStatus.FINAL);
+        CodeableConcept codeableConcept = new CodeableConcept();
+        Coding coding = new Coding();
+        coding.setSystem("http://snomed.info/sct");
+        coding.setCode("252275004");
+        coding.setDisplay("Haematology test");
+        codeableConcept.addCoding(coding);
+        report.setCode(codeableConcept);
+        report.setIssued(DATETIME);
+        Identifier businessIdentifier = new Identifier();
+        businessIdentifier.setValue("19");
+        businessIdentifier.setSystem(FhirId.Patient.name());
+        Identifier performerIdentifier = new Identifier();
+        performerIdentifier.setValue("1");
+        performerIdentifier.setSystem(FhirId.Doctor.name());
+        Identifier frontendIdentifier = new Identifier();
+        String firstWordLetters = Arrays.stream(report.getCode().getCodingFirstRep()
+                        .getDisplay().split(" "))
+                .filter(s -> s.matches("[a-zA-Z0-9]*"))
+                .map(s -> s.substring(0, 1))
+                .collect(Collectors.joining());
+        String identifierFirstWordLettersAndTime = firstWordLetters+DATETIME.getTime();
+        frontendIdentifier.setValue(identifierFirstWordLettersAndTime);
+        frontendIdentifier.setSystem(FhirId.Frontend.name());
+        report.setIdentifier(Arrays.asList(businessIdentifier,frontendIdentifier, performerIdentifier));
+        Reference observation = new Reference();
+        observation.setReference("Observation/155");
+        observation.setDisplay("Carbon dioxide in blood");
+        report.setResult(Arrays.asList(observation));
+        MethodOutcome outcome = fhirBaseAdapter.getClient()
+                .create()
+                .resource(report)
+                .execute();
+        IIdType id = outcome.getId();
+        System.out.println(id);
+    }
+
+    @Test
     void delete(){
         fhirBaseAdapter.getClient().delete().resourceById(new IdType("Observation","104")).execute();
         fhirBaseAdapter.getClient().delete().resourceById(new IdType("Observation","105")).execute();
@@ -203,6 +244,20 @@ class MedioneFrontendApplicationTests {
         Bundle response = client.search()
                 .forResource(Observation.class)
                 .where(Observation.IDENTIFIER.exactly().systemAndIdentifier("Patient","19"))
+                .returnBundle(Bundle.class)
+                .execute();
+        String string = ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(response);
+        System.out.println(string);
+    }
+
+    @Test
+    void searchMultiple(){
+        FhirContext ctx = FhirContext.forR4();
+        IGenericClient client = ctx.newRestfulGenericClient(fhirServer);
+        Bundle response = client.search()
+                .forResource(DiagnosticReport.class)
+                .where(DiagnosticReport.RESULT.hasAnyOfIds("Observation/155"))
+                .include(new Include(DiagnosticReport.class.getSimpleName() + ":" + DiagnosticReport.RESULT.getParamName()))
                 .returnBundle(Bundle.class)
                 .execute();
         String string = ctx.newJsonParser().setPrettyPrint(true).encodeResourceToString(response);

@@ -49,11 +49,15 @@ public class ImageUtils {
         Image image;
         switch (documentType){
             case "Observation" : {
-                image = new Image("icons/documents/observation.png", "icons/question.png");
+                image = new Image("icons/documents/observation1.png", "icons/question.png");
                 break;
             }
             case "Procedure" : {
                 image = new Image("icons/documents/procedure.png", "icons/question.png");
+                break;
+            }
+            case "DiagnosticReport" : {
+                image = new Image("icons/documents/report1.png", "icons/question.png");
                 break;
             }
             default: {

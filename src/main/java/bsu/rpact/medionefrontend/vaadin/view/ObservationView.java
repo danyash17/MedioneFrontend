@@ -28,11 +28,15 @@ public class ObservationView extends VerticalLayout {
     private String PATTERN = "yyyy-MM-dd";
     private SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(PATTERN);
 
-    private final FhirCashingContainer container;
+    private FhirCashingContainer container;
 
     public ObservationView(FhirCashingContainer container) {
         this.container = container;
         Observation observation = container.getObservation();
+        doInit(observation);
+    }
+
+    protected void doInit(Observation observation) {
         HorizontalLayout layout = new HorizontalLayout();
         layout.setJustifyContentMode(JustifyContentMode.CENTER);
         layout.setAlignItems(Alignment.CENTER);
