@@ -45,4 +45,13 @@ public class DoctorAdapter extends DemographicBaseAdapter {
                 .bodyToMono(MessageResponse.class)
                 .block();
     }
+
+    public Doctor getById(Integer id) {
+        return webClient.get()
+                .uri(doctorMapping + "/" + id)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(Doctor.class)
+                .block();
+    }
 }

@@ -264,4 +264,40 @@ class MedioneFrontendApplicationTests {
         System.out.println(string);
     }
 
+    @Test
+    void updateReport(){
+        FhirContext ctx = FhirContext.forR4();
+        IGenericClient client = ctx.newRestfulGenericClient(fhirServer);
+        Bundle response = client.search()
+                .forResource(DiagnosticReport.class)
+                .where(DiagnosticReport.RESULT.hasAnyOfIds("Observation/155"))
+                .include(new Include(DiagnosticReport.class.getSimpleName() + ":" + DiagnosticReport.RESULT.getParamName()))
+                .returnBundle(Bundle.class)
+                .execute();
+        Bundle.BundleEntryComponent entryComponent = response.getEntryFirstRep();
+        DiagnosticReport report = (DiagnosticReport) entryComponent.getResource();
+        CodeableConcept icdC = new CodeableConcept();
+        Coding icd = new Coding();
+        icd.setSystem("https://icd.who.int/browse11/l-m/en#/http%3A%2F%2Fid.who.int%2Ficd%2Fentity%2F");
+        icd.setCode("457240160");
+        icd.setDisplay("Carcinoma of breast, specialised type");
+        icdC.setCoding(Arrays.asList(icd));
+        icdC.setText("ICD-11");
+        CodeableConcept orpanetC = new CodeableConcept();
+        Coding orpanet = new Coding();
+        orpanet.setSystem("https://www.orpha.net/consor/cgi-bin/Disease_Search_Simple.php?lng=EN&diseaseGroup=");
+        orpanet.setCode("Rare adenocarcinoma of the breast");
+        orpanet.setDisplay("Rare adenocarcinoma of the breast");
+        orpanetC.setCoding(Arrays.asList(orpanet));
+        orpanetC.setText("Orpanet");
+        report.addConclusionCode(icdC);
+        report.addConclusionCode(orpanetC);
+        MethodOutcome outcome = client
+                .update()
+                .resource(report)
+                .execute();
+        IIdType id = outcome.getId();
+        System.out.println("Updated report, ID: " + id);
+    }
+
 }

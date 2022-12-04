@@ -36,6 +36,10 @@ public class DoctorService {
         return result;
     }
 
+    public Doctor getDoctorById(Integer id){
+        return doctorAdapter.getById(id);
+    }
+
     public Doctor getDoctorSelf() {
         return doctorAdapter.getSelf();
     }

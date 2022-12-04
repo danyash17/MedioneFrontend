@@ -43,7 +43,7 @@ public class RippleCardFactory {
         String display = getDisplayString(img, container.getReport().getIdentifier(), container.getReport().getCode());
         RippleClickableCard card = new RippleClickableCard(
                 getComponentEventListener(container),
-                new IconItem(img, display, container.getReport().getIssued() != null ? container.getReport().toString() : null)
+                new IconItem(img, display, container.getReport().getIssued() != null ? container.getReport().getIssued().toString() : null)
         );
         card.setWidthFull();
         card.setHeight("100px");
@@ -82,7 +82,7 @@ public class RippleCardFactory {
                 }
                 case "DiagnosticReportContainer":{
                     DiagnosticReportContainer report = (DiagnosticReportContainer) domainResource;
-                    fhirCashingContainer.setReport(report);
+                    fhirCashingContainer.setReportContainer(report);
                     UI.getCurrent().navigate(DiagnosticReportView.class);
                     break;
                 }

@@ -1,7 +1,6 @@
 package bsu.rpact.medionefrontend.session;
 
 import bsu.rpact.medionefrontend.entity.medical.DiagnosticReportContainer;
-import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Procedure;
 import org.springframework.stereotype.Component;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class FhirCashingContainer {
 
     private Observation observation;
-    private DiagnosticReportContainer report;
+    private DiagnosticReportContainer reportContainer;
     private Procedure procedure;
 
     public Observation getObservation() {
@@ -21,12 +20,12 @@ public class FhirCashingContainer {
         this.observation = observation;
     }
 
-    public DiagnosticReportContainer getReport() {
-        return report;
+    public DiagnosticReportContainer getReportContainer() {
+        return reportContainer;
     }
 
-    public void setReport(DiagnosticReportContainer report) {
-        this.report = report;
+    public void setReportContainer(DiagnosticReportContainer reportContainer) {
+        this.reportContainer = reportContainer;
     }
 
     public Procedure getProcedure() {
