@@ -1,6 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
+import bsu.rpact.medionefrontend.entity.medical.DiagnosticReportContainer;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.DiagnosticReportService;
 import bsu.rpact.medionefrontend.service.medical.ObservationService;
@@ -144,7 +145,16 @@ public class PatientDocumentView extends VerticalLayout {
         }
         if (resource instanceof DiagnosticReport){
             DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
-            return rippleCardFactory.getDiagnosticReportCard(diagnosticReport);
+            DiagnosticReportContainer container = new DiagnosticReportContainer();
+            container.setReport(diagnosticReport);
+            List<Observation> properObservations = new ArrayList<>();
+            diagnosticReportMap.forEach((key, value) -> {
+                if(key.equals(diagnosticReport)){
+                    properObservations.add(value);
+                }
+            });
+            container.setObservationList(properObservations);
+            return rippleCardFactory.getDiagnosticReportCard(container);
         }
         if (resource instanceof Procedure){
             Procedure procedure = (Procedure) resource;

@@ -1,5 +1,6 @@
 package bsu.rpact.medionefrontend.utils;
 
+import bsu.rpact.medionefrontend.entity.medical.DiagnosticReportContainer;
 import bsu.rpact.medionefrontend.enums.FhirId;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
 import bsu.rpact.medionefrontend.vaadin.view.DiagnosticReportView;
@@ -37,12 +38,12 @@ public class RippleCardFactory {
         return card;
     }
 
-    public RippleClickableCard getDiagnosticReportCard(DiagnosticReport diagnosticReport){
-        Image img = imageUtils.getImageByDocumentType(diagnosticReport.getResourceType().toString());
-        String display = getDisplayString(img, diagnosticReport.getIdentifier(), diagnosticReport.getCode());
+    public RippleClickableCard getDiagnosticReportCard(DiagnosticReportContainer container){
+        Image img = imageUtils.getImageByDocumentType(container.getReport().getResourceType().toString());
+        String display = getDisplayString(img, container.getReport().getIdentifier(), container.getReport().getCode());
         RippleClickableCard card = new RippleClickableCard(
-                getComponentEventListener(diagnosticReport),
-                new IconItem(img, display, diagnosticReport.getIssued() != null ? diagnosticReport.getIssued().toString() : null)
+                getComponentEventListener(container),
+                new IconItem(img, display, container.getReport().getIssued() != null ? container.getReport().toString() : null)
         );
         card.setWidthFull();
         card.setHeight("100px");
@@ -79,8 +80,8 @@ public class RippleCardFactory {
                     UI.getCurrent().navigate(ObservationView.class);
                     break;
                 }
-                case "DiagnosticReport":{
-                    DiagnosticReport report = (DiagnosticReport) domainResource;
+                case "DiagnosticReportContainer":{
+                    DiagnosticReportContainer report = (DiagnosticReportContainer) domainResource;
                     fhirCashingContainer.setReport(report);
                     UI.getCurrent().navigate(DiagnosticReportView.class);
                     break;
