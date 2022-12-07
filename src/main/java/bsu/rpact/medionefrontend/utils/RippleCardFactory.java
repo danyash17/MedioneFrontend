@@ -28,7 +28,9 @@ public class RippleCardFactory {
 
     public RippleClickableCard getObservationCard(Observation observation){
         Image img = imageUtils.getImageByDocumentType(observation.getResourceType().toString());
-        String display = getDisplayString(img, observation.getIdentifier(), observation.getCode());
+        img.setWidth("40px");
+        img.setHeight("40px");
+        String display = getDisplayString(observation.getIdentifier(), observation.getCode());
         RippleClickableCard card = new RippleClickableCard(
                 getComponentEventListener(observation),
                 new IconItem(img, display, observation.getIssued() != null ? observation.getIssued().toString() : null)
@@ -40,7 +42,9 @@ public class RippleCardFactory {
 
     public RippleClickableCard getDiagnosticReportCard(DiagnosticReportContainer container){
         Image img = imageUtils.getImageByDocumentType(container.getReport().getResourceType().toString());
-        String display = getDisplayString(img, container.getReport().getIdentifier(), container.getReport().getCode());
+        img.setWidth("40px");
+        img.setHeight("40px");
+        String display = getDisplayString(container.getReport().getIdentifier(), container.getReport().getCode());
         RippleClickableCard card = new RippleClickableCard(
                 getComponentEventListener(container),
                 new IconItem(img, display, container.getReport().getIssued() != null ? container.getReport().getIssued().toString() : null)
@@ -52,7 +56,9 @@ public class RippleCardFactory {
 
     public RippleClickableCard getProcedureCard(Procedure procedure){
         Image img = imageUtils.getImageByDocumentType(procedure.getResourceType().toString());
-        String display = getDisplayString(img, procedure.getIdentifier(), procedure.getCode());
+        img.setWidth("40px");
+        img.setHeight("40px");
+        String display = getDisplayString(procedure.getIdentifier(), procedure.getCode());
         RippleClickableCard card = new RippleClickableCard(
                 getComponentEventListener(procedure),
                 new IconItem(img, display, procedure.getPerformedDateTimeType().getValue().toString() != null ? procedure.getPerformedDateTimeType().getValue().toString() : null)
@@ -62,11 +68,9 @@ public class RippleCardFactory {
         return card;
     }
 
-    private String getDisplayString(Image img, List<Identifier> observation, CodeableConcept observation1) {
-        img.setWidth("40px");
-        img.setHeight("40px");
-        Optional<Identifier> frontendId = observation.stream().filter(item -> item.getSystem().equals(FhirId.Frontend.name())).findFirst();
-        String coding = observation1.getCoding().get(0).getDisplay();
+    public String getDisplayString(List<Identifier> id, CodeableConcept code) {
+        Optional<Identifier> frontendId = id.stream().filter(item -> item.getSystem().equals(FhirId.Frontend.name())).findFirst();
+        String coding = code.getCoding().get(0).getDisplay();
         String display = frontendId.isPresent() ? coding + " [" + frontendId.get().getValue() + "]" : coding + " UNDEFINED";
         return display;
     }

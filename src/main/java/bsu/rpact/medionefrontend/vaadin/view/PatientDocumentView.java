@@ -28,6 +28,9 @@ import com.vaadin.flow.router.Route;
 import org.hl7.fhir.r4.model.*;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Route(value = "documents", layout = MainLayout.class)
 @PageTitle("Documents")
@@ -42,17 +45,20 @@ public class PatientDocumentView extends VerticalLayout {
     private final ImageUtils imageUtils;
     private final RippleCardFactory rippleCardFactory;
 
-    private final ListContentPanel listContentPanel;
-    private final TextField searchField;
-    private final List<RippleClickableCard> cardList;
+    private ListContentPanel listContentPanel;
+    private TextField searchField;
+    private List<RippleClickableCard> cardList;
     private final Checkbox observations;
     private final Checkbox reports;
     private final Checkbox procedures;
     private final Button searchButton;
-    private final DatePicker datePicker;
-    private List<Observation> observationList;
-    private Map<DiagnosticReport, Observation> diagnosticReportMap;
-    private List<Procedure> procedureList;
+    private DatePicker datePicker;
+    private List<Observation> displayableObservationList;
+    private Map<DiagnosticReport, Observation> displayableDiagnosticReportMap;
+    private List<Procedure> displayableProcedureList;
+    private List<Observation> storedObservationList;
+    private Map<DiagnosticReport, Observation> storedDiagnosticReportMap;
+    private List<Procedure> storedProcedureList;
     private Patient patient;
     private HorizontalLayout pagingLayout;
     private Integer itemsPerPage = 7;
@@ -88,28 +94,80 @@ public class PatientDocumentView extends VerticalLayout {
         searchButton.addClickListener(e -> {
             setupSearch();
         });
+        storedObservationList = observationService.search(Patient.class, patient.getId());
+        storedDiagnosticReportMap = diagnosticReportService.searchIncluded(Patient.class, patient.getId());
+        storedProcedureList = procedureService.search(Patient.class, patient.getId());
+        displayableObservationList = new ArrayList<>();
+        displayableProcedureList = new ArrayList<>();
+        displayableDiagnosticReportMap = new HashMap<DiagnosticReport,Observation>();
+        displayableObservationList.addAll(storedObservationList);
+        displayableProcedureList.addAll(storedProcedureList);
+        displayableDiagnosticReportMap.putAll(storedDiagnosticReportMap);
+        datePicker = new DatePicker();
         searchField = new TextField();
+        datePicker.setLabel("Issued at");
+        searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchField.setPlaceholder("Search criteria");
+        listContentPanel.add(searchField, observations, reports, procedures, datePicker, searchButton);
+        setupMainArea();
+    }
+
+    private void setupMainArea() {
         cardList = getAllCards();
         totalPages = (int) Math.ceil((double) cardList.size() / itemsPerPage);
         pagingLayout = setupPagingLayout();
-        datePicker = new DatePicker();
-        datePicker.setLabel("Issued at");
-        searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        listContentPanel.add(searchField, observations, reports, procedures, datePicker, searchButton);
-        populateCurrentCards(listContentPanel, cardList);
+        populateCurrentCards(cardList);
         listContentPanel.add(pagingLayout);
         add(listContentPanel);
-
     }
 
     private void setupSearch() {
-
+        String criteria = searchField.getValue();
+        if (observations.getValue()){
+            displayableObservationList = doSearchObservation(criteria);
+        }
+        if (procedures.getValue()){
+            displayableProcedureList = doProcedureSearch(criteria);
+        }
+        if (reports.getValue()){
+            displayableDiagnosticReportMap = doReportSearch(criteria);
+        }
+        setupMainArea();
     }
 
-    private void populateCurrentCards(ListContentPanel listContentPanel, List cardList) {
-        listContentPanel.removeAsList(cardList);
-        listContentPanel.remove(pagingLayout);
+    private Map<DiagnosticReport, Observation> doReportSearch(String criteria) {
+        return storedDiagnosticReportMap.entrySet()
+                .stream()
+                .filter(map ->{
+                    String display = rippleCardFactory.getDisplayString(map.getKey().getIdentifier(), map.getKey().getCode());
+                    Pattern pattern = Pattern.compile(criteria, Pattern.CASE_INSENSITIVE);
+                    Matcher matcher = pattern.matcher(display);
+                    return matcher.find();
+                })
+                .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
+    }
+
+    private List<Procedure> doProcedureSearch(String criteria) {
+        return storedProcedureList.stream().filter(procedure -> {
+            String display = rippleCardFactory.getDisplayString(procedure.getIdentifier(), procedure.getCode());
+            Pattern pattern = Pattern.compile(criteria, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(display);
+            return matcher.find();
+        }).collect(Collectors.toList());
+    }
+
+    private List<Observation> doSearchObservation(String criteria) {
+        return storedObservationList.stream().filter(observation -> {
+            String display = rippleCardFactory.getDisplayString(observation.getIdentifier(), observation.getCode());
+            Pattern pattern = Pattern.compile(criteria, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(display);
+            return matcher.find();
+        }).collect(Collectors.toList());
+    }
+
+    private void populateCurrentCards(List cardList) {
+        listContentPanel.removeAllCards();
+        listContentPanel.removeAllHorizontalLayouts();
         boolean firstPage = currentPage == 1;
         boolean lastPage = currentPage == totalPages;
         if (firstPage) {
@@ -148,7 +206,7 @@ public class PatientDocumentView extends VerticalLayout {
             DiagnosticReportContainer container = new DiagnosticReportContainer();
             container.setReport(diagnosticReport);
             List<Observation> properObservations = new ArrayList<>();
-            diagnosticReportMap.forEach((key, value) -> {
+            displayableDiagnosticReportMap.forEach((key, value) -> {
                 if(key.equals(diagnosticReport)){
                     properObservations.add(value);
                 }
@@ -166,22 +224,20 @@ public class PatientDocumentView extends VerticalLayout {
     private Map<Date, DomainResource> buildDomainResourcesMap() {
         Map<Date, DomainResource> domainResources = new HashMap<>();
         if(observations.getValue()){
-            observationList = observationService.search(Patient.class, patient.getId());
-            observationList.stream().forEach(item -> {
+            observationService.search(Patient.class, patient.getId());
+            displayableObservationList.stream().forEach(item -> {
                 if (item!=null && item.getIssued()!=null)
                 domainResources.put(item.getIssued(), item);
             });
         }
         if(reports.getValue()){
-            diagnosticReportMap = diagnosticReportService.searchIncluded(Patient.class, patient.getId());
-            diagnosticReportMap.keySet().stream().forEach(item -> {
+            displayableDiagnosticReportMap.keySet().stream().forEach(item -> {
                 if (item!=null && item.getIssued()!=null)
                     domainResources.put(item.getIssued(), item);
             });
         }
         if(procedures.getValue()){
-            procedureList = procedureService.search(Patient.class, patient.getId());
-            procedureList.stream().forEach(item -> {
+            displayableProcedureList.stream().forEach(item -> {
                 if (item!=null && item.getPerformedDateTimeType()!=null)
                     domainResources.put(item.getPerformedDateTimeType().getValue(), item);
             });
@@ -202,28 +258,28 @@ public class PatientDocumentView extends VerticalLayout {
         buttonLeft.addClickListener(e -> {
             if (currentPage > 1) {
                 currentPage--;
-                populateCurrentCards(listContentPanel, cardList);
+                populateCurrentCards(cardList);
             }
         });
         Button buttonDoubleLeft = new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_LEFT));
         buttonDoubleLeft.addClickListener(e -> {
             if (currentPage > 1) {
                 currentPage = 1;
-                populateCurrentCards(listContentPanel, cardList);
+                populateCurrentCards(cardList);
             }
         });
         Button buttonRight = new Button(new Icon(VaadinIcon.ANGLE_RIGHT));
         buttonRight.addClickListener(e -> {
             if (currentPage < totalPages) {
                 currentPage++;
-                populateCurrentCards(listContentPanel, cardList);
+                populateCurrentCards(cardList);
             }
         });
         Button buttonDoubleRight = new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
         buttonDoubleRight.addClickListener(e -> {
             if (currentPage < totalPages) {
                 currentPage = totalPages;
-                populateCurrentCards(listContentPanel, cardList);
+                populateCurrentCards(cardList);
             }
         });
         Label page = new Label("Page ");

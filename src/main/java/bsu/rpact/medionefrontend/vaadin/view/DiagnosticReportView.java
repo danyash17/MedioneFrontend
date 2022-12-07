@@ -72,7 +72,7 @@ public class DiagnosticReportView extends VerticalLayout {
         Grid<Observation> refGrid = new Grid<>();
         refGrid.setItems(container.getReportContainer().getObservationList());
         refGrid.addComponentColumn(observation -> {
-            Details dtls = new Details();
+            Details dtls;
             dtls = new Details(observation.getCode().getCodingFirstRep().getDisplay(), new ObservationViewComp(observation));
             return dtls;
         }).setHeader("Observation");
