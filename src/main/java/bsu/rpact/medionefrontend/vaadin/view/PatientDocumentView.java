@@ -53,6 +53,7 @@ public class PatientDocumentView extends VerticalLayout {
     private final Checkbox procedures;
     private final Button searchButton;
     private DatePicker datePicker;
+    private Button returnList;
     private List<Observation> displayableObservationList;
     private Map<DiagnosticReport, Observation> displayableDiagnosticReportMap;
     private List<Procedure> displayableProcedureList;
@@ -61,7 +62,7 @@ public class PatientDocumentView extends VerticalLayout {
     private List<Procedure> storedProcedureList;
     private Patient patient;
     private HorizontalLayout pagingLayout;
-    private Integer itemsPerPage = 7;
+    private Integer itemsPerPage = 5;
     private Integer currentPage = 1;
     private Integer totalPages;
     private Label currentNumber = new Label();
@@ -91,8 +92,12 @@ public class PatientDocumentView extends VerticalLayout {
         procedures.setLabel("Procedures");
         procedures.setValue(true);
         searchButton = new Button("Search");
+        returnList = new Button("Return full list");
         searchButton.addClickListener(e -> {
             setupSearch();
+        });
+        returnList.addClickListener(e -> {
+           setupReturn();
         });
         storedObservationList = observationService.search(Patient.class, patient.getId());
         storedDiagnosticReportMap = diagnosticReportService.searchIncluded(Patient.class, patient.getId());
@@ -100,15 +105,25 @@ public class PatientDocumentView extends VerticalLayout {
         displayableObservationList = new ArrayList<>();
         displayableProcedureList = new ArrayList<>();
         displayableDiagnosticReportMap = new HashMap<DiagnosticReport,Observation>();
-        displayableObservationList.addAll(storedObservationList);
-        displayableProcedureList.addAll(storedProcedureList);
-        displayableDiagnosticReportMap.putAll(storedDiagnosticReportMap);
+        cloneStoredToDisplayable();
         datePicker = new DatePicker();
         searchField = new TextField();
         datePicker.setLabel("Issued at");
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchField.setPlaceholder("Search criteria");
-        listContentPanel.add(searchField, observations, reports, procedures, datePicker, searchButton);
+        listContentPanel.add(searchField, observations, reports, procedures, datePicker, searchButton, returnList);
+        setupMainArea();
+    }
+
+    private void cloneStoredToDisplayable() {
+        displayableObservationList.addAll(storedObservationList);
+        displayableProcedureList.addAll(storedProcedureList);
+        displayableDiagnosticReportMap.putAll(storedDiagnosticReportMap);
+    }
+
+    private void setupReturn() {
+        searchField.clear();
+        cloneStoredToDisplayable();
         setupMainArea();
     }
 
