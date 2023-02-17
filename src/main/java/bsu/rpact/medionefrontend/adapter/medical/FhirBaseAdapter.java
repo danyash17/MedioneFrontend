@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-public class FhirBaseAdapter {
+public abstract class FhirBaseAdapter {
 
     @Value("${fhir.serverbase}")
     private String server;

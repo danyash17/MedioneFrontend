@@ -25,8 +25,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hl7.fhir.r4.model.*;
 
+import java.time.ZoneId;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,7 +64,7 @@ public class PatientDocumentView extends VerticalLayout {
     private List<Procedure> storedProcedureList;
     private Patient patient;
     private HorizontalLayout pagingLayout;
-    private Integer itemsPerPage = 5;
+    private Integer itemsPerPage = 6;
     private Integer currentPage = 1;
     private Integer totalPages;
     private Label currentNumber = new Label();
@@ -97,14 +99,14 @@ public class PatientDocumentView extends VerticalLayout {
             setupSearch();
         });
         returnList.addClickListener(e -> {
-           setupReturn();
+            setupReturn();
         });
         storedObservationList = observationService.search(Patient.class, patient.getId());
         storedDiagnosticReportMap = diagnosticReportService.searchIncluded(Patient.class, patient.getId());
         storedProcedureList = procedureService.search(Patient.class, patient.getId());
         displayableObservationList = new ArrayList<>();
         displayableProcedureList = new ArrayList<>();
-        displayableDiagnosticReportMap = new HashMap<DiagnosticReport,Observation>();
+        displayableDiagnosticReportMap = new HashMap<DiagnosticReport, Observation>();
         cloneStoredToDisplayable();
         datePicker = new DatePicker();
         searchField = new TextField();
@@ -138,14 +140,37 @@ public class PatientDocumentView extends VerticalLayout {
 
     private void setupSearch() {
         String criteria = searchField.getValue();
-        if (observations.getValue()){
+        if (observations.getValue()) {
             displayableObservationList = doSearchObservation(criteria);
         }
-        if (procedures.getValue()){
+        if (procedures.getValue()) {
             displayableProcedureList = doProcedureSearch(criteria);
         }
-        if (reports.getValue()){
+        if (reports.getValue()) {
             displayableDiagnosticReportMap = doReportSearch(criteria);
+        }
+        if (!datePicker.isEmpty()) {
+            if (observations.getValue()) {
+                displayableObservationList = displayableObservationList.stream().filter(observation -> {
+                    return DateUtils.truncate(observation.getIssued(), java.util.Calendar.DAY_OF_MONTH).equals
+                            (Date.from(datePicker.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                }).collect(Collectors.toList());
+            }
+            if (procedures.getValue()) {
+                displayableProcedureList = displayableProcedureList.stream().filter(procedure -> {
+                    return DateUtils.truncate(procedure.getPerformedDateTimeType(), java.util.Calendar.DAY_OF_MONTH).equals
+                            (Date.from(datePicker.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                }).collect(Collectors.toList());
+            }
+            if (reports.getValue()) {
+                displayableDiagnosticReportMap = displayableDiagnosticReportMap.entrySet()
+                        .stream()
+                        .filter(map -> {
+                            return DateUtils.truncate(map.getKey().getIssued(), java.util.Calendar.DAY_OF_MONTH).equals
+                                    (Date.from(datePicker.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                        })
+                        .collect(Collectors.toMap(map -> map.getKey(), map -> map.getValue()));
+            }
         }
         setupMainArea();
     }
@@ -153,7 +178,7 @@ public class PatientDocumentView extends VerticalLayout {
     private Map<DiagnosticReport, Observation> doReportSearch(String criteria) {
         return storedDiagnosticReportMap.entrySet()
                 .stream()
-                .filter(map ->{
+                .filter(map -> {
                     String display = rippleCardFactory.getDisplayString(map.getKey().getIdentifier(), map.getKey().getCode());
                     Pattern pattern = Pattern.compile(criteria, Pattern.CASE_INSENSITIVE);
                     Matcher matcher = pattern.matcher(display);
@@ -205,31 +230,31 @@ public class PatientDocumentView extends VerticalLayout {
     private List<RippleClickableCard> getAllCards() {
         List<RippleClickableCard> cardList = new LinkedList();
         List<DomainResource> domainResources = sortDomainResourcesToList(buildDomainResourcesMap());
-        for (DomainResource resource : domainResources){
+        for (DomainResource resource : domainResources) {
             cardList.add(getProperCard(resource));
         }
         return cardList;
     }
 
     private RippleClickableCard getProperCard(DomainResource resource) {
-        if (resource instanceof Observation){
+        if (resource instanceof Observation) {
             Observation observation = (Observation) resource;
             return rippleCardFactory.getObservationCard(observation);
         }
-        if (resource instanceof DiagnosticReport){
+        if (resource instanceof DiagnosticReport) {
             DiagnosticReport diagnosticReport = (DiagnosticReport) resource;
             DiagnosticReportContainer container = new DiagnosticReportContainer();
             container.setReport(diagnosticReport);
             List<Observation> properObservations = new ArrayList<>();
             displayableDiagnosticReportMap.forEach((key, value) -> {
-                if(key.equals(diagnosticReport)){
+                if (key.equals(diagnosticReport)) {
                     properObservations.add(value);
                 }
             });
             container.setObservationList(properObservations);
             return rippleCardFactory.getDiagnosticReportCard(container);
         }
-        if (resource instanceof Procedure){
+        if (resource instanceof Procedure) {
             Procedure procedure = (Procedure) resource;
             return rippleCardFactory.getProcedureCard(procedure);
         }
@@ -238,30 +263,30 @@ public class PatientDocumentView extends VerticalLayout {
 
     private Map<Date, DomainResource> buildDomainResourcesMap() {
         Map<Date, DomainResource> domainResources = new HashMap<>();
-        if(observations.getValue()){
+        if (observations.getValue()) {
             observationService.search(Patient.class, patient.getId());
             displayableObservationList.stream().forEach(item -> {
-                if (item!=null && item.getIssued()!=null)
-                domainResources.put(item.getIssued(), item);
-            });
-        }
-        if(reports.getValue()){
-            displayableDiagnosticReportMap.keySet().stream().forEach(item -> {
-                if (item!=null && item.getIssued()!=null)
+                if (item != null && item.getIssued() != null)
                     domainResources.put(item.getIssued(), item);
             });
         }
-        if(procedures.getValue()){
+        if (reports.getValue()) {
+            displayableDiagnosticReportMap.keySet().stream().forEach(item -> {
+                if (item != null && item.getIssued() != null)
+                    domainResources.put(item.getIssued(), item);
+            });
+        }
+        if (procedures.getValue()) {
             displayableProcedureList.stream().forEach(item -> {
-                if (item!=null && item.getPerformedDateTimeType()!=null)
+                if (item != null && item.getPerformedDateTimeType() != null)
                     domainResources.put(item.getPerformedDateTimeType().getValue(), item);
             });
         }
         return domainResources;
     }
 
-    private List<DomainResource> sortDomainResourcesToList(Map<Date,DomainResource> map){
-        Map<Date,DomainResource> sortedMap = new TreeMap<>(map);
+    private List<DomainResource> sortDomainResourcesToList(Map<Date, DomainResource> map) {
+        Map<Date, DomainResource> sortedMap = new TreeMap<>(map);
         return new ArrayList<>(sortedMap.values());
     }
 
