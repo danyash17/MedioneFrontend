@@ -17,6 +17,7 @@
         <java.version>11</java.version>
         <vaadin.version>23.0.9</vaadin.version>
         <hapi-fhir-maven.version>6.1.2</hapi-fhir-maven.version>
+        <start-class>bsu.rpact.medionefrontend.MedioneFrontendApplication</start-class>
     </properties>
     <repositories>
         <repository>
@@ -179,6 +180,21 @@
                                 <configuration>
                                     <productionMode>true</productionMode>
                                 </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <fork>true</fork>
+                            <mainClass>${start-class}</mainClass>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>

@@ -136,7 +136,8 @@ public class MainLayout extends AppLayout implements LocaleChangeObserver {
                 ? VisitViewPatient.class : sessionManager.getRoleAttribute().equals(Role.DOCTOR.name()) ? VisitViewDoctor.class : HomeView.class);
         profileLink = new RouterLink(getTranslation("root.navbar.profile"), ProfileView.class);
         medcardLink = new RouterLink(getTranslation("root.navbar.medcard"), MedcardView.class);
-        documentLink = new RouterLink(getTranslation("root.navbar.documents"), PatientDocumentView.class);
+        documentLink = new RouterLink(getTranslation("root.navbar.documents"), sessionManager.getRoleAttribute().equals(Role.PATIENT.name())
+                ? PatientDocumentView.class : sessionManager.getRoleAttribute().equals(Role.DOCTOR.name()) ? DoctorDocumentView.class : HomeView.class);
         notesLink = new RouterLink(getTranslation("root.navbar.notes"), NoteView.class);
         homeLink.setHighlightCondition(HighlightConditions.sameLocation());
         VerticalLayout layout;
