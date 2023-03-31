@@ -2,9 +2,11 @@ package bsu.rpact.medionefrontend.adapter.demographic;
 
 import bsu.rpact.medionefrontend.entity.Patient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -22,4 +24,23 @@ public class PatientAdapter extends DemographicBaseAdapter {
                 .block());
     }
 
+    public List<Patient> getAll() {
+        return webClient.get()
+                .uri(mapping + "all")
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Patient>>() {
+                })
+                .block();
+    }
+
+    public List<Patient> findBySearchTerm(String searchTerm) {
+        return webClient.get()
+                .uri(mapping + "search/" + searchTerm)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Patient>>() {
+                })
+                .block();
+    }
 }

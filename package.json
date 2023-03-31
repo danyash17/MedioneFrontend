@@ -122,6 +122,7 @@
     "construct-style-sheets-polyfill": "3.0.4",
     "cropperjs": "1.5.12",
     "date-fns": "2.28.0",
+    "fluid-meter": "1.1.2",
     "lit": "2.1.4",
     "lit-element": "^2.2.1",
     "lit-html": "^1.1.2",
@@ -270,6 +271,7 @@
       "construct-style-sheets-polyfill": "3.0.4",
       "cropperjs": "1.5.12",
       "date-fns": "2.28.0",
+      "fluid-meter": "1.1.2",
       "lit": "2.1.4",
       "lit-element": "^2.2.1",
       "lit-html": "^1.1.2",
@@ -297,7 +299,7 @@
       "workbox-precaching": "6.5.0",
       "workbox-webpack-plugin": "6.5.0"
     },
-    "hash": "e07f42aa17451215cf25d6c89ce3f16f4580fadabc0643c9f9f7b4d895b4efca"
+    "hash": "8d999ea41dcdf717cf5ce9a23d72f3c39d9e29f4d8aff2e474213cfe89822fb8"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -423,6 +425,7 @@
     "@vaadin-component-factory/vcf-toggle-button": "$@vaadin-component-factory/vcf-toggle-button",
     "@vaadin-component-factory/vcf-pdf-viewer": "$@vaadin-component-factory/vcf-pdf-viewer",
     "print-js": "$print-js",
-    "@polymer/paper-ripple": "$@polymer/paper-ripple"
+    "@polymer/paper-ripple": "$@polymer/paper-ripple",
+    "fluid-meter": "$fluid-meter"
   }
 }

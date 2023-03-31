@@ -1,6 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -21,6 +22,7 @@ public class DoctorDocumentView extends VerticalLayout{
         H2 h2 = new H2("Start document origination process");
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         Button prescription = new Button("Medical prescription");
+        prescription.addClickListener(e -> UI.getCurrent().navigate(MedicationPrescriptionOriginateView.class));
         Button observation = new Button("Observation");
         observation.setEnabled(false);
         Button procedure = new Button("Procedure");
