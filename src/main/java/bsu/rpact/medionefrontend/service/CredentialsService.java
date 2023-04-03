@@ -23,7 +23,8 @@ public class CredentialsService{
                 credentials.getPatronymic(),
                 credentials.isEnabled2Fa(),
                 credentials.getPhone(),
-                credentials.getRole()
+                credentials.getRole(),
+                credentials.getBirthDate()
         );
         return self ? adapter.updateSelf(pojo) : adapter.update(pojo,credentials.getId());
     }

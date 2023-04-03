@@ -9,9 +9,12 @@ import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.ValidatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.RegistrationForm;
 import com.vaadin.flow.data.binder.*;
+import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class RegistrationFormBinder implements LocaleChangeObserver {
@@ -39,12 +42,14 @@ public class RegistrationFormBinder implements LocaleChangeObserver {
         Binder<RegisterRequest> binderPatronymic= new Binder<>(RegisterRequest.class);
         Binder<RegisterRequest> binderPhone = new Binder<>(RegisterRequest.class);
         Binder<RegisterRequest> binderRole = new Binder<>(RegisterRequest.class);
+        Binder<RegisterRequest> binderBirthdate = new Binder<>(RegisterRequest.class);
         binderPhone.bindInstanceFields(registrationForm);
         binderFirstName.bindInstanceFields(registrationForm);
         binderLastName.bindInstanceFields(registrationForm);
         binderPatronymic.bindInstanceFields(registrationForm);
         binderLogin.bindInstanceFields(registrationForm);
         binderPassword.bindInstanceFields(registrationForm);
+        binderBirthdate.bindInstanceFields(registrationForm);
         binderRole.bindInstanceFields(registrationForm);
         binderPassword.forField(registrationForm.getPasswordField())
                 .withValidator(this::passwordValidate).bind("password");
@@ -58,7 +63,21 @@ public class RegistrationFormBinder implements LocaleChangeObserver {
                 .withValidator(this::literalValidate).bind("patronymic");
         binderPhone.forField(registrationForm.getPhone())
                 .withValidator(this::phoneValidate).bind("phone");
-        binderRole.forField(registrationForm.getComboBox()).bind("role");
+        binderRole.forField(registrationForm.getRoleComboBox()).bind("role");
+        binderBirthdate.forField(registrationForm.getDatePicker())
+                .bind(new ValueProvider<RegisterRequest, LocalDate>() {
+                    @Override
+                    public LocalDate apply(RegisterRequest registerRequest) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        return LocalDate.parse(registrationForm.getDatePicker().getValue().format(formatter));
+                    }
+                }, new Setter<RegisterRequest, LocalDate>() {
+                    @Override
+                    public void accept(RegisterRequest registerRequest, LocalDate localDate) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        registerRequest.setBirthDate(localDate.format(formatter));
+                    }
+                });
 
         mobilePhoneNumberAlreadyReserved = registrationForm.getTranslation("register.messages.mobile_phone_number_already_reserved");
         enterAnotherPhoneNumber = registrationForm.getTranslation("register.messages.enter_another_phone_number");
@@ -98,6 +117,7 @@ public class RegistrationFormBinder implements LocaleChangeObserver {
                 binderLogin.writeBean(userBean);
                 binderPassword.writeBean(userBean);
                 binderRole.writeBean(userBean);
+                binderBirthdate.writeBean(userBean);
                 MessageResponse response = authService.register(userBean);
                 String message = response.getMessage().toUpperCase(Locale.ROOT);
                 if(message.equals("PATIENT CREATED") ||
