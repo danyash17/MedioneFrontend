@@ -95,7 +95,7 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
     private final PasswordField passwordField = new PasswordField();
     private final PasswordField passwordConfirmation = new PasswordField();
     private final Label birthDateLabel = new Label();
-    private final String birthDate = getTranslation("profile.birthDate");
+    private String birthDate = getTranslation("profile.birthDate");
     private String applyLabel = getTranslation("profile.apply");
     private final Button applyButton2Fa = new Button(applyLabel);
     private final Button applyButtonAvatar = new Button(applyLabel);
@@ -607,6 +607,8 @@ public class ProfileView extends VerticalLayout implements LocaleChangeObserver 
         somethingWentWrongPleaseContactAdministrator = getTranslation("profile.messages.something_went_wrong_please_contact_administrator");
         editLabel = getTranslation("profile.edit");
         cropLabel = getTranslation("profile.crop");
+        birthDate = getTranslation("profile.birthDate");
+        birthDateLabel.setText(birthDate);
         deleteConfirm = getTranslation("profile.deletion_confirmation");
         doYouSureWantToDeleteSpeciality = getTranslation("profile.messages.do_you_sure_want_to_delete_speciality");
         cancelLabel = getTranslation("profile.cancel");
