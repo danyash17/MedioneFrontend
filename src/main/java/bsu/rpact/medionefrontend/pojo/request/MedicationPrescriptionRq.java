@@ -4,9 +4,19 @@ import bsu.rpact.medionefrontend.entity.Patient;
 
 public class MedicationPrescriptionRq {
     private Patient patient;
+    private Boolean preferential;
 
-    public MedicationPrescriptionRq(Patient patient) {
+    public Boolean getPreferential() {
+        return preferential;
+    }
+
+    public void setPreferential(Boolean preferential) {
+        this.preferential = preferential;
+    }
+
+    public MedicationPrescriptionRq(Patient patient, Boolean preferential) {
         this.patient = patient;
+        this.preferential = preferential;
     }
 
     public MedicationPrescriptionRq() {
@@ -19,4 +29,6 @@ public class MedicationPrescriptionRq {
     public void setPatient(Patient patient) {
         this.patient = patient;
     }
+
+
 }
