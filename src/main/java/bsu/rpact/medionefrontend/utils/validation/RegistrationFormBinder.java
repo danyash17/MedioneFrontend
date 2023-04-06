@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.validation;
+package bsu.rpact.medionefrontend.utils.validation;
 
 import bsu.rpact.medionefrontend.exception.LoginAlreadyExsistsException;
 import bsu.rpact.medionefrontend.exception.PhoneAlreadyExsistsException;

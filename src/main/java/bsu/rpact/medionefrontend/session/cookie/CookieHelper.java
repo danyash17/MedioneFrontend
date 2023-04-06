@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.cookie;
+package bsu.rpact.medionefrontend.session.cookie;
 
 import com.vaadin.flow.server.VaadinService;
 import org.springframework.beans.factory.annotation.Value;

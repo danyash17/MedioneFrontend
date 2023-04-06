@@ -1,7 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.adapter.demographic.DemographicBaseAdapter;
-import bsu.rpact.medionefrontend.cookie.CookieHelper;
+import bsu.rpact.medionefrontend.session.cookie.CookieHelper;
 import bsu.rpact.medionefrontend.pojo.authentication.LoginRequest;
 import bsu.rpact.medionefrontend.pojo.authentication.PrimaryLoginResponce;
 import bsu.rpact.medionefrontend.security.TwoFactorAuthenticationProvider;

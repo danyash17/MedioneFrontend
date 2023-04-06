@@ -29,7 +29,6 @@ import com.vaadin.flow.router.Route;
 
 import java.time.LocalDate;
 import java.util.Random;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 @Route(value = "medicationPrescriptionOrigination", layout = MainLayout.class)
@@ -60,11 +59,14 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
     private StepContent createHeaderStepContent(MedicationPrescriptionRq request){
         Checkbox pref = new Checkbox();
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
+        HorizontalLayout layout = new HorizontalLayout();
+        layout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
         Div patientLookupDiv = buildPatientLookupRow(request);
         Div preferentialDiv = buildPreferentialDiv(request, pref);
         Div serieNumberDiv = buildSerieNumberDiv(request, pref);
+        layout.add(patientLookupDiv, preferentialDiv);
         BinderContent<MedicationPrescriptionRq> content =
-                new BinderContent<>(binder, new HorizontalLayout(patientLookupDiv, preferentialDiv),
+                new BinderContent<>(binder, layout,
                                     serieNumberDiv);
         content.setWidth("100%");
         content.setHeight("100%");
@@ -86,9 +88,11 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         serie.setValue(currentYear.substring(1, currentYear.length()));
         TextField number = new TextField();
         number.setPattern("[0-9]{7}");
+        number.getElement().getStyle().set("height", "100px");
         randomizer.addClickListener(e -> {
             String uuid = String.format("%07d", new Random().nextInt(10000000));
             number.setValue(uuid.substring(0, 7));
+            request.setSerieNum(buildSerieNumString(preambule, serie, number));
         });
         number.addValueChangeListener(e -> {
             if(!medicationRequestService.isIdentifierUnique(preambule.getValue()+serie.getValue()+number.getValue())){
@@ -99,14 +103,20 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
                 number.setPlaceholder("0000000");
                 number.setErrorMessage("Number must contain exactly 7 digits");
             }
+            request.setSerieNum(buildSerieNumString(preambule, serie, number));
         });
         pref.addValueChangeListener(e -> {
             if (pref.getValue().booleanValue()){
                 preambule.setValue(МН_PREF);
             }
             else preambule.setValue(MH);
+            request.setSerieNum(buildSerieNumString(preambule, serie, number));
         });
         return createRow("Serie and number  ", preambule, serie, number, randomizer);
+    }
+
+    private String buildSerieNumString(TextField preambule, TextField serie, TextField number) {
+        return preambule.getValue() + serie.getValue() + number.getValue();
     }
 
     private Div buildPreferentialDiv(MedicationPrescriptionRq request, Checkbox pref) {
