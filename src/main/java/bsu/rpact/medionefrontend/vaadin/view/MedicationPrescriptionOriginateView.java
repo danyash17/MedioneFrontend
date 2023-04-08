@@ -1,6 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
+import bsu.rpact.medionefrontend.entity.medical.RegistryMedication;
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
@@ -24,12 +26,16 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.data.binder.*;
+import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 @Route(value = "medicationPrescriptionOrigination", layout = MainLayout.class)
@@ -59,48 +65,96 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         add(wizard);
     }
 
-    private StepContent createHeaderStepContent(MedicationPrescriptionRq request){
+    private StepContent createHeaderStepContent(MedicationPrescriptionRq request) {
         Checkbox pref = new Checkbox();
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
         HorizontalLayout layout = new HorizontalLayout();
         layout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
-        Div patientLookupDiv = buildPatientLookupRow(request);
-        Div preferentialDiv = buildPreferentialDiv(request, pref);
-        Div serieNumberDiv = buildSerieNumberDiv(request, pref);
+        Div patientLookupDiv = buildPatientLookupRow(request, binder);
+        Div preferentialDiv = buildPreferentialDiv(request, pref, binder);
+        Div serieNumberDiv = buildSerieNumberDiv(request, pref, binder);
         layout.add(patientLookupDiv, preferentialDiv);
         BinderContent<MedicationPrescriptionRq> content =
                 new BinderContent<>(binder, layout,
-                                    serieNumberDiv);
+                        serieNumberDiv);
         content.setWidth("100%");
         content.setHeight("100%");
         content.setValue(request);
         return content;
     }
 
-    private StepContent createMainStepContent(MedicationPrescriptionRq request){
+    private StepContent createMainStepContent(MedicationPrescriptionRq request) {
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
-        Button search = new Button("Search");
-        search.addClickListener(e -> {
-            registryMedicationService.searchMedicationInRegistryByName("Ибупрофен");
-        });
+        Div medicationDiv = buildMedicationDiv(request, binder);
         BinderContent<MedicationPrescriptionRq> content =
-                new BinderContent<>(binder, search);
+                new BinderContent<>(binder, medicationDiv);
         content.setWidth("100%");
         content.setHeight("100%");
         content.setValue(request);
         return content;
     }
 
-    private Div buildSerieNumberDiv(MedicationPrescriptionRq request, Checkbox pref) {
+    private Div buildMedicationDiv(MedicationPrescriptionRq request, Binder<MedicationPrescriptionRq> binder) {
+        AtomicReference<RegistryMedication> registryMedicationAtomicReference = new AtomicReference<>();
+        TextField medicationField = new TextField();
+        Button lookup = new Button();
+        Icon icon = new Icon(VaadinIcon.CHECK);
+        icon.setColor("green");
+        icon.getElement().getStyle().set("width", "100px");
+        icon.setVisible(false);
+        lookup.setIcon(VaadinIcon.SEARCH.create());
+        lookup.addClickListener(e -> showMedicationLookupDialog(medicationField.getValue(), new Consumer<RegistryMedication>() {
+            @Override
+            public void accept(RegistryMedication registryMedication) {
+                if (registryMedication != null) {
+                    registryMedicationAtomicReference.set(registryMedication);
+                    medicationField.setValue(registryMedication.getTradeName());
+                    icon.setVisible(true);
+                    medicationField.setReadOnly(true);
+                    lookup.setEnabled(false);
+                }
+            }
+        }));
+        icon.addClickListener(e -> {
+            icon.setVisible(false);
+            medicationField.clear();
+            medicationField.setReadOnly(false);
+            lookup.setEnabled(true);
+        });
+        medicationField.setErrorMessage("Please capture a medication");
+        lookup.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        binder.forField(medicationField)
+                .withValidator(new Validator<String>() {
+                    @Override
+                    public ValidationResult apply(String s, ValueContext valueContext) {
+                        return s.isEmpty() ? ValidationResult.error("Medication must be captured") : ValidationResult.ok();
+                    }
+                }).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+                    @Override
+                    public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                        if (medicationPrescriptionRq.getMedication() == null) return "";
+                        RegistryMedication medication = medicationPrescriptionRq.getMedication();
+                        return medication.getTradeName();
+                    }
+                }, new Setter<MedicationPrescriptionRq, String>() {
+                    @Override
+                    public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                        medicationPrescriptionRq.setMedication(registryMedicationAtomicReference.get());
+                    }
+                });
+        return createRow("Medication   ", medicationField, lookup, icon);
+    }
+
+    private Div buildSerieNumberDiv(MedicationPrescriptionRq request, Checkbox pref, Binder<MedicationPrescriptionRq> binder) {
         TextField preambule = new TextField();
         preambule.setReadOnly(true);
-        preambule.getElement().getStyle().set("width","85px");
+        preambule.getElement().getStyle().set("width", "85px");
         preambule.setValue(MH);
         TextField serie = new TextField();
         Button randomizer = new Button();
         randomizer.setIcon(VaadinIcon.MAGIC.create());
         serie.setReadOnly(true);
-        serie.getElement().getStyle().set("width","85px");
+        serie.getElement().getStyle().set("width", "85px");
         String currentYear = Integer.toString(LocalDate.now().getYear());
         serie.setValue(currentYear.substring(1, currentYear.length()));
         TextField number = new TextField();
@@ -109,25 +163,39 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         randomizer.addClickListener(e -> {
             String uuid = String.format("%07d", new Random().nextInt(10000000));
             number.setValue(uuid.substring(0, 7));
-            request.setSerieNum(buildSerieNumString(preambule, serie, number));
         });
         number.addValueChangeListener(e -> {
-            if(!medicationRequestService.isIdentifierUnique(preambule.getValue()+serie.getValue()+number.getValue())){
+            if (!medicationRequestService.isIdentifierUnique(preambule.getValue() + serie.getValue() + number.getValue())) {
                 number.setInvalid(true);
                 number.setErrorMessage("There is already a prescription with such identifier");
             }
-            if (number.isInvalid()){
+            if (number.isInvalid()) {
                 number.setPlaceholder("0000000");
                 number.setErrorMessage("Number must contain exactly 7 digits");
             }
-            request.setSerieNum(buildSerieNumString(preambule, serie, number));
         });
         pref.addValueChangeListener(e -> {
-            if (pref.getValue().booleanValue()){
+            if (pref.getValue().booleanValue()) {
                 preambule.setValue(МН_PREF);
+            } else preambule.setValue(MH);
+        });
+        binder.forField(number).withValidator(new Validator<String>() {
+            @Override
+            public ValidationResult apply(String s, ValueContext valueContext) {
+                return s.isEmpty() ? ValidationResult.error("Please capture serie and number") : ValidationResult.ok();
             }
-            else preambule.setValue(MH);
-            request.setSerieNum(buildSerieNumString(preambule, serie, number));
+        }).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                if (medicationPrescriptionRq.getSerieNum() == null) return "";
+                String s = medicationPrescriptionRq.getSerieNum();
+                return s.substring(s.length() - 8, s.length() - 1);
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationPrescriptionRq.setSerieNum(buildSerieNumString(preambule, serie, number));
+            }
         });
         return createRow("Serie and number  ", preambule, serie, number, randomizer);
     }
@@ -136,18 +204,16 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         return preambule.getValue() + serie.getValue() + number.getValue();
     }
 
-    private Div buildPreferentialDiv(MedicationPrescriptionRq request, Checkbox pref) {
-        Checkbox finalPref = pref;
-        pref.addValueChangeListener(e -> {
-           request.setPreferential(finalPref.getValue());
-        });
+    private Div buildPreferentialDiv(MedicationPrescriptionRq request, Checkbox pref, Binder<MedicationPrescriptionRq> binder) {
         Div div = createRow("Preferential prescription", pref);
         div.getElement().getStyle().set("flex-grow", "1");
         div.getElement().getStyle().set("width", "50%");
+        binder.forField(pref).bind(MedicationPrescriptionRq::getPreferential, MedicationPrescriptionRq::setPreferential);
         return div;
     }
 
-    public Div buildPatientLookupRow(MedicationPrescriptionRq request){
+    public Div buildPatientLookupRow(MedicationPrescriptionRq request, Binder<MedicationPrescriptionRq> binder) {
+        AtomicReference<Patient> patientAtomicReference = new AtomicReference<>();
         TextField patientField = new TextField();
         Button lookup = new Button();
         Icon icon = new Icon(VaadinIcon.CHECK);
@@ -158,8 +224,8 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         lookup.addClickListener(e -> showPatientLookupDialog(patientField.getValue(), new Consumer<Patient>() {
             @Override
             public void accept(Patient patient) {
-                request.setPatient(patient);
-                if (patient!=null){
+                if (patient != null) {
+                    patientAtomicReference.set(patient);
                     patientField.setValue(patient.getCredentials().getFirstName()
                             + " "
                             + patient.getCredentials().getPatronymic()
@@ -179,6 +245,29 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         });
         patientField.setErrorMessage("Please capture a patient");
         lookup.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        binder.forField(patientField)
+                .withValidator(new Validator<String>() {
+                    @Override
+                    public ValidationResult apply(String s, ValueContext valueContext) {
+                        return s.isEmpty() ? ValidationResult.error("Patient must be captured") : ValidationResult.ok();
+                    }
+                }).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+                    @Override
+                    public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                        if (medicationPrescriptionRq.getPatient() == null) return "";
+                        Patient patient = medicationPrescriptionRq.getPatient();
+                        return patient.getCredentials().getFirstName()
+                                + " "
+                                + patient.getCredentials().getPatronymic()
+                                + " "
+                                + patient.getCredentials().getLastName();
+                    }
+                }, new Setter<MedicationPrescriptionRq, String>() {
+                    @Override
+                    public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                        medicationPrescriptionRq.setPatient(patientAtomicReference.get());
+                    }
+                });
         return createRow("Patient   ", patientField, lookup, icon);
     }
 
@@ -189,6 +278,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         dialog.setCloseOnOutsideClick(true);
         Grid<Patient> grid = new Grid<>(Patient.class);
         grid.setColumnReorderingAllowed(false);
+        grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
         grid.removeAllColumns();
         grid.setItems(patientService.findBySearchTerm(searchTerm));
         grid.addColumn(patient -> {
@@ -204,7 +294,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
             return CalculatorUtils.getAge(patient.getCredentials().getBirthDate());
         }).setKey("age").setHeader("Age");
         grid.addColumn(patient -> {
-            return patient.getMedcard()!=null ? patient.getMedcard().getResidentalAddress() : "";
+            return patient.getMedcard() != null ? patient.getMedcard().getResidentalAddress() : "";
         }).setKey("residentalAddress").setHeader("Residental address");
         grid.addColumn(patient -> {
             return patient.getCredentials().getPhone();
@@ -219,38 +309,80 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         dialog.open();
     }
 
-    public HorizontalLayout createInfoRow(Patient patient) {
-        HorizontalLayout row = new HorizontalLayout();
-        Label firstNameLabel = new Label("First Name:");
-        Label firstNameValueLabel = new Label(patient.getCredentials().getFirstName());
-        Label patronymicLabel = new Label("Patronymic:");
-        Label patronymicValueLabel = new Label(patient.getCredentials().getPatronymic());
-        Label lastNameLabel = new Label("Last Name:");
-        Label lastNameValueLabel = new Label(patient.getCredentials().getLastName());
-        Label addressLabel = new Label("Address:");
-        Label addressValueLabel = new Label(patient.getMedcard().getResidentalAddress());
-        Label phoneLabel = new Label("Phone:");
-        Label phoneValueLabel = new Label(patient.getCredentials().getPhone());
-        row.add(
-                firstNameLabel,
-                firstNameValueLabel,
-                patronymicLabel,
-                patronymicValueLabel,
-                lastNameLabel,
-                lastNameValueLabel,
-                addressLabel,
-                addressValueLabel,
-                phoneLabel,
-                phoneValueLabel
-        );
+    public void showMedicationLookupDialog(String searchTerm, Consumer<RegistryMedication> consumer){
+        Dialog dialog = new Dialog();
+        dialog.setWidth("100%");
+        dialog.setCloseOnEsc(true);
+        dialog.setCloseOnOutsideClick(true);
+        Grid<RegistryMedication> grid = new Grid<>(RegistryMedication.class);
+        grid.setColumnReorderingAllowed(false);
+        grid.addThemeVariants(GridVariant.LUMO_WRAP_CELL_CONTENT);
+        grid.removeAllColumns();
+        List<RegistryMedication> registryMedicationList = registryMedicationService.searchMedicationInRegistryByName(searchTerm);
+        grid.setItems(registryMedicationList);
+        addSearchField(dialog, grid, registryMedicationList);
+        grid.addColumn(medication -> {
+            return medication.getOrderNumber();
+        }).setKey("orderNumber").setHeader("Order number").setFlexGrow(1);
+        grid.addColumn(medication -> {
+            return medication.getTradeName();
+        }).setKey("tradeName").setHeader("Trade name").setFlexGrow(1).setResizable(true).setAutoWidth(true);
+        grid.addColumn(medication -> {
+            return medication.getInternationalName();
+        }).setKey("intName").setHeader("International Name").setFlexGrow(1);
+        grid.addColumn(medication -> {
+            return medication.getManufacturer();
+        }).setKey("manufacturer").setHeader("Manufacturer").setFlexGrow(1);
+        grid.addColumn(medication -> {
+            return medication.getApplicant();
+        }).setKey("applicant").setHeader("Applicant").setFlexGrow(1);
+        grid.addColumn(medication -> {
+            return medication.getIdNumber();
+        }).setKey("idNumber").setHeader("Id Number").setFlexGrow(1);
+        grid.addColumn(medication -> {
+            return medication.getRegistrationDate();
+        }).setKey("registrationDate").setHeader("Registration Date").setFlexGrow(1);
+        grid.addColumn(medication -> {
+            return medication.getExpirationDate();
+        }).setKey("expirationDate").setHeader("Expiration Date").setFlexGrow(1);
+        grid.addColumn(medication -> {
+            return medication.getOriginal();
+        }).setKey("original").setHeader("Original").setFlexGrow(1);
+        grid.addSelectionListener(event -> {
+            if (event.getFirstSelectedItem().isPresent()) {
+                consumer.accept(event.getFirstSelectedItem().get());
+                dialog.close();
+            }
+        });
+        dialog.add(grid);
+        dialog.open();
+    }
 
-        return row;
+    private void addSearchField(Dialog dialog, Grid<RegistryMedication> grid, List<RegistryMedication> registryMedicationList) {
+        TextField searchField = new TextField();
+        searchField.setPlaceholder("Search by trade name");
+        searchField.addValueChangeListener(event -> {
+            String searchValue = event.getValue();
+            if (searchValue != null && !searchValue.isEmpty()) {
+                // Find the first item in the grid that matches the search value
+                Optional<RegistryMedication> firstMatch = registryMedicationList.stream()
+                        .filter(medication -> medication.getTradeName().toLowerCase().contains(searchValue.toLowerCase()))
+                        .findFirst();
+                // Scroll to the first matching item
+                firstMatch.ifPresent(medication -> {
+                    grid.scrollToIndex(Integer.parseInt(medication.getOrderNumber())-1);
+                });
+            } else {
+                grid.deselectAll();
+            }
+        });
+        dialog.add(searchField);
     }
 
     private Div createRow(String caption, Component... input) {
         Div row = new Div();
         row.add(new Label(caption));
-        for (Component comp:input) {
+        for (Component comp : input) {
             row.add(comp);
         }
         row.addClassName("row");
