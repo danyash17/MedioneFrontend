@@ -4,6 +4,7 @@ import bsu.rpact.medionefrontend.entity.Patient;
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
+import bsu.rpact.medionefrontend.service.medical.web.RegistryMedicationService;
 import bsu.rpact.medionefrontend.utils.CalculatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.mlottmann.vstepper.BinderContent;
@@ -39,10 +40,12 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
     public static final String МН_PREF = "МН-";
     private final PatientService patientService;
     private final MedicationRequestService medicationRequestService;
+    private final RegistryMedicationService registryMedicationService;
 
-    public MedicationPrescriptionOriginateView(PatientService patientService, MedicationRequestService medicationRequestService) {
+    public MedicationPrescriptionOriginateView(PatientService patientService, MedicationRequestService medicationRequestService, RegistryMedicationService registryMedicationService) {
         this.patientService = patientService;
         this.medicationRequestService = medicationRequestService;
+        this.registryMedicationService = registryMedicationService;
         this.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         this.setAlignItems(FlexComponent.Alignment.CENTER);
         MedicationPrescriptionRq rq = new MedicationPrescriptionRq();
@@ -50,7 +53,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         wizard.setWidth("100%");
         wizard.setHeight("100%");
         wizard.addStep("Patient", createHeaderStepContent(rq));
-        wizard.addStep("Medication", new Label("Medication"));
+        wizard.addStep("Medication", createMainStepContent(rq));
         wizard.addStep("Summary", new Label("Summary"));
 
         add(wizard);
@@ -68,6 +71,20 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         BinderContent<MedicationPrescriptionRq> content =
                 new BinderContent<>(binder, layout,
                                     serieNumberDiv);
+        content.setWidth("100%");
+        content.setHeight("100%");
+        content.setValue(request);
+        return content;
+    }
+
+    private StepContent createMainStepContent(MedicationPrescriptionRq request){
+        Binder<MedicationPrescriptionRq> binder = new Binder<>();
+        Button search = new Button("Search");
+        search.addClickListener(e -> {
+            registryMedicationService.searchMedicationInRegistryByName("Ибупрофен");
+        });
+        BinderContent<MedicationPrescriptionRq> content =
+                new BinderContent<>(binder, search);
         content.setWidth("100%");
         content.setHeight("100%");
         content.setValue(request);
