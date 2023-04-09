@@ -1,7 +1,9 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
+import bsu.rpact.medionefrontend.entity.medical.RcethRegistryItem;
 import bsu.rpact.medionefrontend.entity.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.pojo.other.Href;
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
@@ -12,12 +14,15 @@ import com.mlottmann.vstepper.BinderContent;
 import com.mlottmann.vstepper.StepContent;
 import com.mlottmann.vstepper.VStepper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.Icon;
@@ -323,31 +328,53 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         addSearchField(dialog, grid, registryMedicationList);
         grid.addColumn(medication -> {
             return medication.getOrderNumber();
-        }).setKey("orderNumber").setHeader("Order number").setFlexGrow(1);
-        grid.addColumn(medication -> {
-            return medication.getTradeName();
+        }).setKey("orderNumber").setHeader("Order number").setFlexGrow(1).setResizable(true);
+        grid.addComponentColumn(medication -> {
+            String tradeName = medication.getTradeName();
+            Div div = new Div();
+            for (Href href : medication.getHrefs()) {
+                String label = href.getLabel();
+                String link = href.getLink();
+                int index = tradeName.indexOf(label);
+                while (index != -1) {
+                    String textBefore = tradeName.substring(0, index);
+                    if (!textBefore.isEmpty()) {
+                        div.add(new Text(textBefore));
+                    }
+                    String labelText = tradeName.substring(index, index + label.length());
+                    Anchor anchor = new Anchor(RcethRegistryItem.baseUrl + link, labelText);
+                    anchor.setTarget("_blank");
+                    div.add(anchor);
+                    tradeName = tradeName.substring(index + label.length());
+                    index = tradeName.indexOf(label);
+                }
+            }
+            if (!tradeName.isEmpty()) {
+                div.add(new Text(tradeName));
+            }
+            return div;
         }).setKey("tradeName").setHeader("Trade name").setFlexGrow(1).setResizable(true).setAutoWidth(true);
         grid.addColumn(medication -> {
             return medication.getInternationalName();
-        }).setKey("intName").setHeader("International Name").setFlexGrow(1);
+        }).setKey("intName").setHeader("International Name").setFlexGrow(1).setResizable(true);
         grid.addColumn(medication -> {
             return medication.getManufacturer();
-        }).setKey("manufacturer").setHeader("Manufacturer").setFlexGrow(1);
+        }).setKey("manufacturer").setHeader("Manufacturer").setFlexGrow(1).setResizable(true);
         grid.addColumn(medication -> {
             return medication.getApplicant();
-        }).setKey("applicant").setHeader("Applicant").setFlexGrow(1);
+        }).setKey("applicant").setHeader("Applicant").setFlexGrow(1).setResizable(true);
         grid.addColumn(medication -> {
             return medication.getIdNumber();
-        }).setKey("idNumber").setHeader("Id Number").setFlexGrow(1);
+        }).setKey("idNumber").setHeader("Id Number").setFlexGrow(1).setResizable(true);
         grid.addColumn(medication -> {
             return medication.getRegistrationDate();
-        }).setKey("registrationDate").setHeader("Registration Date").setFlexGrow(1);
+        }).setKey("registrationDate").setHeader("Registration Date").setFlexGrow(1).setResizable(true);
         grid.addColumn(medication -> {
             return medication.getExpirationDate();
-        }).setKey("expirationDate").setHeader("Expiration Date").setFlexGrow(1);
+        }).setKey("expirationDate").setHeader("Expiration Date").setFlexGrow(1).setResizable(true);
         grid.addColumn(medication -> {
             return medication.getOriginal();
-        }).setKey("original").setHeader("Original").setFlexGrow(1);
+        }).setKey("original").setHeader("Original").setFlexGrow(1).setResizable(true);
         grid.addSelectionListener(event -> {
             if (event.getFirstSelectedItem().isPresent()) {
                 consumer.accept(event.getFirstSelectedItem().get());
