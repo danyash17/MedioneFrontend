@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.entity.medical;
+package bsu.rpact.medionefrontend.pojo.medical;
 
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.DomainResource;

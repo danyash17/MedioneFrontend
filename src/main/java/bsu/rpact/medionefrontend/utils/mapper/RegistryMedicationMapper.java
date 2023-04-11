@@ -1,9 +1,8 @@
 package bsu.rpact.medionefrontend.utils.mapper;
 
-import bsu.rpact.medionefrontend.entity.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.pojo.medical.RegistryMedication;
 import bsu.rpact.medionefrontend.pojo.other.Href;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;

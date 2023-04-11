@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.utils;
 
-import bsu.rpact.medionefrontend.entity.medical.DiagnosticReportContainer;
+import bsu.rpact.medionefrontend.pojo.medical.DiagnosticReportContainer;
 import bsu.rpact.medionefrontend.enums.FhirId;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
 import bsu.rpact.medionefrontend.vaadin.view.DiagnosticReportView;

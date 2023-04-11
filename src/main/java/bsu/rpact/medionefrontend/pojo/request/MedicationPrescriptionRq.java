@@ -1,13 +1,17 @@
 package bsu.rpact.medionefrontend.pojo.request;
 
 import bsu.rpact.medionefrontend.entity.Patient;
-import bsu.rpact.medionefrontend.entity.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.pojo.medical.MedicationDetails;
+import bsu.rpact.medionefrontend.pojo.medical.RegistryMedication;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MedicationPrescriptionRq {
     private Patient patient;
     private Boolean preferential;
     private String serieNum;
-    private RegistryMedication medication;
+    private List<MedicationDetails> medicationDetails;
 
     public Boolean getPreferential() {
         return preferential;
@@ -17,11 +21,11 @@ public class MedicationPrescriptionRq {
         this.preferential = preferential;
     }
 
-    public MedicationPrescriptionRq(Patient patient, Boolean preferential, String serieNum, RegistryMedication medication) {
+    public MedicationPrescriptionRq(Patient patient, Boolean preferential, String serieNum) {
         this.patient = patient;
         this.preferential = preferential;
         this.serieNum = serieNum;
-        this.medication = medication;
+        this.medicationDetails = new ArrayList<>();
     }
 
     public MedicationPrescriptionRq() {
@@ -43,11 +47,11 @@ public class MedicationPrescriptionRq {
         this.serieNum = serieNum;
     }
 
-    public RegistryMedication getMedication() {
-        return medication;
+    public List<MedicationDetails> getMedicationDetails() {
+        return medicationDetails;
     }
 
-    public void setMedication(RegistryMedication medication) {
-        this.medication = medication;
+    public void setMedicationDetails(List<MedicationDetails> medicationDetails) {
+        this.medicationDetails = medicationDetails;
     }
 }

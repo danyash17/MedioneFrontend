@@ -1,4 +1,4 @@
-package bsu.rpact.medionefrontend.entity.medical;
+package bsu.rpact.medionefrontend.pojo.medical;
 
 import bsu.rpact.medionefrontend.pojo.other.Href;
 

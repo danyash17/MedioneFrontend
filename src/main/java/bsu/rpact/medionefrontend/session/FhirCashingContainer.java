@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.session;
 
-import bsu.rpact.medionefrontend.entity.medical.DiagnosticReportContainer;
+import bsu.rpact.medionefrontend.pojo.medical.DiagnosticReportContainer;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Procedure;
 import org.springframework.stereotype.Component;

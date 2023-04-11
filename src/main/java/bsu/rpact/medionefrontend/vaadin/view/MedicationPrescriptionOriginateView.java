@@ -1,12 +1,15 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
-import bsu.rpact.medionefrontend.entity.medical.RcethRegistryItem;
-import bsu.rpact.medionefrontend.entity.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.pojo.medical.MedicationDetails;
+import bsu.rpact.medionefrontend.pojo.medical.MedicationForm;
+import bsu.rpact.medionefrontend.pojo.medical.RcethRegistryItem;
+import bsu.rpact.medionefrontend.pojo.medical.RegistryMedication;
 import bsu.rpact.medionefrontend.pojo.other.Href;
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
+import bsu.rpact.medionefrontend.service.medical.web.MedicationFormService;
 import bsu.rpact.medionefrontend.service.medical.web.RegistryMedicationService;
 import bsu.rpact.medionefrontend.utils.CalculatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
@@ -18,6 +21,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
@@ -49,14 +53,17 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
 
     public static final String MH = "MH";
     public static final String МН_PREF = "МН-";
+    public static final Integer MAX_MEDICATIONS_IN_PRESCRIPTION = 3;
     private final PatientService patientService;
     private final MedicationRequestService medicationRequestService;
     private final RegistryMedicationService registryMedicationService;
+    private final MedicationFormService medicationFormService;
 
-    public MedicationPrescriptionOriginateView(PatientService patientService, MedicationRequestService medicationRequestService, RegistryMedicationService registryMedicationService) {
+    public MedicationPrescriptionOriginateView(PatientService patientService, MedicationRequestService medicationRequestService, RegistryMedicationService registryMedicationService, MedicationFormService medicationFormService) {
         this.patientService = patientService;
         this.medicationRequestService = medicationRequestService;
         this.registryMedicationService = registryMedicationService;
+        this.medicationFormService = medicationFormService;
         this.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         this.setAlignItems(FlexComponent.Alignment.CENTER);
         MedicationPrescriptionRq rq = new MedicationPrescriptionRq();
@@ -90,16 +97,17 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
 
     private StepContent createMainStepContent(MedicationPrescriptionRq request) {
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
-        Div medicationDiv = buildMedicationDiv(request, binder);
+        VerticalLayout verticalLayout = new VerticalLayout();
+        Div medicationDiv = buildMedicationDiv(request, binder, verticalLayout);
         BinderContent<MedicationPrescriptionRq> content =
-                new BinderContent<>(binder, medicationDiv);
+                new BinderContent<>(binder, medicationDiv, verticalLayout);
         content.setWidth("100%");
         content.setHeight("100%");
         content.setValue(request);
         return content;
     }
 
-    private Div buildMedicationDiv(MedicationPrescriptionRq request, Binder<MedicationPrescriptionRq> binder) {
+    private Div buildMedicationDiv(MedicationPrescriptionRq request, Binder<MedicationPrescriptionRq> binder, VerticalLayout medicationsLayout) {
         AtomicReference<RegistryMedication> registryMedicationAtomicReference = new AtomicReference<>();
         TextField medicationField = new TextField();
         Button lookup = new Button();
@@ -107,6 +115,9 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         icon.setColor("green");
         icon.getElement().getStyle().set("width", "100px");
         icon.setVisible(false);
+        Button add = new Button();
+        add.setIcon(VaadinIcon.PLUS.create());
+        add.setVisible(false);
         lookup.setIcon(VaadinIcon.SEARCH.create());
         lookup.addClickListener(e -> showMedicationLookupDialog(medicationField.getValue(), new Consumer<RegistryMedication>() {
             @Override
@@ -115,39 +126,56 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
                     registryMedicationAtomicReference.set(registryMedication);
                     medicationField.setValue(registryMedication.getTradeName());
                     icon.setVisible(true);
+                    if (medicationsLayout.getChildren().count() != MAX_MEDICATIONS_IN_PRESCRIPTION) add.setVisible(true);
                     medicationField.setReadOnly(true);
                     lookup.setEnabled(false);
                 }
             }
         }));
         icon.addClickListener(e -> {
-            icon.setVisible(false);
-            medicationField.clear();
-            medicationField.setReadOnly(false);
-            lookup.setEnabled(true);
+            clearMedicationLookup(icon, add, medicationField, lookup);
+        });
+        add.addClickListener(e -> {
+            clearMedicationLookup(icon, add, medicationField, lookup);
+            medicationField.setInvalid(false);
+            Button remove = new Button();
+            Details details = buildMedicationDetails(binder, registryMedicationAtomicReference.get(), remove);
+            remove.setIcon(VaadinIcon.CLOSE_SMALL.create());
+            remove.addThemeVariants(ButtonVariant.LUMO_SMALL);
+            remove.addClassName("transparent-button");
+            remove.addClickListener(event -> {
+                medicationsLayout.remove(details);
+                if (medicationsLayout.getChildren().count() < MAX_MEDICATIONS_IN_PRESCRIPTION) add.setVisible(true);
+                medicationField.setValue(registryMedicationAtomicReference.get().getTradeName());
+            });
+            medicationsLayout.add(details);
         });
         medicationField.setErrorMessage("Please capture a medication");
         lookup.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        binder.forField(medicationField)
-                .withValidator(new Validator<String>() {
-                    @Override
-                    public ValidationResult apply(String s, ValueContext valueContext) {
-                        return s.isEmpty() ? ValidationResult.error("Medication must be captured") : ValidationResult.ok();
-                    }
-                }).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
-                    @Override
-                    public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
-                        if (medicationPrescriptionRq.getMedication() == null) return "";
-                        RegistryMedication medication = medicationPrescriptionRq.getMedication();
-                        return medication.getTradeName();
-                    }
-                }, new Setter<MedicationPrescriptionRq, String>() {
-                    @Override
-                    public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
-                        medicationPrescriptionRq.setMedication(registryMedicationAtomicReference.get());
-                    }
-                });
-        return createRow("Medication   ", medicationField, lookup, icon);
+        return createRow("Medication   ", medicationField, lookup, icon, add);
+    }
+
+    private Details buildMedicationDetails(Binder<MedicationPrescriptionRq> binder, RegistryMedication registryMedication, Button remove) {
+        Details details = new Details();
+        MedicationDetails medicationDetails = new MedicationDetails();
+        medicationDetails.setRegistryMedication(registryMedication);
+        details.setOpened(true);
+        Div header = getMedicationAnchorDiv(registryMedication);
+        details.setSummary(header);
+        header.add(remove);
+        ComboBox<MedicationForm> medicationFormComboBox = new ComboBox<>();
+        medicationFormComboBox.setItemLabelGenerator(MedicationForm::getDisplay);
+        medicationFormComboBox.setItems(medicationFormService.getMedicationFormsFromSnomed());
+        details.addContent(createRow("Medication form", medicationFormComboBox));
+        return details;
+    }
+
+    private void clearMedicationLookup(Icon icon, Button add, TextField medicationField, Button lookup) {
+        icon.setVisible(false);
+        add.setVisible(false);
+        medicationField.clear();
+        medicationField.setReadOnly(false);
+        lookup.setEnabled(true);
     }
 
     private Div buildSerieNumberDiv(MedicationPrescriptionRq request, Checkbox pref, Binder<MedicationPrescriptionRq> binder) {
@@ -314,7 +342,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         dialog.open();
     }
 
-    public void showMedicationLookupDialog(String searchTerm, Consumer<RegistryMedication> consumer){
+    public void showMedicationLookupDialog(String searchTerm, Consumer<RegistryMedication> consumer) {
         Dialog dialog = new Dialog();
         dialog.setWidth("100%");
         dialog.setCloseOnEsc(true);
@@ -330,29 +358,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
             return medication.getOrderNumber();
         }).setKey("orderNumber").setHeader("Order number").setFlexGrow(1).setResizable(true);
         grid.addComponentColumn(medication -> {
-            String tradeName = medication.getTradeName();
-            Div div = new Div();
-            for (Href href : medication.getHrefs()) {
-                String label = href.getLabel();
-                String link = href.getLink();
-                int index = tradeName.indexOf(label);
-                while (index != -1) {
-                    String textBefore = tradeName.substring(0, index);
-                    if (!textBefore.isEmpty()) {
-                        div.add(new Text(textBefore));
-                    }
-                    String labelText = tradeName.substring(index, index + label.length());
-                    Anchor anchor = new Anchor(RcethRegistryItem.baseUrl + link, labelText);
-                    anchor.setTarget("_blank");
-                    div.add(anchor);
-                    tradeName = tradeName.substring(index + label.length());
-                    index = tradeName.indexOf(label);
-                }
-            }
-            if (!tradeName.isEmpty()) {
-                div.add(new Text(tradeName));
-            }
-            return div;
+            return getMedicationAnchorDiv(medication);
         }).setKey("tradeName").setHeader("Trade name").setFlexGrow(1).setResizable(true).setAutoWidth(true);
         grid.addColumn(medication -> {
             return medication.getInternationalName();
@@ -385,6 +391,32 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         dialog.open();
     }
 
+    private Div getMedicationAnchorDiv(RegistryMedication medication) {
+        String tradeName = medication.getTradeName();
+        Div div = new Div();
+        for (Href href : medication.getHrefs()) {
+            String label = href.getLabel();
+            String link = href.getLink();
+            int index = tradeName.indexOf(label);
+            while (index != -1) {
+                String textBefore = tradeName.substring(0, index);
+                if (!textBefore.isEmpty()) {
+                    div.add(new Text(textBefore));
+                }
+                String labelText = tradeName.substring(index, index + label.length());
+                Anchor anchor = new Anchor(RcethRegistryItem.baseUrl + link, labelText);
+                anchor.setTarget("_blank");
+                div.add(anchor);
+                tradeName = tradeName.substring(index + label.length());
+                index = tradeName.indexOf(label);
+            }
+        }
+        if (!tradeName.isEmpty()) {
+            div.add(new Text(tradeName));
+        }
+        return div;
+    }
+
     private void addSearchField(Dialog dialog, Grid<RegistryMedication> grid, List<RegistryMedication> registryMedicationList) {
         TextField searchField = new TextField();
         searchField.setPlaceholder("Search by trade name");
@@ -397,7 +429,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
                         .findFirst();
                 // Scroll to the first matching item
                 firstMatch.ifPresent(medication -> {
-                    grid.scrollToIndex(Integer.parseInt(medication.getOrderNumber())-1);
+                    grid.scrollToIndex(Integer.parseInt(medication.getOrderNumber()) - 1);
                 });
             } else {
                 grid.deselectAll();

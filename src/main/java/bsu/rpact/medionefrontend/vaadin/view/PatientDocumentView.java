@@ -1,7 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
-import bsu.rpact.medionefrontend.entity.medical.DiagnosticReportContainer;
+import bsu.rpact.medionefrontend.pojo.medical.DiagnosticReportContainer;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.DiagnosticReportService;
 import bsu.rpact.medionefrontend.service.medical.ObservationService;

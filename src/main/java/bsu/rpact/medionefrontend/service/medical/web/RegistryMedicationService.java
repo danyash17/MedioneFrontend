@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.service.medical.web;
 
-import bsu.rpact.medionefrontend.entity.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.pojo.medical.RegistryMedication;
 import bsu.rpact.medionefrontend.webparser.MedicationByNameStateRegistryWebParser;
 import org.springframework.stereotype.Service;
 

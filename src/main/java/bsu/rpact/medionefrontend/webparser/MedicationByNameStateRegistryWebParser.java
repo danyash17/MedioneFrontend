@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.webparser;
 
-import bsu.rpact.medionefrontend.entity.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.pojo.medical.RegistryMedication;
 import bsu.rpact.medionefrontend.utils.mapper.RegistryMedicationMapper;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
