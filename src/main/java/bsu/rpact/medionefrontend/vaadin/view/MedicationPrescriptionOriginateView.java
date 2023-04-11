@@ -1,10 +1,7 @@
 package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
-import bsu.rpact.medionefrontend.pojo.medical.MedicationDetails;
-import bsu.rpact.medionefrontend.pojo.medical.MedicationForm;
-import bsu.rpact.medionefrontend.pojo.medical.RcethRegistryItem;
-import bsu.rpact.medionefrontend.pojo.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.pojo.medical.*;
 import bsu.rpact.medionefrontend.pojo.other.Href;
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
 import bsu.rpact.medionefrontend.service.PatientService;
@@ -34,14 +31,19 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.textfield.NumberField;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.*;
+import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
@@ -166,8 +168,125 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         ComboBox<MedicationForm> medicationFormComboBox = new ComboBox<>();
         medicationFormComboBox.setItemLabelGenerator(MedicationForm::getDisplay);
         medicationFormComboBox.setItems(medicationFormService.getMedicationFormsFromSnomed());
-        details.addContent(createRow("Medication form", medicationFormComboBox));
+        ComboBox<String> dosageMethodComboBox = new ComboBox<>();
+        dosageMethodComboBox.setItems(DosageMethods.getDosageMethods());
+        details.addContent(new HorizontalLayout(createRow("Medication form", medicationFormComboBox),
+                createRow("Dosage method", dosageMethodComboBox)));
+        Div onceDiv = buildOnceDiv(binder);
+        onceDiv.setVisible(false);
+        Div periodicallyDiv = buildPeriodicallyDiv(binder);
+        periodicallyDiv.setVisible(false);
+        Div onDemandDiv = buildOnDemandDiv(binder);
+        onDemandDiv.setVisible(false);
+        Div tetrationDiv = buildTetrationDiv(binder);
+        tetrationDiv.setVisible(false);
+        TextArea comment = new TextArea();
+        comment.setLabel("Comment");
+        bindDosageCombobox(dosageMethodComboBox, onceDiv, periodicallyDiv, onDemandDiv, tetrationDiv);
+        details.addContent(onceDiv, periodicallyDiv, onDemandDiv, tetrationDiv, comment);
         return details;
+    }
+
+    private void bindDosageCombobox(ComboBox<String> dosageMethodComboBox, Div onceDiv, Div periodicallyDiv, Div onDemandDiv, Div tetrationDiv) {
+        dosageMethodComboBox.addValueChangeListener(e -> {
+           switch (dosageMethodComboBox.getValue()){
+               case DosageMethods.ONCE:
+                   onceDiv.setVisible(true);
+                   periodicallyDiv.setVisible(false);
+                   onDemandDiv.setVisible(false);
+                   tetrationDiv.setVisible(false);
+                   break;
+               case DosageMethods.PERIODICALLY:
+                   onceDiv.setVisible(false);
+                   periodicallyDiv.setVisible(true);
+                   onDemandDiv.setVisible(false);
+                   tetrationDiv.setVisible(false);
+                   break;
+               case DosageMethods.ON_DEMAND:
+                   onceDiv.setVisible(false);
+                   periodicallyDiv.setVisible(false);
+                   onDemandDiv.setVisible(true);
+                   tetrationDiv.setVisible(false);
+                   break;
+               case DosageMethods.TITRATION_METHOD:
+                   onceDiv.setVisible(false);
+                   periodicallyDiv.setVisible(false);
+                   onDemandDiv.setVisible(false);
+                   tetrationDiv.setVisible(true);
+                   break;
+           }
+        });
+    }
+
+    private Div buildTetrationDiv(Binder<MedicationPrescriptionRq> binder) {
+        Div div = new Div();
+        NumberField quantityField = new NumberField();
+        quantityField.setHasControls(true);
+        quantityField.setMin(0);
+        ComboBox<String> measureUnitsCombobox = new ComboBox<>();
+        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        TextField intTimesField = new TextField();
+        intTimesField.setPattern("[0-9]*");
+        intTimesField.setPreventInvalidInput(true);
+        Label label = new Label("times each");
+        NumberField timeQuantityField = new NumberField();
+        ComboBox<String> timePeriodCombobox = new ComboBox<>();
+        timePeriodCombobox.setItems(MedicationTimePeriod.getMedicationTimePeriods());
+        div.add(quantityField, measureUnitsCombobox, intTimesField, label, timeQuantityField, timePeriodCombobox);
+        NumberField coefField = new NumberField();
+        coefField.setHasControls(true);
+        coefField.setMin(0);
+        RadioButtonGroup<String> radioButtonGroup = new RadioButtonGroup<>();
+        radioButtonGroup.setItems("Decreasing", "Increasing");
+        HorizontalLayout rbLayout = new HorizontalLayout();
+        rbLayout.setSpacing(true);
+        rbLayout.add(radioButtonGroup);
+        radioButtonGroup.setRequiredIndicatorVisible(true);
+        radioButtonGroup.setLabel("Options");
+        radioButtonGroup.setRenderer(new TextRenderer<>(String::toString));
+        radioButtonGroup.setItemEnabledProvider(Objects::nonNull);
+        div.add(quantityField, measureUnitsCombobox, intTimesField, label, timeQuantityField, timePeriodCombobox,
+                createRow("Tetration coefficient", coefField),
+                rbLayout);
+        return div;
+    }
+
+    private Div buildPeriodicallyDiv(Binder<MedicationPrescriptionRq> binder) {
+        Div div = new Div();
+        NumberField quantityField = new NumberField();
+        quantityField.setHasControls(true);
+        quantityField.setMin(0);
+        ComboBox<String> measureUnitsCombobox = new ComboBox<>();
+        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        TextField intTimesField = new TextField();
+        intTimesField.setPattern("[0-9]*");
+        intTimesField.setPreventInvalidInput(true);
+        Label label = new Label("times each");
+        NumberField timeQuantityField = new NumberField();
+        timeQuantityField.setHasControls(true);
+        timeQuantityField.setMin(0);
+        ComboBox<String> timePeriodCombobox = new ComboBox<>();
+        timePeriodCombobox.setItems(MedicationTimePeriod.getMedicationTimePeriods());
+        div.add(quantityField, measureUnitsCombobox, intTimesField, label, timeQuantityField, timePeriodCombobox);
+        return div;
+    }
+
+    private Div buildOnDemandDiv(Binder<MedicationPrescriptionRq> binder) {
+        NumberField quantityField = new NumberField();
+        quantityField.setHasControls(true);
+        quantityField.setMin(0);
+        ComboBox<String> measureUnitsCombobox = new ComboBox<>();
+        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        return createRow("Amount", quantityField, measureUnitsCombobox);
+    }
+
+    private Div buildOnceDiv(Binder<MedicationPrescriptionRq> binder) {
+        NumberField quantityField = new NumberField();
+        quantityField.setHasControls(true);
+        quantityField.setMin(0);
+        ComboBox<String> measureUnitsCombobox = new ComboBox<>();
+        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        return createRow("Amount", quantityField, measureUnitsCombobox);
     }
 
     private void clearMedicationLookup(Icon icon, Button add, TextField medicationField, Button lookup) {
