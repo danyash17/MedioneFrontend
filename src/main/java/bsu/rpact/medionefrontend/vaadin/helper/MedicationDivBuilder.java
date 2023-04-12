@@ -49,6 +49,7 @@ public class MedicationDivBuilder {
     public Div buildMedicationDiv(MedicationPrescriptionRq request, Binder<MedicationPrescriptionRq> binder, VerticalLayout medicationsLayout) {
         AtomicReference<RegistryMedication> registryMedicationAtomicReference = new AtomicReference<>();
         TextField medicationField = new TextField();
+        medicationField.getElement().getStyle().set("width","580px");
         Button lookup = new Button();
         Icon icon = new Icon(VaadinIcon.CHECK);
         icon.setColor("green");
@@ -106,6 +107,7 @@ public class MedicationDivBuilder {
         ComboBox<MedicationForm> medicationFormComboBox = new ComboBox<>();
         medicationFormComboBox.setItemLabelGenerator(MedicationForm::getDisplay);
         medicationFormComboBox.setItems(medicationFormService.getMedicationFormsFromSnomed());
+        medicationFormComboBox.getElement().getStyle().set("width","400px");
         binder.forField(medicationFormComboBox).bind(new ValueProvider<MedicationPrescriptionRq, MedicationForm>() {
             @Override
             public MedicationForm apply(MedicationPrescriptionRq medicationPrescriptionRq) {
@@ -131,6 +133,7 @@ public class MedicationDivBuilder {
         tetrationDiv.setVisible(false);
         TextArea comment = new TextArea();
         comment.setLabel("Comment");
+        comment.getElement().getStyle().set("width", "100%");
         binder.forField(comment).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
             @Override
             public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
