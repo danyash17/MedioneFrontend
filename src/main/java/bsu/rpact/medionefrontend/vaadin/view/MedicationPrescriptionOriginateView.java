@@ -58,7 +58,6 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         wizard.addStep("Patient", createHeaderStepContent(rq));
         wizard.addStep("Medication", createMainStepContent(rq));
         wizard.addStep("Summary", new Label("Summary"));
-
         add(wizard);
     }
 

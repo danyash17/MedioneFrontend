@@ -106,6 +106,17 @@ public class MedicationDivBuilder {
         ComboBox<MedicationForm> medicationFormComboBox = new ComboBox<>();
         medicationFormComboBox.setItemLabelGenerator(MedicationForm::getDisplay);
         medicationFormComboBox.setItems(medicationFormService.getMedicationFormsFromSnomed());
+        binder.forField(medicationFormComboBox).bind(new ValueProvider<MedicationPrescriptionRq, MedicationForm>() {
+            @Override
+            public MedicationForm apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getMedicationForm();
+            }
+        }, new Setter<MedicationPrescriptionRq, MedicationForm>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, MedicationForm medicationForm) {
+                medicationDetails.setMedicationForm(medicationFormComboBox.getValue());
+            }
+        });
         ComboBox<String> dosageMethodComboBox = new ComboBox<>();
         dosageMethodComboBox.setItems(DosageMethodsStrings.getDosageMethods());
         medicationDetails.addContent(new HorizontalLayout(createRow("Medication form", medicationFormComboBox),

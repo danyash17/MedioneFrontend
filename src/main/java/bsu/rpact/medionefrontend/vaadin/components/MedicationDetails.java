@@ -6,6 +6,7 @@ import com.vaadin.flow.component.details.Details;
 public class MedicationDetails extends Details {
 
     private RegistryMedication registryMedication;
+    private MedicationForm medicationForm;
     private OnceDosageMethod onceDosageMethod;
     private PeriodicalDosageMethod periodicalDosageMethod;
     private OnDemandDosageMethod onDemandDosageMethod;
@@ -19,8 +20,9 @@ public class MedicationDetails extends Details {
         tetrationDosageMethod = new TetrationDosageMethod();
     }
 
-    public MedicationDetails(RegistryMedication registryMedication, OnceDosageMethod onceDosageMethod, PeriodicalDosageMethod periodicalDosageMethod, OnDemandDosageMethod onDemandDosageMethod, TetrationDosageMethod tetrationDosageMethod, String comment) {
+    public MedicationDetails(RegistryMedication registryMedication, MedicationForm medicationForm, OnceDosageMethod onceDosageMethod, PeriodicalDosageMethod periodicalDosageMethod, OnDemandDosageMethod onDemandDosageMethod, TetrationDosageMethod tetrationDosageMethod, String comment) {
         this.registryMedication = registryMedication;
+        this.medicationForm = medicationForm;
         this.onceDosageMethod = onceDosageMethod;
         this.periodicalDosageMethod = periodicalDosageMethod;
         this.onDemandDosageMethod = onDemandDosageMethod;
@@ -74,5 +76,13 @@ public class MedicationDetails extends Details {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public MedicationForm getMedicationForm() {
+        return medicationForm;
+    }
+
+    public void setMedicationForm(MedicationForm medicationForm) {
+        this.medicationForm = medicationForm;
     }
 }
