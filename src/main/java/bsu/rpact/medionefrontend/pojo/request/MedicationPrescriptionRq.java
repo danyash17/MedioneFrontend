@@ -1,8 +1,7 @@
 package bsu.rpact.medionefrontend.pojo.request;
 
 import bsu.rpact.medionefrontend.entity.Patient;
-import bsu.rpact.medionefrontend.pojo.medical.MedicationDetails;
-import bsu.rpact.medionefrontend.pojo.medical.RegistryMedication;
+import bsu.rpact.medionefrontend.vaadin.components.MedicationDetails;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +28,7 @@ public class MedicationPrescriptionRq {
     }
 
     public MedicationPrescriptionRq() {
+        this.medicationDetails = new ArrayList<>();
     }
 
     public Patient getPatient() {

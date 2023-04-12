@@ -2,7 +2,7 @@ package bsu.rpact.medionefrontend.pojo.medical;
 
 import java.util.List;
 
-public abstract class DosageMethods {
+public abstract class DosageMethodsStrings {
 
     public static final String ONCE = "Once";
     public static final String PERIODICALLY = "Periodically";

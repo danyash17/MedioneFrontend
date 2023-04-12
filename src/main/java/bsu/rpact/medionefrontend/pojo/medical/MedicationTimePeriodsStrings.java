@@ -2,7 +2,7 @@ package bsu.rpact.medionefrontend.pojo.medical;
 
 import java.util.List;
 
-public abstract class MedicationTimePeriod {
+public abstract class MedicationTimePeriodsStrings {
 
     public static final String MINUTES = "Minutes";
     public static final String HOURS = "Hours";

@@ -2,7 +2,7 @@ package bsu.rpact.medionefrontend.pojo.medical;
 
 import java.util.List;
 
-public abstract class MedicationMeasureUnits {
+public abstract class MedicationMeasureUnitsStrings {
 
     public static final String MILIGRAMS = "Milligrams";
     public static final String MICROGRAMS = "Micrograms";

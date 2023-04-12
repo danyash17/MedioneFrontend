@@ -10,6 +10,7 @@ import bsu.rpact.medionefrontend.service.medical.web.MedicationFormService;
 import bsu.rpact.medionefrontend.service.medical.web.RegistryMedicationService;
 import bsu.rpact.medionefrontend.utils.CalculatorUtils;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
+import bsu.rpact.medionefrontend.vaadin.components.MedicationDetails;
 import com.mlottmann.vstepper.BinderContent;
 import com.mlottmann.vstepper.StepContent;
 import com.mlottmann.vstepper.VStepper;
@@ -19,7 +20,6 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -99,6 +99,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
 
     private StepContent createMainStepContent(MedicationPrescriptionRq request) {
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
+        binder.setBean(request);
         VerticalLayout verticalLayout = new VerticalLayout();
         Div medicationDiv = buildMedicationDiv(request, binder, verticalLayout);
         BinderContent<MedicationPrescriptionRq> content =
@@ -141,12 +142,13 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
             clearMedicationLookup(icon, add, medicationField, lookup);
             medicationField.setInvalid(false);
             Button remove = new Button();
-            Details details = buildMedicationDetails(binder, registryMedicationAtomicReference.get(), remove);
+            MedicationDetails details = buildMedicationDetails(binder, registryMedicationAtomicReference.get(), remove);
             remove.setIcon(VaadinIcon.CLOSE_SMALL.create());
             remove.addThemeVariants(ButtonVariant.LUMO_SMALL);
             remove.addClassName("transparent-button");
             remove.addClickListener(event -> {
                 medicationsLayout.remove(details);
+                binder.getBean().getMedicationDetails().remove(details);
                 if (medicationsLayout.getChildren().count() < MAX_MEDICATIONS_IN_PRESCRIPTION) add.setVisible(true);
                 medicationField.setValue(registryMedicationAtomicReference.get().getTradeName());
             });
@@ -157,58 +159,69 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         return createRow("Medication   ", medicationField, lookup, icon, add);
     }
 
-    private Details buildMedicationDetails(Binder<MedicationPrescriptionRq> binder, RegistryMedication registryMedication, Button remove) {
-        Details details = new Details();
+    private MedicationDetails buildMedicationDetails(Binder<MedicationPrescriptionRq> binder, RegistryMedication registryMedication, Button remove) {
         MedicationDetails medicationDetails = new MedicationDetails();
         medicationDetails.setRegistryMedication(registryMedication);
-        details.setOpened(true);
+        medicationDetails.setOpened(true);
+        binder.getBean().getMedicationDetails().add(medicationDetails);
         Div header = getMedicationAnchorDiv(registryMedication);
-        details.setSummary(header);
+        medicationDetails.setSummary(header);
         header.add(remove);
         ComboBox<MedicationForm> medicationFormComboBox = new ComboBox<>();
         medicationFormComboBox.setItemLabelGenerator(MedicationForm::getDisplay);
         medicationFormComboBox.setItems(medicationFormService.getMedicationFormsFromSnomed());
         ComboBox<String> dosageMethodComboBox = new ComboBox<>();
-        dosageMethodComboBox.setItems(DosageMethods.getDosageMethods());
-        details.addContent(new HorizontalLayout(createRow("Medication form", medicationFormComboBox),
+        dosageMethodComboBox.setItems(DosageMethodsStrings.getDosageMethods());
+        medicationDetails.addContent(new HorizontalLayout(createRow("Medication form", medicationFormComboBox),
                 createRow("Dosage method", dosageMethodComboBox)));
-        Div onceDiv = buildOnceDiv(binder);
+        Div onceDiv = buildOnceDiv(binder, medicationDetails);
         onceDiv.setVisible(false);
-        Div periodicallyDiv = buildPeriodicallyDiv(binder);
+        Div periodicallyDiv = buildPeriodicallyDiv(binder, medicationDetails);
         periodicallyDiv.setVisible(false);
-        Div onDemandDiv = buildOnDemandDiv(binder);
+        Div onDemandDiv = buildOnDemandDiv(binder, medicationDetails);
         onDemandDiv.setVisible(false);
-        Div tetrationDiv = buildTetrationDiv(binder);
+        Div tetrationDiv = buildTetrationDiv(binder, medicationDetails);
         tetrationDiv.setVisible(false);
         TextArea comment = new TextArea();
         comment.setLabel("Comment");
+        binder.forField(comment).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getComment();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.setComment(s);
+            }
+        });
         bindDosageCombobox(dosageMethodComboBox, onceDiv, periodicallyDiv, onDemandDiv, tetrationDiv);
-        details.addContent(onceDiv, periodicallyDiv, onDemandDiv, tetrationDiv, comment);
-        return details;
+        medicationDetails.addContent(onceDiv, periodicallyDiv, onDemandDiv, tetrationDiv, comment);
+        return medicationDetails;
     }
 
     private void bindDosageCombobox(ComboBox<String> dosageMethodComboBox, Div onceDiv, Div periodicallyDiv, Div onDemandDiv, Div tetrationDiv) {
         dosageMethodComboBox.addValueChangeListener(e -> {
            switch (dosageMethodComboBox.getValue()){
-               case DosageMethods.ONCE:
+               case DosageMethodsStrings.ONCE:
                    onceDiv.setVisible(true);
                    periodicallyDiv.setVisible(false);
                    onDemandDiv.setVisible(false);
                    tetrationDiv.setVisible(false);
                    break;
-               case DosageMethods.PERIODICALLY:
+               case DosageMethodsStrings.PERIODICALLY:
                    onceDiv.setVisible(false);
                    periodicallyDiv.setVisible(true);
                    onDemandDiv.setVisible(false);
                    tetrationDiv.setVisible(false);
                    break;
-               case DosageMethods.ON_DEMAND:
+               case DosageMethodsStrings.ON_DEMAND:
                    onceDiv.setVisible(false);
                    periodicallyDiv.setVisible(false);
                    onDemandDiv.setVisible(true);
                    tetrationDiv.setVisible(false);
                    break;
-               case DosageMethods.TITRATION_METHOD:
+               case DosageMethodsStrings.TITRATION_METHOD:
                    onceDiv.setVisible(false);
                    periodicallyDiv.setVisible(false);
                    onDemandDiv.setVisible(false);
@@ -218,31 +231,110 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         });
     }
 
-    private Div buildTetrationDiv(Binder<MedicationPrescriptionRq> binder) {
+    private Div buildTetrationDiv(Binder<MedicationPrescriptionRq> binder, MedicationDetails medicationDetails) {
         Div div = new Div();
         NumberField quantityField = new NumberField();
         quantityField.setHasControls(true);
         quantityField.setMin(0);
+        binder.forField(quantityField).bind(new ValueProvider<MedicationPrescriptionRq, Double>() {
+            @Override
+            public Double apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getTetrationDosageMethod().getAmount();
+            }
+        }, new Setter<MedicationPrescriptionRq, Double>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, Double aDouble) {
+                medicationDetails.getTetrationDosageMethod().setAmount(aDouble);
+            }
+        });
         ComboBox<String> measureUnitsCombobox = new ComboBox<>();
-        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        measureUnitsCombobox.setItems(MedicationMeasureUnitsStrings.getMedicationMeasureUnits());
+        binder.forField(measureUnitsCombobox).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getTetrationDosageMethod().getUnit();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getTetrationDosageMethod().setUnit(s);
+            }
+        });
         TextField intTimesField = new TextField();
         intTimesField.setPattern("[0-9]*");
         intTimesField.setPreventInvalidInput(true);
+        binder.forField(intTimesField).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return Integer.toString(medicationDetails.getTetrationDosageMethod().getTimes());
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getTetrationDosageMethod().setTimes(Integer.parseInt(s));
+            }
+        });
         Label label = new Label("times each");
-        NumberField timeQuantityField = new NumberField();
+        TextField timeQuantityField = new TextField();
+        timeQuantityField.setPattern("[0-9]*");
+        timeQuantityField.setPreventInvalidInput(true);
+        binder.forField(timeQuantityField).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return Integer.toString(medicationDetails.getTetrationDosageMethod().getTimePeriodQuantity());
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getTetrationDosageMethod().setTimePeriodQuantity(Integer.parseInt(s));
+            }
+        });
         ComboBox<String> timePeriodCombobox = new ComboBox<>();
-        timePeriodCombobox.setItems(MedicationTimePeriod.getMedicationTimePeriods());
+        timePeriodCombobox.setItems(MedicationTimePeriodsStrings.getMedicationTimePeriods());
+        binder.forField(timePeriodCombobox).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getTetrationDosageMethod().getTimePeriod();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getTetrationDosageMethod().setTimePeriod(s);
+            }
+        });
         div.add(quantityField, measureUnitsCombobox, intTimesField, label, timeQuantityField, timePeriodCombobox);
         NumberField coefField = new NumberField();
         coefField.setHasControls(true);
         coefField.setMin(0);
+        binder.forField(coefField).bind(new ValueProvider<MedicationPrescriptionRq, Double>() {
+            @Override
+            public Double apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getTetrationDosageMethod().getCoefficient();
+            }
+        }, new Setter<MedicationPrescriptionRq, Double>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, Double aDouble) {
+                medicationDetails.getTetrationDosageMethod().setCoefficient(aDouble);
+            }
+        });
         RadioButtonGroup<String> radioButtonGroup = new RadioButtonGroup<>();
         radioButtonGroup.setItems("Decreasing", "Increasing");
+        binder.forField(radioButtonGroup).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getTetrationDosageMethod().getCoefTrend();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getTetrationDosageMethod().setCoefTrend(s);
+            }
+        });
         HorizontalLayout rbLayout = new HorizontalLayout();
         rbLayout.setSpacing(true);
         rbLayout.add(radioButtonGroup);
         radioButtonGroup.setRequiredIndicatorVisible(true);
-        radioButtonGroup.setLabel("Options");
+        radioButtonGroup.setLabel("Coefficient Trend");
         radioButtonGroup.setRenderer(new TextRenderer<>(String::toString));
         radioButtonGroup.setItemEnabledProvider(Objects::nonNull);
         div.add(quantityField, measureUnitsCombobox, intTimesField, label, timeQuantityField, timePeriodCombobox,
@@ -251,41 +343,140 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         return div;
     }
 
-    private Div buildPeriodicallyDiv(Binder<MedicationPrescriptionRq> binder) {
+    private Div buildPeriodicallyDiv(Binder<MedicationPrescriptionRq> binder, MedicationDetails medicationDetails) {
         Div div = new Div();
         NumberField quantityField = new NumberField();
         quantityField.setHasControls(true);
         quantityField.setMin(0);
+        binder.forField(quantityField).bind(new ValueProvider<MedicationPrescriptionRq, Double>() {
+            @Override
+            public Double apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getPeriodicalDosageMethod().getAmount();
+            }
+        }, new Setter<MedicationPrescriptionRq, Double>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, Double aDouble) {
+                medicationDetails.getPeriodicalDosageMethod().setAmount(aDouble);
+            }
+        });
         ComboBox<String> measureUnitsCombobox = new ComboBox<>();
-        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        measureUnitsCombobox.setItems(MedicationMeasureUnitsStrings.getMedicationMeasureUnits());
+        binder.forField(measureUnitsCombobox).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getPeriodicalDosageMethod().getUnit();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getPeriodicalDosageMethod().setUnit(s);
+            }
+        });
         TextField intTimesField = new TextField();
         intTimesField.setPattern("[0-9]*");
         intTimesField.setPreventInvalidInput(true);
+        binder.forField(intTimesField).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return Integer.toString(medicationDetails.getPeriodicalDosageMethod().getTimes());
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getPeriodicalDosageMethod().setTimes(Integer.parseInt(s));
+            }
+        });
         Label label = new Label("times each");
-        NumberField timeQuantityField = new NumberField();
-        timeQuantityField.setHasControls(true);
-        timeQuantityField.setMin(0);
+        TextField timeQuantityField = new TextField();
+        timeQuantityField.setPattern("[0-9]*");
+        timeQuantityField.setPreventInvalidInput(true);
+        binder.forField(timeQuantityField).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return Integer.valueOf(medicationDetails.getPeriodicalDosageMethod().getTimePeriodQuantity()).toString();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getPeriodicalDosageMethod().setTimePeriodQuantity(Integer.parseInt(s));
+            }
+        });
         ComboBox<String> timePeriodCombobox = new ComboBox<>();
-        timePeriodCombobox.setItems(MedicationTimePeriod.getMedicationTimePeriods());
+        timePeriodCombobox.setItems(MedicationTimePeriodsStrings.getMedicationTimePeriods());
+        binder.forField(timePeriodCombobox).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getPeriodicalDosageMethod().getTimePeriod();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getPeriodicalDosageMethod().setTimePeriod(s);
+            }
+        });
         div.add(quantityField, measureUnitsCombobox, intTimesField, label, timeQuantityField, timePeriodCombobox);
         return div;
     }
 
-    private Div buildOnDemandDiv(Binder<MedicationPrescriptionRq> binder) {
+    private Div buildOnDemandDiv(Binder<MedicationPrescriptionRq> binder, MedicationDetails medicationDetails) {
         NumberField quantityField = new NumberField();
         quantityField.setHasControls(true);
         quantityField.setMin(0);
+        binder.forField(quantityField).bind(new ValueProvider<MedicationPrescriptionRq, Double>() {
+            @Override
+            public Double apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getOnDemandDosageMethod().getAmount();
+            }
+        }, new Setter<MedicationPrescriptionRq, Double>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, Double aDouble) {
+                medicationDetails.getOnDemandDosageMethod().setAmount(aDouble);
+            }
+        });
         ComboBox<String> measureUnitsCombobox = new ComboBox<>();
-        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        measureUnitsCombobox.setItems(MedicationMeasureUnitsStrings.getMedicationMeasureUnits());
+        binder.forField(measureUnitsCombobox).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getOnDemandDosageMethod().getUnit();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getOnDemandDosageMethod().setUnit(s);
+            }
+        });
         return createRow("Amount", quantityField, measureUnitsCombobox);
     }
 
-    private Div buildOnceDiv(Binder<MedicationPrescriptionRq> binder) {
+    private Div buildOnceDiv(Binder<MedicationPrescriptionRq> binder, MedicationDetails medicationDetails) {
         NumberField quantityField = new NumberField();
         quantityField.setHasControls(true);
         quantityField.setMin(0);
+        binder.forField(quantityField).bind(new ValueProvider<MedicationPrescriptionRq, Double>() {
+            @Override
+            public Double apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getOnceDosageMethod().getAmount();
+            }
+        }, new Setter<MedicationPrescriptionRq, Double>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, Double aDouble) {
+                medicationDetails.getOnceDosageMethod().setAmount(aDouble);
+            }
+        });
         ComboBox<String> measureUnitsCombobox = new ComboBox<>();
-        measureUnitsCombobox.setItems(MedicationMeasureUnits.getMedicationMeasureUnits());
+        measureUnitsCombobox.setItems(MedicationMeasureUnitsStrings.getMedicationMeasureUnits());
+        binder.forField(measureUnitsCombobox).bind(new ValueProvider<MedicationPrescriptionRq, String>() {
+            @Override
+            public String apply(MedicationPrescriptionRq medicationPrescriptionRq) {
+                return medicationDetails.getOnceDosageMethod().getUnit();
+            }
+        }, new Setter<MedicationPrescriptionRq, String>() {
+            @Override
+            public void accept(MedicationPrescriptionRq medicationPrescriptionRq, String s) {
+                medicationDetails.getOnceDosageMethod().setUnit(s);
+            }
+        });
         return createRow("Amount", quantityField, measureUnitsCombobox);
     }
 
