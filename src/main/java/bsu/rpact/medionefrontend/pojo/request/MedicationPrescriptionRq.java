@@ -10,6 +10,7 @@ public class MedicationPrescriptionRq {
     private Patient patient;
     private Boolean preferential;
     private String serieNum;
+    private Integer validity;
     private List<MedicationDetails> medicationDetails;
 
     public Boolean getPreferential() {
@@ -20,10 +21,11 @@ public class MedicationPrescriptionRq {
         this.preferential = preferential;
     }
 
-    public MedicationPrescriptionRq(Patient patient, Boolean preferential, String serieNum) {
+    public MedicationPrescriptionRq(Patient patient, Boolean preferential, String serieNum, Integer validity) {
         this.patient = patient;
         this.preferential = preferential;
         this.serieNum = serieNum;
+        this.validity = validity;
         this.medicationDetails = new ArrayList<>();
     }
 
@@ -53,5 +55,13 @@ public class MedicationPrescriptionRq {
 
     public void setMedicationDetails(List<MedicationDetails> medicationDetails) {
         this.medicationDetails = medicationDetails;
+    }
+
+    public Integer getValidity() {
+        return validity;
+    }
+
+    public void setValidity(Integer validity) {
+        this.validity = validity;
     }
 }
