@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.pojo.medical;
 
-public class OnceDosageMethod extends DosageMethod{
+public class OnceDosageMethod extends DosageMethod {
     private double amount;
     private String unit;
 
@@ -26,5 +26,14 @@ public class OnceDosageMethod extends DosageMethod{
 
     public void setUnit(String unit) {
         this.unit = unit;
+    }
+
+    public boolean isEmpty() {
+        return unit == null && amount == 0.0;
+    }
+
+    @Override
+    public String toString() {
+        return amount + " " + unit;
     }
 }

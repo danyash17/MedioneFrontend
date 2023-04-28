@@ -1,5 +1,6 @@
 package bsu.rpact.medionefrontend.pojo.request;
 
+import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.entity.Patient;
 import bsu.rpact.medionefrontend.vaadin.components.MedicationDetails;
 
@@ -8,6 +9,7 @@ import java.util.List;
 
 public class MedicationPrescriptionRq {
     private Patient patient;
+    private Doctor doctor;
     private Boolean preferential;
     private String serieNum;
     private Integer validity;
@@ -21,8 +23,9 @@ public class MedicationPrescriptionRq {
         this.preferential = preferential;
     }
 
-    public MedicationPrescriptionRq(Patient patient, Boolean preferential, String serieNum, Integer validity) {
+    public MedicationPrescriptionRq(Patient patient, Doctor doctor, Boolean preferential, String serieNum, Integer validity) {
         this.patient = patient;
+        this.doctor = doctor;
         this.preferential = preferential;
         this.serieNum = serieNum;
         this.validity = validity;
@@ -63,5 +66,13 @@ public class MedicationPrescriptionRq {
 
     public void setValidity(Integer validity) {
         this.validity = validity;
+    }
+
+    public Doctor getDoctor() {
+        return doctor;
+    }
+
+    public void setDoctor(Doctor doctor) {
+        this.doctor = doctor;
     }
 }

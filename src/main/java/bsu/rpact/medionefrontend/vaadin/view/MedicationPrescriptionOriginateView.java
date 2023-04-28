@@ -2,14 +2,18 @@ package bsu.rpact.medionefrontend.vaadin.view;
 
 import bsu.rpact.medionefrontend.entity.Patient;
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
+import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
 import bsu.rpact.medionefrontend.utils.CalculatorUtils;
+import bsu.rpact.medionefrontend.utils.pdf.MedicalForm01Mapper;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import bsu.rpact.medionefrontend.vaadin.helper.MedicationDivBuilder;
 import com.mlottmann.vstepper.BinderContent;
+import com.mlottmann.vstepper.Step;
 import com.mlottmann.vstepper.StepContent;
 import com.mlottmann.vstepper.VStepper;
+import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -31,7 +35,9 @@ import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import java.lang.reflect.Field;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -44,24 +50,61 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
 
     public static final String MH = "MH";
     public static final String МН_PREF = "МН-";
+    public static final String PATIENT = "Patient";
+    public static final String MEDICATION = "Medication";
+    public static final String SUMMARY = "Summary";
     private final MedicationDivBuilder medicationDivBuilder;
     private final PatientService patientService;
+    private final DoctorService doctorService;
     private final MedicationRequestService medicationRequestService;
 
-    public MedicationPrescriptionOriginateView(MedicationDivBuilder medicationDivBuilder, PatientService patientService, MedicationRequestService medicationRequestService) {
+    public MedicationPrescriptionOriginateView(MedicationDivBuilder medicationDivBuilder, PatientService patientService, DoctorService doctorService, MedicationRequestService medicationRequestService) {
         this.medicationDivBuilder = medicationDivBuilder;
         this.patientService = patientService;
+        this.doctorService = doctorService;
         this.medicationRequestService = medicationRequestService;
         this.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         this.setAlignItems(FlexComponent.Alignment.CENTER);
         MedicationPrescriptionRq rq = new MedicationPrescriptionRq();
+        rq.setDoctor(doctorService.getDoctorSelf());
+        PdfViewer pdfViewer = new PdfViewer();
         VStepper wizard = new VStepper();
         wizard.setWidth("100%");
         wizard.setHeight("100%");
-        wizard.addStep("Patient", createHeaderStepContent(rq));
-        wizard.addStep("Medication", createMainStepContent(rq));
-        wizard.addStep("Summary", new Label("Summary"));
+        wizard.addStep(PATIENT, createHeaderStepContent(rq));
+        wizard.addStep(MEDICATION, createMainStepContent(rq));
+        wizard.addStep(SUMMARY, createSummaryStepContent(rq, pdfViewer));
+
+        List<Step> steps = getSteps(wizard);
+        steps.get(1).addCompleteListener(e -> {
+            new MedicalForm01Mapper().map(rq);
+        });
+
         add(wizard);
+    }
+
+    private List<Step> getSteps(VStepper wizard) {
+        Field steps = null;
+        try {
+            steps = wizard.getClass().getDeclaredField("steps");
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        steps.setAccessible(true);
+        List<Step> stepList = null;
+        try {
+            stepList = (List<Step>) steps.get(wizard);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return stepList;
+    }
+
+    private Component createSummaryStepContent(MedicationPrescriptionRq rq, PdfViewer pdfViewer) {
+        Binder<MedicationPrescriptionRq> binder = new Binder<>();
+        BinderContent<MedicationPrescriptionRq> content = new BinderContent<>(binder,pdfViewer);
+        content.setValue(rq);
+        return content;
     }
 
     private StepContent createHeaderStepContent(MedicationPrescriptionRq request) {

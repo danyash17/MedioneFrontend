@@ -27,4 +27,13 @@ public class TetrationDosageMethod extends PeriodicalDosageMethod {
     public void setCoefTrend(String coefTrend) {
         this.coefTrend = coefTrend;
     }
+
+    public boolean isEmpty(){
+        return unit==null && amount==0.0 && times ==0 && timePeriodQuantity==0 && timePeriod==null && coefficient==0.0 && coefTrend==null;
+    }
+
+    @Override
+    public String toString() {
+        return amount + " " + unit + " " + times + " приемов, каждые" + timePeriodQuantity + " " + timePeriod + ", тетрационный коэф. " + coefficient + ", тренд:" + coefTrend;
+    }
 }

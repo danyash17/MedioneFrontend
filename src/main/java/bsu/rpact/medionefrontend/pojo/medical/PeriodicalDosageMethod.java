@@ -1,11 +1,11 @@
 package bsu.rpact.medionefrontend.pojo.medical;
 
 public class PeriodicalDosageMethod extends DosageMethod{
-    private double amount;
-    private String unit;
-    private int times;
-    private int timePeriodQuantity;
-    private String timePeriod;
+    protected double amount;
+    protected String unit;
+    protected int times;
+    protected int timePeriodQuantity;
+    protected String timePeriod;
 
     public PeriodicalDosageMethod() {
     }
@@ -56,5 +56,14 @@ public class PeriodicalDosageMethod extends DosageMethod{
 
     public void setTimePeriod(String timePeriod) {
         this.timePeriod = timePeriod;
+    }
+
+    public boolean isEmpty(){
+        return unit==null && amount==0.0 && times ==0 && timePeriodQuantity==0 && timePeriod==null;
+    }
+
+    @Override
+    public String toString() {
+        return amount + " " + unit + " " + times + " приемов, каждые" + timePeriodQuantity + " " + timePeriod;
     }
 }

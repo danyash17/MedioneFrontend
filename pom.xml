@@ -144,9 +144,9 @@
             <version>1.0.9</version>
         </dependency>
         <dependency>
-            <groupId>org.vaadin.addons.mekaso</groupId>
-            <artifactId>progress</artifactId>
-            <version>1.1.0</version>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.24</version>
         </dependency>
     </dependencies>
     <dependencyManagement>

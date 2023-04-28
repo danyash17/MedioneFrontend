@@ -27,4 +27,13 @@ public class OnDemandDosageMethod extends DosageMethod{
     public void setUnit(String unit) {
         this.unit = unit;
     }
+
+    public boolean isEmpty(){
+        return unit==null && amount==0.0;
+    }
+
+    @Override
+    public String toString() {
+        return amount + " " + unit + " ";
+    }
 }
