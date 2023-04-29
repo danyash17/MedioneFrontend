@@ -10,6 +10,14 @@ public class MedicationForm {
         this.display = display;
     }
 
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setDisplay(String display) {
+        this.display = display;
+    }
+
     public String getCode() {
         return code;
     }

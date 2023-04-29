@@ -1,48 +1,53 @@
 package bsu.rpact.medionefrontend.utils.pdf;
 
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
-import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.vaadin.components.MedicationDetails;
-import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
-import java.util.Collections;
 import java.util.Locale;
 
 public class MedicalForm01Mapper {
 
     private static final String TEMPLATE_URL = "../../../../../META-INF/resources/template/MedicalForm01.pdf";
+    private static final String FONT_URL = "src/main/resources/META-INF/resources/template/roboto-regular.ttf";
+    private static final File FILE = new File("src/main/resources/generatedPrescription.pdf");
 
-    public void map(MedicationPrescriptionRq rq){
-        // Load the template PDF file
+    public File map(MedicationPrescriptionRq rq){
         PDDocument pdfTemplate = null;
         try {
             pdfTemplate = PDDocument.load(new File(MedicalForm01Mapper.class.getResource(TEMPLATE_URL).toURI()));
             PDAcroForm acroForm = pdfTemplate.getDocumentCatalog().getAcroForm();
+
+            PDFont formFont = PDType0Font.load(pdfTemplate, new FileInputStream(FONT_URL), false);
+            PDResources res = acroForm.getDefaultResources();
+            String fontName = res.add(formFont).getName();
+            String defaultAppearanceString = "/" + fontName + " 10 Tf 0 g";
+            for (PDField field : acroForm.getFields()) {
+                if (field instanceof PDTextField) {
+                    PDTextField textField = (PDTextField) field;
+                    textField.setDefaultAppearance(defaultAppearanceString);
+                }
+            }
             acroForm.setNeedAppearances(true);
+            Locale russianLocale = new Locale("ru", "RU");
             acroForm.getField("code").setValue("000");
             acroForm.getField("dateFrom").setValue(String.valueOf(LocalDate.now().getDayOfMonth()));
-            acroForm.getField("stringFrom").setValue(LocalDate.now().getMonth().getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()));
+            acroForm.getField("stringFrom").setValue(LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, russianLocale));
             acroForm.getField("dateTo").setValue(String.valueOf(LocalDate.now().getDayOfMonth()));
-            acroForm.getField("stringTo").setValue(LocalDate.now().getMonth().getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()));
+            acroForm.getField("stringTo").setValue(LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, russianLocale));
             acroForm.getField("patientFio").setValue(rq.getPatient().getCredentials().getFirstName() + " " +
                     rq.getPatient().getCredentials().getLastName() + " " + rq.getPatient().getCredentials().getPatronymic());
             acroForm.getField("doctorFio").setValue(rq.getDoctor().getCredentials().getFirstName() + " " +
@@ -61,14 +66,15 @@ public class MedicalForm01Mapper {
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
         }
-
-        // Save the PDF document with the populated fields
         try {
-            pdfTemplate.save(new File("output.pdf"));
+            pdfTemplate.save(FILE);
             pdfTemplate.close();
+            new PdfFieldToLabelConverter().convertPdfFormToText(FILE,FILE);
+            return FILE;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
     private String getMedicationRpString(MedicationDetails medicationDetails) {
@@ -83,21 +89,24 @@ public class MedicalForm01Mapper {
         stringBuilder.append("Формат распространения препарата:");
         stringBuilder.append(medicationDetails.getMedicationForm().getDisplay());
         stringBuilder.append("; ");
-        stringBuilder.append("Дозировка: ");
         if(!medicationDetails.getOnceDosageMethod().isEmpty()) {
+            stringBuilder.append("Единоразовая дозировка: ");
             stringBuilder.append(medicationDetails.getOnceDosageMethod().toString());
         }
         if(!medicationDetails.getOnDemandDosageMethod().isEmpty()) {
+            stringBuilder.append("Дозировка по востребованию: ");
             stringBuilder.append(medicationDetails.getOnDemandDosageMethod().toString());
         }
         if(!medicationDetails.getPeriodicalDosageMethod().isEmpty()) {
+            stringBuilder.append("Периодическая дозировка: ");
             stringBuilder.append(medicationDetails.getPeriodicalDosageMethod().toString());
         }
         if(!medicationDetails.getTetrationDosageMethod().isEmpty()) {
+            stringBuilder.append("Дозировка по тетрационному методу: ");
             stringBuilder.append(medicationDetails.getTetrationDosageMethod().toString());
         }
         stringBuilder.append("; ");
-        if (medicationDetails.getComment()!=null){
+        if (medicationDetails.getComment()!=null && !medicationDetails.getComment().isEmpty()){
             stringBuilder.append("Комментарий:");
             stringBuilder.append(medicationDetails.getComment());
         }

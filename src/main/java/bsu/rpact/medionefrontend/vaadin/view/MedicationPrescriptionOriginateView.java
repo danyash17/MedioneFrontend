@@ -34,7 +34,12 @@ import com.vaadin.flow.data.binder.*;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
@@ -77,10 +82,27 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
 
         List<Step> steps = getSteps(wizard);
         steps.get(1).addCompleteListener(e -> {
-            new MedicalForm01Mapper().map(rq);
+            try {
+                pdfViewer.setSrc(fileToStreamResource(new MedicalForm01Mapper().map(rq)));
+            } catch (FileNotFoundException ex) {
+                ex.printStackTrace();
+            }
         });
 
         add(wizard);
+    }
+
+    public StreamResource fileToStreamResource(File file) throws FileNotFoundException {
+        StreamResource streamResource = new StreamResource(file.getName(),
+                () -> {
+                    try {
+                        return new FileInputStream(file);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                });
+        return streamResource;
     }
 
     private List<Step> getSteps(VStepper wizard) {
@@ -103,7 +125,10 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
     private Component createSummaryStepContent(MedicationPrescriptionRq rq, PdfViewer pdfViewer) {
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
         BinderContent<MedicationPrescriptionRq> content = new BinderContent<>(binder,pdfViewer);
+        pdfViewer.setAddPrintButton(true);
         content.setValue(rq);
+        content.setWidth("100%");
+        content.setHeight("100%");
         return content;
     }
 

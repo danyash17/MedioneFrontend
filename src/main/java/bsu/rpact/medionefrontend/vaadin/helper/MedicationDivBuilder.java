@@ -31,9 +31,7 @@ import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.function.ValueProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -106,7 +104,14 @@ public class MedicationDivBuilder {
         header.add(remove);
         ComboBox<MedicationForm> medicationFormComboBox = new ComboBox<>();
         medicationFormComboBox.setItemLabelGenerator(MedicationForm::getDisplay);
-        medicationFormComboBox.setItems(medicationFormService.getMedicationFormsFromSnomed());
+        List<MedicationForm> medicationForms = medicationFormService.getTranslatedMedicationFormsFromSnomed();
+        Collections.sort(medicationForms, new Comparator<MedicationForm>() {
+            @Override
+            public int compare(MedicationForm mf1, MedicationForm mf2) {
+                return mf1.getDisplay().compareTo(mf2.getDisplay());
+            }
+        });
+        medicationFormComboBox.setItems(medicationForms);
         medicationFormComboBox.getElement().getStyle().set("width","400px");
         binder.forField(medicationFormComboBox).bind(new ValueProvider<MedicationPrescriptionRq, MedicationForm>() {
             @Override
