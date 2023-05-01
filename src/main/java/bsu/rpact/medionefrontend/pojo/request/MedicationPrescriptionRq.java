@@ -4,6 +4,7 @@ import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.entity.Patient;
 import bsu.rpact.medionefrontend.vaadin.components.MedicationDetails;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ public class MedicationPrescriptionRq {
     private Boolean preferential;
     private String serieNum;
     private Integer validity;
+    private LocalDate activeAfter;
     private List<MedicationDetails> medicationDetails;
 
     public Boolean getPreferential() {
@@ -23,12 +25,13 @@ public class MedicationPrescriptionRq {
         this.preferential = preferential;
     }
 
-    public MedicationPrescriptionRq(Patient patient, Doctor doctor, Boolean preferential, String serieNum, Integer validity) {
+    public MedicationPrescriptionRq(Patient patient, Doctor doctor, Boolean preferential, String serieNum, Integer validity, LocalDate activeAfter) {
         this.patient = patient;
         this.doctor = doctor;
         this.preferential = preferential;
         this.serieNum = serieNum;
         this.validity = validity;
+        this.activeAfter = activeAfter;
         this.medicationDetails = new ArrayList<>();
     }
 
@@ -74,5 +77,13 @@ public class MedicationPrescriptionRq {
 
     public void setDoctor(Doctor doctor) {
         this.doctor = doctor;
+    }
+
+    public LocalDate getActiveAfter() {
+        return activeAfter;
+    }
+
+    public void setActiveAfter(LocalDate activeAfter) {
+        this.activeAfter = activeAfter;
     }
 }

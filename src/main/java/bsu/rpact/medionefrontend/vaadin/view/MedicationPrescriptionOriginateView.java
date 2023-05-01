@@ -19,6 +19,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -141,14 +142,36 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         Div preferentialDiv = buildPreferentialDiv(request, pref, binder);
         Div serieNumberDiv = buildSerieNumberDiv(request, pref, binder);
         Div validityTimeDiv = buildValidityTimeDiv(request, binder);
+        Div activeAfterDiv = buildActiveAfterDiv(request, binder);
         layout.add(patientLookupDiv, preferentialDiv);
         BinderContent<MedicationPrescriptionRq> content =
                 new BinderContent<>(binder, layout,
-                        serieNumberDiv, validityTimeDiv);
+                        serieNumberDiv, validityTimeDiv, activeAfterDiv);
         content.setWidth("100%");
         content.setHeight("100%");
         content.setValue(request);
         return content;
+    }
+
+    private Div buildActiveAfterDiv(MedicationPrescriptionRq request, Binder<MedicationPrescriptionRq> binder) {
+        DatePicker datePicker = new DatePicker();
+        binder.forField(datePicker).withValidator(new Validator<LocalDate>() {
+            @Override
+            public ValidationResult apply(LocalDate localDate, ValueContext valueContext) {
+                return localDate==null ? ValidationResult.error("Capture active after date") : ValidationResult.ok();
+            }
+        }).bind(new ValueProvider<MedicationPrescriptionRq, LocalDate>() {
+            @Override
+            public LocalDate apply(MedicationPrescriptionRq rq) {
+                return rq.getActiveAfter();
+            }
+        }, new Setter<MedicationPrescriptionRq, LocalDate>() {
+            @Override
+            public void accept(MedicationPrescriptionRq rq, LocalDate localDate) {
+                rq.setActiveAfter(localDate);
+            }
+        });
+        return createRow("Active after", datePicker);
     }
 
     private Div buildValidityTimeDiv(MedicationPrescriptionRq request, Binder<MedicationPrescriptionRq> binder) {

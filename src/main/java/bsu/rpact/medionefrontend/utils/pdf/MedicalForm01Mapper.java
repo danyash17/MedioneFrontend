@@ -46,8 +46,8 @@ public class MedicalForm01Mapper {
             acroForm.getField("code").setValue("000");
             acroForm.getField("dateFrom").setValue(String.valueOf(LocalDate.now().getDayOfMonth()));
             acroForm.getField("stringFrom").setValue(LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, russianLocale));
-            acroForm.getField("dateTo").setValue(String.valueOf(LocalDate.now().getDayOfMonth()));
-            acroForm.getField("stringTo").setValue(LocalDate.now().getMonth().getDisplayName(TextStyle.FULL, russianLocale));
+            acroForm.getField("dateTo").setValue(String.valueOf(rq.getActiveAfter().getDayOfMonth()));
+            acroForm.getField("stringTo").setValue(rq.getActiveAfter().getMonth().getDisplayName(TextStyle.FULL, russianLocale));
             acroForm.getField("patientFio").setValue(rq.getPatient().getCredentials().getFirstName() + " " +
                     rq.getPatient().getCredentials().getLastName() + " " + rq.getPatient().getCredentials().getPatronymic());
             acroForm.getField("doctorFio").setValue(rq.getDoctor().getCredentials().getFirstName() + " " +
