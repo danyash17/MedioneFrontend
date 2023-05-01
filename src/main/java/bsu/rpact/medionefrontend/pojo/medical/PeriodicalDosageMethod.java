@@ -64,6 +64,10 @@ public class PeriodicalDosageMethod extends DosageMethod{
 
     @Override
     public String toString() {
-        return amount + " " + unit + " " + times + " приемов, каждые " + timePeriodQuantity + " " + timePeriod;
+        return getAmountString() + " " + unit + " " + times + " приемов, каждые " + timePeriodQuantity + " " + timePeriod;
+    }
+
+    private String getAmountString(){
+        return amount % 1 == 0 ? String.valueOf((int)amount) : String.valueOf(amount);
     }
 }

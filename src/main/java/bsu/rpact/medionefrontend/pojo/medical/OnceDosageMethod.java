@@ -34,6 +34,10 @@ public class OnceDosageMethod extends DosageMethod {
 
     @Override
     public String toString() {
-        return amount + " " + unit;
+        return getAmountString() + " " + unit;
+    }
+
+    private String getAmountString(){
+        return amount % 1 == 0 ? String.valueOf((int)amount) : String.valueOf(amount);
     }
 }

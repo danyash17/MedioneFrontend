@@ -34,6 +34,10 @@ public class TetrationDosageMethod extends PeriodicalDosageMethod {
 
     @Override
     public String toString() {
-        return amount + " " + unit + " " + times + " приемов, каждые " + timePeriodQuantity + " " + timePeriod + ", тетрационный коэф. " + coefficient + ", тренд:" + coefTrend;
+        return  getAmountString() + " " + unit + " " + times + " приемов, каждые " + timePeriodQuantity + " " + timePeriod + ", тетрационный коэф. " + coefficient + ", тренд:" + coefTrend;
+    }
+
+    private String getAmountString(){
+        return amount % 1 == 0 ? String.valueOf((int)amount) : String.valueOf(amount);
     }
 }
