@@ -34,7 +34,7 @@ public class MedicalForm01Mapper {
             PDFont formFont = PDType0Font.load(pdfTemplate, new FileInputStream(FONT_URL), false);
             PDResources res = acroForm.getDefaultResources();
             String fontName = res.add(formFont).getName();
-            String defaultAppearanceString = "/" + fontName + " 10 Tf 0 g";
+            String defaultAppearanceString = "/" + fontName + " 9 Tf 0 g";
             for (PDField field : acroForm.getFields()) {
                 if (field instanceof PDTextField) {
                     PDTextField textField = (PDTextField) field;
@@ -56,10 +56,10 @@ public class MedicalForm01Mapper {
             if(rq.getMedicationDetails().get(0)!=null){
                 acroForm.getField("rp1").setValue(getMedicationRpString(rq.getMedicationDetails().get(0)));
             }
-            if(rq.getMedicationDetails().size()==2 && rq.getMedicationDetails().get(1)!=null){
+            if(rq.getMedicationDetails().get(1)!=null){
                 acroForm.getField("rp2").setValue(getMedicationRpString(rq.getMedicationDetails().get(1)));
             }
-            if(rq.getMedicationDetails().size()==3 && rq.getMedicationDetails().get(2)!=null){
+            if(rq.getMedicationDetails().get(2)!=null){
                 acroForm.getField("rp3").setValue(getMedicationRpString(rq.getMedicationDetails().get(2)));
             }
             acroForm.getField("validityField").setValue(rq.getValidity().toString());
@@ -79,9 +79,7 @@ public class MedicalForm01Mapper {
 
     private String getMedicationRpString(MedicationDetails medicationDetails) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(medicationDetails.getRegistryMedication().getTradeName());
-        stringBuilder.append(" ");
-        stringBuilder.append(medicationDetails.getRegistryMedication().getInternationalName());
+        stringBuilder.append(removeInstructions(medicationDetails.getRegistryMedication().getTradeName()));
         stringBuilder.append("; ");
         stringBuilder.append("Производитель:");
         stringBuilder.append(medicationDetails.getRegistryMedication().getManufacturer());
@@ -92,25 +90,38 @@ public class MedicalForm01Mapper {
         if(!medicationDetails.getOnceDosageMethod().isEmpty()) {
             stringBuilder.append("Единоразовая дозировка: ");
             stringBuilder.append(medicationDetails.getOnceDosageMethod().toString());
+            stringBuilder.append(".");
         }
         if(!medicationDetails.getOnDemandDosageMethod().isEmpty()) {
             stringBuilder.append("Дозировка по востребованию: ");
             stringBuilder.append(medicationDetails.getOnDemandDosageMethod().toString());
+            stringBuilder.append(".");
         }
         if(!medicationDetails.getPeriodicalDosageMethod().isEmpty()) {
             stringBuilder.append("Периодическая дозировка: ");
             stringBuilder.append(medicationDetails.getPeriodicalDosageMethod().toString());
+            stringBuilder.append(".");
         }
         if(!medicationDetails.getTetrationDosageMethod().isEmpty()) {
             stringBuilder.append("Дозировка по тетрационному методу: ");
             stringBuilder.append(medicationDetails.getTetrationDosageMethod().toString());
+            stringBuilder.append(".");
         }
-        stringBuilder.append("; ");
         if (medicationDetails.getComment()!=null && !medicationDetails.getComment().isEmpty()){
             stringBuilder.append("Комментарий:");
             stringBuilder.append(medicationDetails.getComment());
         }
         return stringBuilder.toString();
+    }
+
+    private String removeInstructions(String input) {
+        String keyword = "инструкция";
+        int index = input.indexOf(keyword);
+        if (index != -1) {
+            return input.substring(0, index);
+        } else {
+            return input;
+        }
     }
 
 }
