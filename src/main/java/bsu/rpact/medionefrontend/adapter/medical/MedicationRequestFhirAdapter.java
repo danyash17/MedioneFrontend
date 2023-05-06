@@ -3,6 +3,7 @@ package bsu.rpact.medionefrontend.adapter.medical;
 import ca.uhn.fhir.rest.gclient.StringClientParam;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.MedicationRequest;
+import org.hl7.fhir.r4.model.Procedure;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,6 +28,14 @@ public class MedicationRequestFhirAdapter extends FhirBaseAdapter{
         bundle.setType(Bundle.BundleType.TRANSACTION);
         bundle.addEntry().setResource(medicationRequest).getRequest().setMethod(Bundle.HTTPVerb.POST);
         Bundle responseBundle = getClient().transaction().withBundle(bundle).execute();
+    }
+
+    public Bundle search(Class linkedEntity, Integer id) {
+        return getClient().search()
+                .forResource(MedicationRequest.class)
+                .where(MedicationRequest.IDENTIFIER.exactly().systemAndIdentifier(linkedEntity.getSimpleName(), id.toString()))
+                .returnBundle(Bundle.class)
+                .execute();
     }
 
 }

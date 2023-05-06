@@ -4,6 +4,7 @@ import bsu.rpact.medionefrontend.pojo.medical.DiagnosticReportContainer;
 import bsu.rpact.medionefrontend.enums.FhirId;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
 import bsu.rpact.medionefrontend.vaadin.view.DiagnosticReportView;
+import bsu.rpact.medionefrontend.vaadin.view.MedicationRequestView;
 import bsu.rpact.medionefrontend.vaadin.view.ObservationView;
 import bsu.rpact.medionefrontend.vaadin.view.ProcedureView;
 import com.github.appreciated.card.RippleClickableCard;
@@ -68,6 +69,20 @@ public class RippleCardFactory {
         return card;
     }
 
+    public RippleClickableCard getMedicationRequestCard(MedicationRequest medicationRequest) {
+        Image img = imageUtils.getImageByDocumentType(medicationRequest.getResourceType().toString());
+        img.setWidth("40px");
+        img.setHeight("40px");
+        String display = medicationRequest.getIdentifier().stream().filter(id -> id.getPeriod()!=null).findFirst().get().getValue();
+        RippleClickableCard card = new RippleClickableCard(
+                getComponentEventListener(medicationRequest),
+                new IconItem(img, display, medicationRequest.getAuthoredOn() != null ? medicationRequest.getAuthoredOn().toString() : null)
+        );
+        card.setWidthFull();
+        card.setHeight("100px");
+        return card;
+    }
+
     public String getDisplayString(List<Identifier> id, CodeableConcept code) {
         Optional<Identifier> frontendId = id.stream().filter(item -> item.getSystem().equals(FhirId.Frontend.name())).findFirst();
         String coding = code.getCoding().get(0).getDisplay();
@@ -96,8 +111,13 @@ public class RippleCardFactory {
                     UI.getCurrent().navigate(ProcedureView.class);
                     break;
                 }
+                case "MedicationRequest":{
+                    MedicationRequest medicationRequest = (MedicationRequest) domainResource;
+                    fhirCashingContainer.setMedicationRequest(medicationRequest);
+                    UI.getCurrent().navigate(MedicationRequestView.class);
+                    break;
+                }
             }
         };
     }
-
 }

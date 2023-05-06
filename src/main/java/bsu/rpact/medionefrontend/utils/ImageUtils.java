@@ -60,6 +60,10 @@ public class ImageUtils {
                 image = new Image("icons/documents/report1.png", "icons/question.png");
                 break;
             }
+            case "MedicationRequest" : {
+                image = new Image("icons/documents/prescription.png", "icons/question.png");
+                break;
+            }
             default: {
                 image = new Image("icons/documents/question.png", "icons/documents/question.png");
             }

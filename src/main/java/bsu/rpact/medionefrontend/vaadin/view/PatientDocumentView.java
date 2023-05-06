@@ -4,6 +4,7 @@ import bsu.rpact.medionefrontend.entity.Patient;
 import bsu.rpact.medionefrontend.pojo.medical.DiagnosticReportContainer;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.DiagnosticReportService;
+import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
 import bsu.rpact.medionefrontend.service.medical.ObservationService;
 import bsu.rpact.medionefrontend.service.medical.ProcedureService;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
@@ -41,6 +42,7 @@ public class PatientDocumentView extends VerticalLayout {
     private final ObservationService observationService;
     private final ProcedureService procedureService;
     private final DiagnosticReportService diagnosticReportService;
+    private final MedicationRequestService medicationRequestService;
     private final PatientService patientService;
     private final SessionManager sessionManager;
     private final FhirCashingContainer fhirCashingContainer;
@@ -53,12 +55,15 @@ public class PatientDocumentView extends VerticalLayout {
     private final Checkbox observations;
     private final Checkbox reports;
     private final Checkbox procedures;
+    private final Checkbox medicationRequests;
     private final Button searchButton;
     private DatePicker datePicker;
     private Button returnList;
     private List<Observation> displayableObservationList;
     private Map<DiagnosticReport, Observation> displayableDiagnosticReportMap;
     private List<Procedure> displayableProcedureList;
+    private List<MedicationRequest> displayableMedicationRequestList;
+    private List<MedicationRequest> storedMedicationRequestList;
     private List<Observation> storedObservationList;
     private Map<DiagnosticReport, Observation> storedDiagnosticReportMap;
     private List<Procedure> storedProcedureList;
@@ -69,10 +74,11 @@ public class PatientDocumentView extends VerticalLayout {
     private Integer totalPages;
     private Label currentNumber = new Label();
 
-    public PatientDocumentView(ObservationService observationService, ProcedureService procedureService, DiagnosticReportService diagnosticReportService, PatientService patientService, SessionManager sessionManager, FhirCashingContainer fhirCashingContainer, ImageUtils imageUtils, RippleCardFactory rippleCardFactory) {
+    public PatientDocumentView(ObservationService observationService, ProcedureService procedureService, DiagnosticReportService diagnosticReportService, MedicationRequestService medicationRequestService, PatientService patientService, SessionManager sessionManager, FhirCashingContainer fhirCashingContainer, ImageUtils imageUtils, RippleCardFactory rippleCardFactory) {
         this.observationService = observationService;
         this.procedureService = procedureService;
         this.diagnosticReportService = diagnosticReportService;
+        this.medicationRequestService = medicationRequestService;
         this.patientService = patientService;
         this.sessionManager = sessionManager;
         this.fhirCashingContainer = fhirCashingContainer;
@@ -93,6 +99,9 @@ public class PatientDocumentView extends VerticalLayout {
         procedures = new Checkbox();
         procedures.setLabel("Procedures");
         procedures.setValue(true);
+        medicationRequests = new Checkbox();
+        medicationRequests.setLabel("Medication Requests");
+        medicationRequests.setValue(true);
         searchButton = new Button("Search");
         returnList = new Button("Return full list");
         searchButton.addClickListener(e -> {
@@ -104,8 +113,10 @@ public class PatientDocumentView extends VerticalLayout {
         storedObservationList = observationService.search(Patient.class, patient.getId());
         storedDiagnosticReportMap = diagnosticReportService.searchIncluded(Patient.class, patient.getId());
         storedProcedureList = procedureService.search(Patient.class, patient.getId());
+        storedMedicationRequestList = medicationRequestService.search(Patient.class, patient.getId());
         displayableObservationList = new ArrayList<>();
         displayableProcedureList = new ArrayList<>();
+        displayableMedicationRequestList = new ArrayList<>();
         displayableDiagnosticReportMap = new HashMap<DiagnosticReport, Observation>();
         cloneStoredToDisplayable();
         datePicker = new DatePicker();
@@ -113,13 +124,14 @@ public class PatientDocumentView extends VerticalLayout {
         datePicker.setLabel("Issued at");
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchField.setPlaceholder("Search criteria");
-        listContentPanel.add(searchField, observations, reports, procedures, datePicker, searchButton, returnList);
+        listContentPanel.add(searchField, observations, reports, procedures, medicationRequests, datePicker, searchButton, returnList);
         setupMainArea();
     }
 
     private void cloneStoredToDisplayable() {
         displayableObservationList.addAll(storedObservationList);
         displayableProcedureList.addAll(storedProcedureList);
+        displayableMedicationRequestList.addAll(storedMedicationRequestList);
         displayableDiagnosticReportMap.putAll(storedDiagnosticReportMap);
     }
 
@@ -148,6 +160,9 @@ public class PatientDocumentView extends VerticalLayout {
         }
         if (reports.getValue()) {
             displayableDiagnosticReportMap = doReportSearch(criteria);
+        }
+        if (medicationRequests.getValue()){
+            displayableMedicationRequestList = doSearchMedicationRequests(criteria);
         }
         if (!datePicker.isEmpty()) {
             if (observations.getValue()) {
@@ -199,6 +214,15 @@ public class PatientDocumentView extends VerticalLayout {
     private List<Observation> doSearchObservation(String criteria) {
         return storedObservationList.stream().filter(observation -> {
             String display = rippleCardFactory.getDisplayString(observation.getIdentifier(), observation.getCode());
+            Pattern pattern = Pattern.compile(criteria, Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(display);
+            return matcher.find();
+        }).collect(Collectors.toList());
+    }
+
+    private List<MedicationRequest> doSearchMedicationRequests(String criteria) {
+        return storedMedicationRequestList.stream().filter(medicationRequest -> {
+            String display = medicationRequest.getIdentifier().stream().filter(id -> id.getPeriod()!=null).findFirst().get().getValue();
             Pattern pattern = Pattern.compile(criteria, Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(display);
             return matcher.find();
@@ -258,6 +282,10 @@ public class PatientDocumentView extends VerticalLayout {
             Procedure procedure = (Procedure) resource;
             return rippleCardFactory.getProcedureCard(procedure);
         }
+        if (resource instanceof MedicationRequest){
+            MedicationRequest medicationRequest = (MedicationRequest) resource;
+            return rippleCardFactory.getMedicationRequestCard(medicationRequest);
+        }
         return null;
     }
 
@@ -280,6 +308,12 @@ public class PatientDocumentView extends VerticalLayout {
             displayableProcedureList.stream().forEach(item -> {
                 if (item != null && item.getPerformedDateTimeType() != null)
                     domainResources.put(item.getPerformedDateTimeType().getValue(), item);
+            });
+        }
+        if (medicationRequests.getValue()) {
+            displayableMedicationRequestList.stream().forEach(item -> {
+                if (item != null && item.getAuthoredOn() != null)
+                    domainResources.put(item.getAuthoredOn(), item);
             });
         }
         return domainResources;

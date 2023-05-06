@@ -1,10 +1,8 @@
 package bsu.rpact.medionefrontend.service.medical;
 
 import bsu.rpact.medionefrontend.adapter.medical.MedicationRequestFhirAdapter;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.MedicationRequest;
+import bsu.rpact.medionefrontend.entity.Patient;
+import org.hl7.fhir.r4.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,5 +26,14 @@ public class MedicationRequestService implements FhirBundleMapper{
     @Override
     public MedicationRequest map(Bundle.BundleEntryComponent component) {
         return (MedicationRequest) component.getResource();
+    }
+
+    public List<MedicationRequest> search(Class<Patient> linkedEntity, Integer id) {
+        Bundle bundle = adapter.search(linkedEntity,id);
+        List<MedicationRequest> list = new LinkedList<>();
+        for (Bundle.BundleEntryComponent component:bundle.getEntry()){
+            list.add(map(component));
+        }
+        return list;
     }
 }
