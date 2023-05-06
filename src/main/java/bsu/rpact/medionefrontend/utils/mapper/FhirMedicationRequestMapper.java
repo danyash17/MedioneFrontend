@@ -196,7 +196,6 @@ public class FhirMedicationRequestMapper {
 
     private void initPatientRef(MedicationPrescriptionRq rq, MedicationRequest medicationRequest) {
         Reference patRef = new Reference();
-        patRef.setReference("Patient/");
         patRef.setDisplay(rq.getPatient().getCredentials().getFirstName() + " " + rq.getPatient().getCredentials().getLastName()
                 + " " + rq.getPatient().getCredentials().getPatronymic());
         medicationRequest.setSubject(patRef);
@@ -204,7 +203,6 @@ public class FhirMedicationRequestMapper {
 
     private void initDoctorRef(MedicationPrescriptionRq rq, MedicationRequest medicationRequest) {
         Reference docRef = new Reference();
-        docRef.setReference("Doctor/");
         docRef.setDisplay(rq.getDoctor().getCredentials().getFirstName() + " " + rq.getDoctor().getCredentials().getLastName()
                 + " " + rq.getDoctor().getCredentials().getPatronymic());
         medicationRequest.setPerformer(docRef);

@@ -6,6 +6,7 @@ import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
 import bsu.rpact.medionefrontend.utils.CalculatorUtils;
+import bsu.rpact.medionefrontend.utils.UiUtils;
 import bsu.rpact.medionefrontend.utils.mapper.FhirMedicationRequestMapper;
 import bsu.rpact.medionefrontend.utils.mapper.MedicationPrescriptionRqMapper;
 import bsu.rpact.medionefrontend.utils.pdf.MedicalForm01Mapper;
@@ -17,6 +18,7 @@ import com.mlottmann.vstepper.StepContent;
 import com.mlottmann.vstepper.VStepper;
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -91,11 +93,15 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         steps.get(1).addCompleteListener(e -> {
             try {
                 pdfViewer.setSrc(fileToStreamResource(new MedicalForm01Mapper().map(rq)));
-                MedicationRequest medicationRequest = fhirMedicationRequestMapper.map(rq);
-                medicationPrescriptionRqMapper.map(medicationRequest);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }
+        });
+
+        wizard.addFinishListener(e -> {
+          medicationRequestService.saveMedicationRequest(fhirMedicationRequestMapper.map(rq));
+          UiUtils.generateSuccessNotification("Medication Request created successfully").open();
+          UI.getCurrent().navigate(HomeView.class);
         });
 
         add(wizard);

@@ -21,6 +21,10 @@ public class MedicationRequestService implements FhirBundleMapper{
         return adapter.isIdentifierUnique(identifierValue);
     }
 
+    public void saveMedicationRequest(MedicationRequest medicationRequest){
+        adapter.saveMedicationRequest(medicationRequest);
+    }
+
     @Override
     public MedicationRequest map(Bundle.BundleEntryComponent component) {
         return (MedicationRequest) component.getResource();

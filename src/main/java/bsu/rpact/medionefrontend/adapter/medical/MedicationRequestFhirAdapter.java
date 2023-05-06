@@ -22,4 +22,11 @@ public class MedicationRequestFhirAdapter extends FhirBaseAdapter{
         return isUnique;
     }
 
+    public void saveMedicationRequest(MedicationRequest medicationRequest) {
+        Bundle bundle = new Bundle();
+        bundle.setType(Bundle.BundleType.TRANSACTION);
+        bundle.addEntry().setResource(medicationRequest).getRequest().setMethod(Bundle.HTTPVerb.POST);
+        Bundle responseBundle = getClient().transaction().withBundle(bundle).execute();
+    }
+
 }
