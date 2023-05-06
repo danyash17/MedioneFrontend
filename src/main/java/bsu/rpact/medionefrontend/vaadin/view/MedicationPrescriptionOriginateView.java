@@ -6,6 +6,7 @@ import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
 import bsu.rpact.medionefrontend.utils.CalculatorUtils;
+import bsu.rpact.medionefrontend.utils.mapper.FhirMedicationRequestMapper;
 import bsu.rpact.medionefrontend.utils.pdf.MedicalForm01Mapper;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import bsu.rpact.medionefrontend.vaadin.helper.MedicationDivBuilder;
@@ -85,6 +86,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         steps.get(1).addCompleteListener(e -> {
             try {
                 pdfViewer.setSrc(fileToStreamResource(new MedicalForm01Mapper().map(rq)));
+                new FhirMedicationRequestMapper().map(rq);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }
@@ -126,6 +128,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
     private Component createSummaryStepContent(MedicationPrescriptionRq rq, PdfViewer pdfViewer) {
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
         BinderContent<MedicationPrescriptionRq> content = new BinderContent<>(binder,pdfViewer);
+        rq.setAuthoredOn(LocalDate.now());
         pdfViewer.setAddPrintButton(true);
         content.setValue(rq);
         content.setWidth("100%");

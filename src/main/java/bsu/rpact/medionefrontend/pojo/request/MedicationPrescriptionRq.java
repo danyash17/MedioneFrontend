@@ -16,6 +16,7 @@ public class MedicationPrescriptionRq {
     private Integer validity;
     private LocalDate activeAfter;
     private List<MedicationDetails> medicationDetails;
+    private LocalDate authoredOn;
 
     public Boolean getPreferential() {
         return preferential;
@@ -25,13 +26,14 @@ public class MedicationPrescriptionRq {
         this.preferential = preferential;
     }
 
-    public MedicationPrescriptionRq(Patient patient, Doctor doctor, Boolean preferential, String serieNum, Integer validity, LocalDate activeAfter) {
+    public MedicationPrescriptionRq(Patient patient, Doctor doctor, Boolean preferential, String serieNum, Integer validity, LocalDate activeAfter, LocalDate authoredOn) {
         this.patient = patient;
         this.doctor = doctor;
         this.preferential = preferential;
         this.serieNum = serieNum;
         this.validity = validity;
         this.activeAfter = activeAfter;
+        this.authoredOn = authoredOn;
         this.medicationDetails = new ArrayList<>();
     }
 
@@ -85,5 +87,13 @@ public class MedicationPrescriptionRq {
 
     public void setActiveAfter(LocalDate activeAfter) {
         this.activeAfter = activeAfter;
+    }
+
+    public LocalDate getAuthoredOn() {
+        return authoredOn;
+    }
+
+    public void setAuthoredOn(LocalDate authoredOn) {
+        this.authoredOn = authoredOn;
     }
 }

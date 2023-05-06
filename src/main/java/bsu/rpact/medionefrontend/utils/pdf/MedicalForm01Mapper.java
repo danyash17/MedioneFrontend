@@ -56,10 +56,10 @@ public class MedicalForm01Mapper {
             if(rq.getMedicationDetails().get(0)!=null){
                 acroForm.getField("rp1").setValue(getMedicationRpString(rq.getMedicationDetails().get(0)));
             }
-            if(rq.getMedicationDetails().get(1)!=null){
+            if(rq.getMedicationDetails().size()>1 && rq.getMedicationDetails().get(1)!=null){
                 acroForm.getField("rp2").setValue(getMedicationRpString(rq.getMedicationDetails().get(1)));
             }
-            if(rq.getMedicationDetails().get(2)!=null){
+            if(rq.getMedicationDetails().size()>2 && rq.getMedicationDetails().get(2)!=null){
                 acroForm.getField("rp3").setValue(getMedicationRpString(rq.getMedicationDetails().get(2)));
             }
             acroForm.getField("validityField").setValue(rq.getValidity().toString());
