@@ -103,12 +103,8 @@ public class PatientDocumentView extends VerticalLayout {
         medicationRequests.setLabel("Medication Requests");
         medicationRequests.setValue(true);
         searchButton = new Button("Search");
-        returnList = new Button("Return full list");
         searchButton.addClickListener(e -> {
             setupSearch();
-        });
-        returnList.addClickListener(e -> {
-            setupReturn();
         });
         storedObservationList = observationService.search(Patient.class, patient.getId());
         storedDiagnosticReportMap = diagnosticReportService.searchIncluded(Patient.class, patient.getId());
@@ -133,12 +129,6 @@ public class PatientDocumentView extends VerticalLayout {
         displayableProcedureList.addAll(storedProcedureList);
         displayableMedicationRequestList.addAll(storedMedicationRequestList);
         displayableDiagnosticReportMap.putAll(storedDiagnosticReportMap);
-    }
-
-    private void setupReturn() {
-        searchField.clear();
-        cloneStoredToDisplayable();
-        setupMainArea();
     }
 
     private void setupMainArea() {
@@ -253,7 +243,7 @@ public class PatientDocumentView extends VerticalLayout {
 
     private List<RippleClickableCard> getAllCards() {
         List<RippleClickableCard> cardList = new LinkedList();
-        List<DomainResource> domainResources = sortDomainResourcesToList(buildDomainResourcesMap());
+        List<DomainResource> domainResources = buildDomainResourcesMap();
         for (DomainResource resource : domainResources) {
             cardList.add(getProperCard(resource));
         }
@@ -289,39 +279,34 @@ public class PatientDocumentView extends VerticalLayout {
         return null;
     }
 
-    private Map<Date, DomainResource> buildDomainResourcesMap() {
-        Map<Date, DomainResource> domainResources = new HashMap<>();
+    private List<DomainResource> buildDomainResourcesMap() {
+        List<DomainResource> domainResources = new ArrayList<>();
         if (observations.getValue()) {
             observationService.search(Patient.class, patient.getId());
             displayableObservationList.stream().forEach(item -> {
                 if (item != null && item.getIssued() != null)
-                    domainResources.put(item.getIssued(), item);
+                    domainResources.add(item);
             });
         }
         if (reports.getValue()) {
             displayableDiagnosticReportMap.keySet().stream().forEach(item -> {
                 if (item != null && item.getIssued() != null)
-                    domainResources.put(item.getIssued(), item);
+                    domainResources.add(item);
             });
         }
         if (procedures.getValue()) {
             displayableProcedureList.stream().forEach(item -> {
                 if (item != null && item.getPerformedDateTimeType() != null)
-                    domainResources.put(item.getPerformedDateTimeType().getValue(), item);
+                    domainResources.add(item);
             });
         }
         if (medicationRequests.getValue()) {
             displayableMedicationRequestList.stream().forEach(item -> {
                 if (item != null && item.getAuthoredOn() != null)
-                    domainResources.put(item.getAuthoredOn(), item);
+                    domainResources.add(item);
             });
         }
         return domainResources;
-    }
-
-    private List<DomainResource> sortDomainResourcesToList(Map<Date, DomainResource> map) {
-        Map<Date, DomainResource> sortedMap = new TreeMap<>(map);
-        return new ArrayList<>(sortedMap.values());
     }
 
     private HorizontalLayout setupPagingLayout() {
