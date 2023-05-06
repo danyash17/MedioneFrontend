@@ -17,5 +17,8 @@ public class PatientService {
     public Optional<Patient> getSelf() {
         return adapter.getSelf();
     }
+    public Optional<Patient> getById(Integer id) {
+        return adapter.getById(id);
+    }
     public List<Patient> findBySearchTerm(String searchTerm){return adapter.findBySearchTerm(searchTerm);}
 }

@@ -4,6 +4,7 @@ import bsu.rpact.medionefrontend.pojo.medical.MedicationTimePeriodsStrings;
 import bsu.rpact.medionefrontend.pojo.request.MedicationPrescriptionRq;
 import bsu.rpact.medionefrontend.vaadin.components.MedicationDetails;
 import org.hl7.fhir.r4.model.*;
+import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+@Component
 public class FhirMedicationRequestMapper {
 
     private static final String SERIAL_NUMBER = "http://uiip.bas-net.by/hl7/fhir/serial-number";
@@ -130,7 +132,7 @@ public class FhirMedicationRequestMapper {
         if (!details.getTetrationDosageMethod().isEmpty()){
             Dosage dosage = new Dosage();
             Coding tetration = new Coding();
-            tetration.setDisplay("TetrationMethod/");
+            tetration.setDisplay("Tetration Method");
             dosage.setMethod(new CodeableConcept(tetration));
             Quantity quantity = new Quantity();
             quantity.setValue(details.getTetrationDosageMethod().getAmount());

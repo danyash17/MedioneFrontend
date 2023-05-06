@@ -7,6 +7,7 @@ import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.medical.MedicationRequestService;
 import bsu.rpact.medionefrontend.utils.CalculatorUtils;
 import bsu.rpact.medionefrontend.utils.mapper.FhirMedicationRequestMapper;
+import bsu.rpact.medionefrontend.utils.mapper.MedicationPrescriptionRqMapper;
 import bsu.rpact.medionefrontend.utils.pdf.MedicalForm01Mapper;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import bsu.rpact.medionefrontend.vaadin.helper.MedicationDivBuilder;
@@ -37,11 +38,11 @@ import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
+import org.hl7.fhir.r4.model.MedicationRequest;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.List;
@@ -64,12 +65,16 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final MedicationRequestService medicationRequestService;
+    private final MedicationPrescriptionRqMapper medicationPrescriptionRqMapper;
+    private final FhirMedicationRequestMapper fhirMedicationRequestMapper;
 
-    public MedicationPrescriptionOriginateView(MedicationDivBuilder medicationDivBuilder, PatientService patientService, DoctorService doctorService, MedicationRequestService medicationRequestService) {
+    public MedicationPrescriptionOriginateView(MedicationDivBuilder medicationDivBuilder, PatientService patientService, DoctorService doctorService, MedicationRequestService medicationRequestService, MedicationPrescriptionRqMapper medicationPrescriptionRqMapper, FhirMedicationRequestMapper fhirMedicationRequestMapper) {
         this.medicationDivBuilder = medicationDivBuilder;
         this.patientService = patientService;
         this.doctorService = doctorService;
         this.medicationRequestService = medicationRequestService;
+        this.medicationPrescriptionRqMapper = medicationPrescriptionRqMapper;
+        this.fhirMedicationRequestMapper = fhirMedicationRequestMapper;
         this.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         this.setAlignItems(FlexComponent.Alignment.CENTER);
         MedicationPrescriptionRq rq = new MedicationPrescriptionRq();
@@ -86,7 +91,8 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         steps.get(1).addCompleteListener(e -> {
             try {
                 pdfViewer.setSrc(fileToStreamResource(new MedicalForm01Mapper().map(rq)));
-                new FhirMedicationRequestMapper().map(rq);
+                MedicationRequest medicationRequest = fhirMedicationRequestMapper.map(rq);
+                medicationPrescriptionRqMapper.map(medicationRequest);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }

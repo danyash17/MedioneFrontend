@@ -43,4 +43,13 @@ public class PatientAdapter extends DemographicBaseAdapter {
                 })
                 .block();
     }
+
+    public Optional<Patient> getById(Integer id) {
+        return Optional.ofNullable(webClient.get()
+                .uri(mapping+id)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToMono(Patient.class)
+                .block());
+    }
 }
