@@ -3,6 +3,7 @@ package bsu.rpact.medionefrontend.utils;
 import bsu.rpact.medionefrontend.pojo.medical.DiagnosticReportContainer;
 import bsu.rpact.medionefrontend.enums.FhirId;
 import bsu.rpact.medionefrontend.session.FhirCashingContainer;
+import bsu.rpact.medionefrontend.utils.mapper.MedicationPrescriptionRqMapper;
 import bsu.rpact.medionefrontend.vaadin.view.DiagnosticReportView;
 import bsu.rpact.medionefrontend.vaadin.view.MedicationRequestView;
 import bsu.rpact.medionefrontend.vaadin.view.ObservationView;
@@ -73,7 +74,7 @@ public class RippleCardFactory {
         Image img = imageUtils.getImageByDocumentType(medicationRequest.getResourceType().toString());
         img.setWidth("40px");
         img.setHeight("40px");
-        String display = medicationRequest.getIdentifier().stream().filter(id -> id.getPeriod()!=null).findFirst().get().getValue();
+        String display = medicationRequest.getIdentifier().stream().filter(id -> id.getSystem().equals(MedicationPrescriptionRqMapper.SERIAL_NUMBER)).findFirst().get().getValue();
         RippleClickableCard card = new RippleClickableCard(
                 getComponentEventListener(medicationRequest),
                 new IconItem(img, display, medicationRequest.getAuthoredOn() != null ? medicationRequest.getAuthoredOn().toString() : null)

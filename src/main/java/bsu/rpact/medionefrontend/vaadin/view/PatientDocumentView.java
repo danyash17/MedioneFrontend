@@ -120,7 +120,7 @@ public class PatientDocumentView extends VerticalLayout {
         datePicker.setLabel("Issued at");
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchField.setPlaceholder("Search criteria");
-        listContentPanel.add(searchField, observations, reports, procedures, medicationRequests, datePicker, searchButton, returnList);
+        listContentPanel.add(searchField, observations, reports, procedures, medicationRequests, datePicker, searchButton);
         setupMainArea();
     }
 

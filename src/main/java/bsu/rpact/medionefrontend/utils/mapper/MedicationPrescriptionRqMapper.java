@@ -21,7 +21,7 @@ public class MedicationPrescriptionRqMapper {
     @Autowired
     private DoctorService doctorService;
 
-    private static final String SERIAL_NUMBER = "http://uiip.bas-net.by/hl7/fhir/serial-number";
+    public static final String SERIAL_NUMBER = "http://uiip.bas-net.by/hl7/fhir/serial-number";
 
     public MedicationPrescriptionRq map(MedicationRequest medicationRequest) {
         MedicationPrescriptionRq rq = new MedicationPrescriptionRq();
@@ -39,6 +39,7 @@ public class MedicationPrescriptionRqMapper {
             RegistryMedication registryMedication = new RegistryMedication();
             registryMedication.setTradeName(medication.getCode().getCodingFirstRep().getDisplay());
             registryMedication.setInternationalName(medication.getCode().getCoding().get(1).getDisplay());
+            registryMedication.setManufacturer(medication.getManufacturer().getDisplay());
             details.setRegistryMedication(registryMedication);
             details.setMedicationForm(new MedicationForm(medication.getForm().getCodingFirstRep().getCode(), medication.getForm().getCodingFirstRep().getDisplay()));
             initFromDosage(medication, rq, details);
