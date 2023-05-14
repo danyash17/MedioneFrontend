@@ -89,7 +89,8 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         wizard.setHeight("100%");
         wizard.addStep(PATIENT, createHeaderStepContent(rq));
         wizard.addStep(MEDICATION, createMainStepContent(rq));
-        wizard.addStep(SUMMARY, createSummaryStepContent(rq, pdfViewer,afterSavePdfViewer, save));
+        wizard.addStep(SUMMARY, createSummaryStepContent(rq, pdfViewer,afterSavePdfViewer, save, wizard));
+        wizard.setFinishText("Exit");
 
         List<Step> steps = getSteps(wizard);
         steps.get(1).addCompleteListener(e -> {
@@ -101,13 +102,11 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
                 ex.printStackTrace();
             }
         });
-        wizard.getFinish().setEnabled(false);
         save.addClickListener(e -> {
             medicationRequestService.saveMedicationRequest(fhirMedicationRequestMapper.map(rq));
             UiUtils.generateSuccessNotification("Medication Request created successfully").open();
             pdfViewer.setVisible(false);
             afterSavePdfViewer.setVisible(true);
-            wizard.getFinish().setEnabled(true);
             save.setEnabled(false);
         });
         wizard.addFinishListener(e -> {
@@ -147,7 +146,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         return stepList;
     }
 
-    private Component createSummaryStepContent(MedicationPrescriptionRq rq, PdfViewer pdfViewer, PdfViewer afterSavePdfViewer, Button save) {
+    private Component createSummaryStepContent(MedicationPrescriptionRq rq, PdfViewer pdfViewer, PdfViewer afterSavePdfViewer, Button save, VStepper wizard) {
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
         BinderContent<MedicationPrescriptionRq> content = new BinderContent<>(binder,pdfViewer,afterSavePdfViewer, save);
         rq.setAuthoredOn(LocalDate.now());
@@ -159,6 +158,7 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         content.setValue(rq);
         content.setWidth("100%");
         content.setHeight("100%");
+        wizard.getFinish().setEnabled(false);
         return content;
     }
 
