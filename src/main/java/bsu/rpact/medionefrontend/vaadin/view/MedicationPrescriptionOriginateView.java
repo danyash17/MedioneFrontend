@@ -39,8 +39,8 @@ import com.vaadin.flow.data.binder.*;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.AbstractStreamResource;
 import com.vaadin.flow.server.StreamResource;
-import org.hl7.fhir.r4.model.MedicationRequest;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -82,25 +82,35 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         MedicationPrescriptionRq rq = new MedicationPrescriptionRq();
         rq.setDoctor(doctorService.getDoctorSelf());
         PdfViewer pdfViewer = new PdfViewer();
+        PdfViewer afterSavePdfViewer = new PdfViewer();
+        Button save = new Button("Save");
         VStepper wizard = new VStepper();
         wizard.setWidth("100%");
         wizard.setHeight("100%");
         wizard.addStep(PATIENT, createHeaderStepContent(rq));
         wizard.addStep(MEDICATION, createMainStepContent(rq));
-        wizard.addStep(SUMMARY, createSummaryStepContent(rq, pdfViewer));
+        wizard.addStep(SUMMARY, createSummaryStepContent(rq, pdfViewer,afterSavePdfViewer, save));
 
         List<Step> steps = getSteps(wizard);
         steps.get(1).addCompleteListener(e -> {
             try {
-                pdfViewer.setSrc(fileToStreamResource(new MedicalForm01Mapper().map(rq)));
+                AbstractStreamResource  abstractStreamResource = fileToStreamResource(new MedicalForm01Mapper().map(rq));
+                pdfViewer.setSrc(abstractStreamResource);
+                afterSavePdfViewer.setSrc(abstractStreamResource);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }
         });
-
+        wizard.getFinish().setEnabled(false);
+        save.addClickListener(e -> {
+            medicationRequestService.saveMedicationRequest(fhirMedicationRequestMapper.map(rq));
+            UiUtils.generateSuccessNotification("Medication Request created successfully").open();
+            pdfViewer.setVisible(false);
+            afterSavePdfViewer.setVisible(true);
+            wizard.getFinish().setEnabled(true);
+            save.setEnabled(false);
+        });
         wizard.addFinishListener(e -> {
-          medicationRequestService.saveMedicationRequest(fhirMedicationRequestMapper.map(rq));
-          UiUtils.generateSuccessNotification("Medication Request created successfully").open();
           UI.getCurrent().navigate(HomeView.class);
         });
 
@@ -137,11 +147,15 @@ public class MedicationPrescriptionOriginateView extends VerticalLayout {
         return stepList;
     }
 
-    private Component createSummaryStepContent(MedicationPrescriptionRq rq, PdfViewer pdfViewer) {
+    private Component createSummaryStepContent(MedicationPrescriptionRq rq, PdfViewer pdfViewer, PdfViewer afterSavePdfViewer, Button save) {
         Binder<MedicationPrescriptionRq> binder = new Binder<>();
-        BinderContent<MedicationPrescriptionRq> content = new BinderContent<>(binder,pdfViewer);
+        BinderContent<MedicationPrescriptionRq> content = new BinderContent<>(binder,pdfViewer,afterSavePdfViewer, save);
         rq.setAuthoredOn(LocalDate.now());
-        pdfViewer.setAddPrintButton(true);
+        pdfViewer.setAddPrintButton(false);
+        pdfViewer.setAddDownloadButton(false);
+        afterSavePdfViewer.setAddPrintButton(true);
+        afterSavePdfViewer.setAddDownloadButton(true);
+        afterSavePdfViewer.setVisible(false);
         content.setValue(rq);
         content.setWidth("100%");
         content.setHeight("100%");
