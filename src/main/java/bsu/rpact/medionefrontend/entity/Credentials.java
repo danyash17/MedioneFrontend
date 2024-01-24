@@ -3,6 +3,7 @@ package bsu.rpact.medionefrontend.entity;
 import bsu.rpact.medionefrontend.enums.Role;
 
 import javax.persistence.*;
+import java.sql.Date;
 
 @Entity
 @Table(name = "credentials", schema = "medione",
@@ -39,13 +40,16 @@ public class Credentials {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
+    @Basic
+    @Column(name = "birth_date")
+    private Date birthDate;
 
     public Credentials() {
     }
 
     public Credentials(String login, String password, String firstName,
                        String lastName, String patronymic, String phone,
-                       boolean isEnabled2Fa, Role role) {
+                       boolean isEnabled2Fa, Role role, Date birthDate) {
         this.login = login;
         this.password = password;
         this.firstName = firstName;
@@ -54,6 +58,7 @@ public class Credentials {
         this.phone = phone;
         this.isEnabled2Fa = isEnabled2Fa;
         this.role = role;
+        this.birthDate = birthDate;
     }
 
     public Integer getId() {
@@ -126,5 +131,13 @@ public class Credentials {
 
     public void setEnabled2Fa(boolean enabled2Fa) {
         isEnabled2Fa = enabled2Fa;
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
     }
 }

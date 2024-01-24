@@ -2,13 +2,11 @@ package bsu.rpact.medionefrontend.vaadin.components;
 
 import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.enums.Role;
-import bsu.rpact.medionefrontend.pojo.other.Country;
 import bsu.rpact.medionefrontend.service.AuthService;
 import bsu.rpact.medionefrontend.service.DoctorService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
 import bsu.rpact.medionefrontend.utils.VersionUtils;
-import bsu.rpact.medionefrontend.vaadin.i18n.I18nProvider;
 import bsu.rpact.medionefrontend.vaadin.view.*;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.UI;
@@ -17,30 +15,22 @@ import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.renderer.LitRenderer;
-import com.vaadin.flow.data.renderer.Renderer;
 import com.vaadin.flow.dom.ThemeList;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
 import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.router.HighlightConditions;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.VaadinService;
-import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.WrappedSession;
 import com.vaadin.flow.theme.lumo.Lumo;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 public class MainLayout extends AppLayout implements LocaleChangeObserver {
 
@@ -146,7 +136,8 @@ public class MainLayout extends AppLayout implements LocaleChangeObserver {
                 ? VisitViewPatient.class : sessionManager.getRoleAttribute().equals(Role.DOCTOR.name()) ? VisitViewDoctor.class : HomeView.class);
         profileLink = new RouterLink(getTranslation("root.navbar.profile"), ProfileView.class);
         medcardLink = new RouterLink(getTranslation("root.navbar.medcard"), MedcardView.class);
-        documentLink = new RouterLink(getTranslation("root.navbar.documents"), DocumentView.class);
+        documentLink = new RouterLink(getTranslation("root.navbar.documents"), sessionManager.getRoleAttribute().equals(Role.PATIENT.name())
+                ? PatientDocumentView.class : sessionManager.getRoleAttribute().equals(Role.DOCTOR.name()) ? DoctorDocumentView.class : HomeView.class);
         notesLink = new RouterLink(getTranslation("root.navbar.notes"), NoteView.class);
         homeLink.setHighlightCondition(HighlightConditions.sameLocation());
         VerticalLayout layout;

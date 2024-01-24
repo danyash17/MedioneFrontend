@@ -8,11 +8,13 @@ public class RegisterRequest {
     private String patronymic;
     private String phone;
     private String role;
+    private String birthDate;
+
 
     public RegisterRequest() {
     }
 
-    public RegisterRequest(String login, String password, String firstName, String lastName, String patronymic, String phone, String role) {
+    public RegisterRequest(String login, String password, String firstName, String lastName, String patronymic, String phone, String role, String birthDate) {
         this.login = login;
         this.password = password;
         this.firstName = firstName;
@@ -20,6 +22,7 @@ public class RegisterRequest {
         this.patronymic = patronymic;
         this.phone = phone;
         this.role = role;
+        this.birthDate = birthDate;
     }
 
     public String getLogin() {
@@ -76,5 +79,13 @@ public class RegisterRequest {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
     }
 }

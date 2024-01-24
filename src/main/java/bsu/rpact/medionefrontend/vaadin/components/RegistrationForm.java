@@ -1,18 +1,15 @@
 package bsu.rpact.medionefrontend.vaadin.components;
 
-import bsu.rpact.medionefrontend.enums.Role;
 import com.vaadin.componentfactory.pdfviewer.PdfViewer;
 import com.vaadin.flow.component.HasValueAndElement;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.details.Details;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.Paragraph;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.i18n.LocaleChangeEvent;
@@ -20,9 +17,7 @@ import com.vaadin.flow.i18n.LocaleChangeObserver;
 import com.vaadin.flow.server.StreamResource;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RegistrationForm extends FormLayout implements LocaleChangeObserver {
@@ -35,11 +30,13 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
 
     private TextField phone;
 
-    private ComboBox<String> comboBox;
+    private ComboBox<String> roleComboBox;
 
     private TextField login;
     private PasswordField password;
     private PasswordField passwordConfirmation;
+
+    private DatePicker datePicker;
 
     private Checkbox agreeWithRules;
 
@@ -53,11 +50,13 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
         lastName = new TextField(getTranslation("registration.last_name"));
         patronymic = new TextField(getTranslation("registration.patronymic"));
         phone = new TextField(getTranslation("registration.phone"));
-        comboBox = new ComboBox<>(getTranslation("registration.role"));
+        roleComboBox = new ComboBox<>(getTranslation("registration.role"));
+        datePicker = new DatePicker(getTranslation("registration.birthdate"));
+        datePicker.setPlaceholder(getTranslation("registration.birthdate.pattern"));
         List<String> list = new ArrayList<>();
         list.add("PATIENT");
         list.add("DOCTOR");
-        comboBox.setItems(list);
+        roleComboBox.setItems(list);
         agreeWithRules = new Checkbox(getTranslation("registration.rules"));
         agreeWithRules.getStyle().set("margin-top", "10px");
 
@@ -65,7 +64,7 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
         password = new PasswordField(getTranslation("registration.password"));
         passwordConfirmation = new PasswordField(getTranslation("registration.password_confirm"));
 
-        setRequiredIndicatorVisible(firstName, lastName, patronymic, phone, comboBox, login, password,
+        setRequiredIndicatorVisible(firstName, lastName, patronymic, phone, roleComboBox, datePicker, login, password,
                 passwordConfirmation, agreeWithRules);
 
         viewRulesButton = new Button(getTranslation("registration.view_rules"));
@@ -84,7 +83,7 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         add(title, firstName, lastName, patronymic,
-                login, password, passwordConfirmation, phone, comboBox,
+                login, password, passwordConfirmation, phone, datePicker, roleComboBox,
                 agreeWithRules, viewRulesButton,
                 submitButton);
 
@@ -95,7 +94,8 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
 
         setColspan(title, 2);
         setColspan(phone, 2);
-        setColspan(comboBox, 2);
+        setColspan(datePicker,2);
+        setColspan(roleComboBox, 2);
         setColspan(submitButton, 2);
     }
 
@@ -109,12 +109,12 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
         Stream.of(components).forEach(comp -> comp.setRequiredIndicatorVisible(true));
     }
 
-    public ComboBox<String> getComboBox() {
-        return comboBox;
+    public ComboBox<String> getRoleComboBox() {
+        return roleComboBox;
     }
 
-    public void setComboBox(ComboBox<String> comboBox) {
-        this.comboBox = comboBox;
+    public void setRoleComboBox(ComboBox<String> roleComboBox) {
+        this.roleComboBox = roleComboBox;
     }
 
     public TextField getPhone() {
@@ -173,6 +173,14 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
         this.passwordConfirmation = passwordConfirmation;
     }
 
+    public DatePicker getDatePicker() {
+        return datePicker;
+    }
+
+    public void setDatePicker(DatePicker datePicker) {
+        this.datePicker = datePicker;
+    }
+
     @Override
     public void localeChange(LocaleChangeEvent localeChangeEvent) {
         title.setText(getTranslation("registration.title"));
@@ -180,7 +188,8 @@ public class RegistrationForm extends FormLayout implements LocaleChangeObserver
         lastName.setLabel(getTranslation("registration.last_name"));
         patronymic.setLabel(getTranslation("registration.patronymic"));
         phone.setLabel(getTranslation("registration.phone"));
-        comboBox.setLabel(getTranslation("registration.role"));
+        roleComboBox.setLabel(getTranslation("registration.role"));
+        datePicker.setLabel(getTranslation("registration.birthdate"));
         agreeWithRules.setLabel(getTranslation("registration.rules"));
         login.setLabel(getTranslation("registration.login"));
         password.setLabel(getTranslation("registration.password"));

@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.service;
 
-import bsu.rpact.medionefrontend.adapter.VisitAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.VisitAdapter;
 import bsu.rpact.medionefrontend.entity.Visit;
 import bsu.rpact.medionefrontend.enums.Role;
 import bsu.rpact.medionefrontend.pojo.DoctorVisitPojo;

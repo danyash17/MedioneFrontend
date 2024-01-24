@@ -2,6 +2,8 @@ package bsu.rpact.medionefrontend.pojo;
 
 import bsu.rpact.medionefrontend.enums.Role;
 
+import java.sql.Date;
+
 public class CredentialsNoIdPojo {
     private String login;
     private String password;
@@ -11,9 +13,10 @@ public class CredentialsNoIdPojo {
     private boolean isEnabled2Fa;
     private String phone;
     private Role role;
+    private Date birthDate;
 
     public CredentialsNoIdPojo(String login, String password, String firstName, String lastName, String patronymic,
-                               boolean isEnabled2Fa, String phone, Role role) {
+                               boolean isEnabled2Fa, String phone, Role role, Date birthDate) {
         this.login = login;
         this.password = password;
         this.firstName = firstName;
@@ -22,6 +25,7 @@ public class CredentialsNoIdPojo {
         this.isEnabled2Fa = isEnabled2Fa;
         this.phone = phone;
         this.role = role;
+        this.birthDate = birthDate;
     }
 
     public CredentialsNoIdPojo() {
@@ -89,5 +93,13 @@ public class CredentialsNoIdPojo {
 
     public void setEnabled2Fa(boolean enabled2Fa) {
         isEnabled2Fa = enabled2Fa;
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
     }
 }

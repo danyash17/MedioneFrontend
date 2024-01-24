@@ -1,6 +1,6 @@
 package bsu.rpact.medionefrontend.service;
 
-import bsu.rpact.medionefrontend.adapter.DoctorAdapter;
+import bsu.rpact.medionefrontend.adapter.demographic.DoctorAdapter;
 import bsu.rpact.medionefrontend.entity.Doctor;
 import bsu.rpact.medionefrontend.enums.SpecialityName;
 import bsu.rpact.medionefrontend.pojo.DoctorPojo;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DoctorService {
@@ -36,6 +37,10 @@ public class DoctorService {
         return result;
     }
 
+    public Doctor getDoctorById(Integer id){
+        return doctorAdapter.getById(id);
+    }
+
     public Doctor getDoctorSelf() {
         return doctorAdapter.getSelf();
     }
@@ -48,4 +53,5 @@ public class DoctorService {
         doctorPojo.setPhoto(doctor.getDoctorPhoto());
         return doctorAdapter.updateSelf(doctorPojo);
     }
+
 }

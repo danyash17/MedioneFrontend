@@ -5,6 +5,7 @@ import bsu.rpact.medionefrontend.entity.Medcard;
 import bsu.rpact.medionefrontend.entity.Operation;
 import bsu.rpact.medionefrontend.pojo.authentication.MessageResponse;
 import bsu.rpact.medionefrontend.pojo.other.Country;
+import bsu.rpact.medionefrontend.pojo.other.RestCountry;
 import bsu.rpact.medionefrontend.service.CountryService;
 import bsu.rpact.medionefrontend.service.MedcardService;
 import bsu.rpact.medionefrontend.session.SessionManager;
@@ -33,6 +34,7 @@ import com.vaadin.flow.router.Route;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.klaudeta.PaginatedGrid;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -214,16 +216,19 @@ public class MedcardView extends VerticalLayout implements LocaleChangeObserver 
     private VerticalLayout createDialogLayout() {
         selectYourCountryLabel.setText(selectYourCountry);
         VerticalLayout dialogLayout = new VerticalLayout(selectYourCountryLabel);
-        ComboBox<Country> countries = new ComboBox();
-        List<Country> countryList = countryService.getAllCountries();
-        countryList.forEach(item -> {
-            item.setName(StringUtils.capitalize(item.getName()));
-            item.setFlag(FLAGSAPI_COM + item.getCode() + FORMAT);
+        ComboBox<Country> countriesCb = new ComboBox();
+        List<RestCountry> restCountryList = countryService.getAllCountries();
+        List<Country> countryList = new LinkedList<>();
+        restCountryList.forEach(item -> {
+            Country country = new Country();
+            country.setName(item.getName().getOfficial());
+            country.setFlag(item.getFlags().getPng());
+            countryList.add(country);
         });
-        countries.setItems(countryList);
-        countries.setRenderer(createRenderer());
-        countries.setItemLabelGenerator(country -> country.getName());
-        countries.setAllowCustomValue(true);
+        countriesCb.setItems(countryList);
+        countriesCb.setRenderer(createRenderer());
+        countriesCb.setItemLabelGenerator(country -> country.getName());
+        countriesCb.setAllowCustomValue(true);
 
         TextArea addressTextArea = new TextArea();
         addressTextArea.setMaxLength(addressCharLimit);
@@ -252,12 +257,12 @@ public class MedcardView extends VerticalLayout implements LocaleChangeObserver 
         streetAddressLabel.setText(enterYourResidentalStreetAddress);
         homeNumberLabel.setText(enterYourHomeNumber);
 
-        dialogLayout.add(countries, streetAddressLabel, addressTextArea, homeNumberLabel, homeTextArea);
+        dialogLayout.add(countriesCb, streetAddressLabel, addressTextArea, homeNumberLabel, homeTextArea);
         applyButton.setText(apply);
         applyButton.addClickListener(e -> {
             if (!addressTextArea.isInvalid()) {
                 MessageResponse response = medcardService.
-                        createSelf(parseResidentalAddress(countries, addressTextArea, homeTextArea));
+                        createSelf(parseResidentalAddress(countriesCb, addressTextArea, homeTextArea));
                 UI.getCurrent().getPage().reload();
                 UiUtils.generateSuccessNotification(response.getMessage());
             }

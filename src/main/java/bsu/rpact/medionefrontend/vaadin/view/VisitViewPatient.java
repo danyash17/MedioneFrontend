@@ -11,6 +11,7 @@ import bsu.rpact.medionefrontend.service.PatientService;
 import bsu.rpact.medionefrontend.service.VisitService;
 import bsu.rpact.medionefrontend.session.SessionManager;
 import bsu.rpact.medionefrontend.utils.ImageUtils;
+import bsu.rpact.medionefrontend.vaadin.components.DoctorDetails;
 import bsu.rpact.medionefrontend.vaadin.components.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -86,11 +87,6 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
     private String bookingTime = getTranslation("visits.booking_time");
     private String visitReason = getTranslation("visits.visit_reason");
     private String aboutDoctor = getTranslation("visits.about_doctor");
-    private String currentHospital = getTranslation("profile.current_hospital");
-    private String instituteOfAccreditation = getTranslation("profile.institute_of_accreditation");
-    private String workExperience = getTranslation("profile.work_experience");
-    private String speciality = getTranslation("profile.speciality");
-    private Grid<RepresentativeDoctorSpecialityPojo> doctorSpecialityGrid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
     private final PaginatedGrid<Visit> visitGrid = new PaginatedGrid<>();
     private Binder<Visit> binder;
 
@@ -211,7 +207,7 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         Doctor doctor = visit.getDoctor();
         DoctorPhotoUrlContainer doctorPhotoUrlContainer = new DoctorPhotoUrlContainer();
         initContainer(visit, doctor, doctorPhotoUrlContainer);
-        dialog.add(createDialogLayout(doctorPhotoUrlContainer, dialog, visit));
+        dialog.add(createDialogLayout(doctorPhotoUrlContainer, visit));
         dialog.setCloseOnEsc(true);
         dialog.setWidth("800px");
         dialog.open();
@@ -340,48 +336,20 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         });
     }
 
-    private VerticalLayout createDialogLayout(DoctorPhotoUrlContainer container, Dialog dialog, Visit visit) {
+    private VerticalLayout createDialogLayout(DoctorPhotoUrlContainer container, Visit visit) {
         VerticalLayout layout = new VerticalLayout();
         layout.setMinWidth("700px");
-        doctorSpecialityGrid = new Grid<>(RepresentativeDoctorSpecialityPojo.class, false);
+
         layout.add(new H1(visitEnquiry));
         layout.add(new Label(bookingTime + DATE_FORMAT.format(visit.getDatetime())));
         layout.add(new Label(visitReason + visit.getReason()));
         if (!visit.getActive()) {
             setupVisitResults(layout, visit);
         }
-        VerticalLayout doctorLayout = new VerticalLayout();
-        setupDoctorSection(container, doctorLayout);
-        Details details = new Details(aboutDoctor, doctorLayout);
+        Details details = new Details(aboutDoctor, new DoctorDetails(doctorSpecialityService, imageUtils, visit.getDoctor()));
         details.setOpened(false);
         layout.add(details);
         return layout;
-    }
-
-    private void setupDoctorSection(DoctorPhotoUrlContainer container, VerticalLayout layout) {
-        layout.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
-        Image image = new Image(container.getPhotoUrl(), "");
-        image.setMaxWidth("530px");
-        image.setMaxHeight("630px");
-        layout.setMinWidth("700px");
-        layout.add(image);
-        layout.add(new H2(container.getDoctor().getCredentials().getFirstName() + " " +
-                container.getDoctor().getCredentials().getPatronymic() + " " +
-                container.getDoctor().getCredentials().getLastName()));
-        Badge badgeHospital = new Badge();
-        badgeHospital.setPrimary(true);
-        badgeHospital.setPill(true);
-        badgeHospital.setText(container.getDoctor().getHospital());
-        badgeHospital.setVariant(Badge.BadgeVariant.NORMAL);
-        badgeHospital.setIcon(VaadinIcon.HOSPITAL.create());
-        layout.add(new HorizontalLayout(new Label(currentHospital), badgeHospital));
-        layout.add(new H4(container.getDoctor().getCommonInfo()));
-        doctorSpecialityGrid.addColumn(doctorSpeciality -> doctorSpeciality.getSpeciality()).setHeader(speciality);
-        doctorSpecialityGrid.addColumn(RepresentativeDoctorSpecialityPojo::getInstitute).setHeader(instituteOfAccreditation);
-        doctorSpecialityGrid.addColumn(RepresentativeDoctorSpecialityPojo::getExperience).setHeader(workExperience);
-        doctorSpecialityGrid.setItems(doctorSpecialityService.getDoctorSpecialities(container.getDoctor().getId()));
-        doctorSpecialityGrid.setAllRowsVisible(true);
-        layout.add(doctorSpecialityGrid);
     }
 
     private Icon createIcon(VaadinIcon vaadinIcon) {
@@ -420,10 +388,6 @@ public class VisitViewPatient extends VerticalLayout implements LocaleChangeObse
         bookingTime = getTranslation("visits.booking_time");
         visitReason = getTranslation("visits.visit_reason");
         aboutDoctor = getTranslation("visits.about_doctor");
-        currentHospital = getTranslation("profile.current_hospital");
-        instituteOfAccreditation = getTranslation("profile.institute_of_accreditation");
-        workExperience = getTranslation("profile.work_experience");
-        speciality = getTranslation("profile.speciality");
 
         if(visitGrid!=null && !visitGrid.getColumns().isEmpty()) {
             visitGrid.getColumnByKey("reason").setHeader(reason);
