@@ -1,0 +1,48 @@
+{
+  "properties": [
+    {
+      "name": "mappings.preambule",
+      "type": "java.lang.String",
+      "description": "http//:localhost."
+    },
+    {
+      "name": "mappings.auth",
+      "type": "java.lang.String",
+      "description": "Description for mappings.auth."
+    },
+    {
+      "name": "cookie.name.jwt",
+      "type": "java.lang.String",
+      "description": "Jwt token cookie name"
+    },
+    {
+      "name": "mappings.register",
+      "type": "java.lang.String",
+      "description": "Description for mappings.register."
+    },
+    {
+      "name": "frontend.mappings.preambule",
+      "type": "java.lang.String",
+      "description": "Description for frontend.mappings.preambule."
+    },
+    {
+      "name": "frontend.routes.auth",
+      "type": "java.lang.String",
+      "description": "Description for frontend.routes.auth."
+    },
+    {
+      "name": "frontend.mappings.restricted",
+      "type": "java.lang.String",
+      "description": "Description for frontend.mappings.restricted."
+    },
+    {
+      "name": "mappings.twoFactorAuth",
+      "type": "java.lang.String",
+      "description": "Description for mappings.twoFactorAuth."
+    },
+    {
+      "name": "mappings.patient",
+      "type": "java.lang.String",
+      "description": "Description for mappings.patient."
+    }
+  ] }

@@ -1,0 +1,33 @@
+package bsu.rpact.medionefrontend.enums;
+
+public enum SpecialityName {
+    Allergist,
+    Cardiologist,
+    Diagnostician,
+    Endocrinologist,
+    Gastroenterologist,
+    Infectionist,
+    Mamologist,
+    Nephrologist,
+    Neurologist,
+    Oncologist,
+    Ophthalmologist,
+    Orthopedist,
+    Osteopath,
+    Pulmonologist,
+    Rheumatologist,
+    Traumatologist,
+    Urologist,
+    Therapist,
+    Dentist,
+    Radiologist,
+    Psychotherapist,
+    Surgeon,
+    Otolaryngologist,
+    Neurosurgeon,
+    Narcologyst,
+    Gynecologist,
+    Pediatrician,
+    Venerologist,
+    Dermatologist
+}
